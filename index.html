@@ -164,10 +164,18 @@
       fetchTargets();
     }
 
-    // 4. 드래그 앤 드롭 관련 변수
+    // 4. 드래그 앤 드롭 관련 함수들
     let draggedItem = null;
 
     function handleDragStart(e) {
+      // 수정창이 열려있는 상태라면 드래그를 강제로 막음
+      const id = this.getAttribute('data-id');
+      const editSection = document.getElementById(`edit-${id}`);
+      if (editSection && !editSection.classList.contains('hidden')) {
+        e.preventDefault();
+        return;
+      }
+
       draggedItem = this;
       this.classList.add('opacity-40', 'border-dashed', 'border-blue-500');
       e.dataTransfer.effectAllowed = 'move';
@@ -201,7 +209,6 @@
           listContainer.insertBefore(draggedItem, this);
         }
         
-        // 순서 변경 후 DB에 일괄 저장
         saveNewOrder();
       }
       return false;
@@ -214,7 +221,6 @@
       });
     }
 
-    // 드래그가 끝난 후 화면의 DOM 순서대로 DB의 display_order를 일괄 업데이트
     async function saveNewOrder() {
       const listContainer = document.getElementById('target-list');
       const itemElements = listContainer.querySelectorAll('.draggable-item');
@@ -249,23 +255,32 @@
           'eq': { label: '목표값 일치 시', icon: 'fa-equals' }
         };
 
-listContainer.innerHTML = data.map((item) => {
+        listContainer.innerHTML = data.map((item) => {
           const config = condConfig[item.condition_type] || { label: item.condition_type, icon: 'fa-bell' };
           const targetValStr = item.target_value !== null && item.target_value !== undefined ? ` (${item.target_value})` : '';
           const safeSelector = (item.css_selector || '').replace(/"/g, '&quot;');
           
+          // FRED API 주소인 경우 실제 웹사이트 차트 보기 링크로 변환
+          let displayUrl = item.url;
+          if (item.url && item.url.includes('stlouisfed.org/fred/series/observations')) {
+            const match = item.url.match(/series_id=([^&]+)/);
+            if (match && match[1]) {
+              displayUrl = `https://fred.stlouisfed.org/series/${match[1]}`;
+            }
+          }
+
           return `
-            <div class="draggable-item border-b border-slate-700/60 last:border-b-0 py-3 transition-all cursor-grab active:cursor-grabbing rounded-lg px-2" 
+            <div class="draggable-item border-b border-slate-700/60 last:border-b-0 py-3 transition-all rounded-lg px-2 cursor-grab active:cursor-grabbing" 
                  draggable="true" 
                  data-id="${item.id}">
               <div class="flex justify-between items-center" onclick="toggleEdit(${item.id})">
                 <div class="flex-1 pr-4 group">
                   <div class="flex items-center">
                     <i class="fa-solid fa-grip-vertical text-slate-600 mr-2.5 text-xs hover:text-slate-400" title="마우스로 끌어서 순서 변경"></i>
-                   <!-- <i class="fa-solid fa-chart-line text-blue-500 mr-2 text-sm"></i> -->
+                    <i class="fa-solid fa-chart-line text-blue-500 mr-2 text-sm"></i>
                     <span class="font-bold text-slate-200 group-hover:text-blue-400 transition mr-2">${item.title}</span>
                     
-                    <a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-slate-500 hover:text-blue-400 bg-slate-800/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700 transition" title="원본 페이지로 이동">
+                    <a href="${displayUrl}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-slate-500 hover:text-blue-400 bg-slate-800/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700 transition" title="원본 페이지로 이동">
                       <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> 원본
                     </a>
                   </div>
@@ -317,7 +332,6 @@ listContainer.innerHTML = data.map((item) => {
           `;
         }).join('');
 
-        // 렌더링 직후 드래그 앤 드롭 이벤트 리스너 부착
         const draggables = listContainer.querySelectorAll('.draggable-item');
         draggables.forEach(item => {
           item.addEventListener('dragstart', handleDragStart);
@@ -333,14 +347,28 @@ listContainer.innerHTML = data.map((item) => {
       }
     }
 
-    // 6. 수정창 아코디언 열고 닫기 함수
+    // 6. 수정창 열고 닫을 때 드래그 잠금/해제 제어
     function toggleEdit(id) {
       const editSection = document.getElementById(`edit-${id}`);
       if (!editSection) return;
+      
+      const itemCard = editSection.closest('.draggable-item');
+      const isHidden = editSection.classList.contains('hidden');
+      
       editSection.classList.toggle('hidden');
+
+      if (isHidden) {
+        // 수정창이 열릴 때: 드래그 잠금 (글자 선택 및 입력 편의성 확보)
+        itemCard.setAttribute('draggable', 'false');
+        itemCard.classList.remove('cursor-grab', 'active:cursor-grabbing');
+      } else {
+        // 수정창이 닫힐 때: 드래그 복구
+        itemCard.setAttribute('draggable', 'true');
+        itemCard.classList.add('cursor-grab', 'active:cursor-grabbing');
+      }
     }
 
-    // 7. 수정 내용 DB 저장 함수 (기존 순서 고정 코드 포함)
+    // 7. 수정 내용 DB 저장 함수
     async function saveEdit(id) {
       const title = document.getElementById(`val-title-${id}`).value;
       const url = document.getElementById(`val-url-${id}`).value;
