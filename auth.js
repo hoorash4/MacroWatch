@@ -102,6 +102,13 @@
       event.preventDefault();
       beginKakaoLogin();
     });
+    document.getElementById('password-login-form')?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      window.alert('서비스 준비 중입니다.');
+    });
+    document.getElementById('signup-placeholder-button')?.addEventListener('click', () => {
+      window.alert('서비스 준비 중입니다.');
+    });
     document.getElementById('profile-button')?.addEventListener('click', async () => {
       elements.profileModal.classList.remove('hidden');
       await loadKakaoStatus();
