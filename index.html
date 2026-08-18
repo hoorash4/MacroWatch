@@ -89,7 +89,10 @@
     </div>
   </div>
 
-  <script>
+
+
+  
+ <script>
     // 🔑 본인의 Supabase 설정 정보 입력
     const SUPABASE_URL = "https://xhghpywvthjuvespzdul.supabase.co";
     const SUPABASE_KEY = "sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc";
@@ -120,7 +123,7 @@
       }
     });
 
-    // 3. 데이터 등록 함수
+    // 3. 데이터 등록 함수 (신규 항목 추가 시 마지막 순서 번호 자동 부여)
     async function handleAddTarget(e) {
       e.preventDefault();
       const type = document.getElementById('input-type').value;
@@ -143,7 +146,22 @@
         css_selector = document.getElementById('input-selector').value.trim();
       }
 
-      const { error } = await supabaseClient.from('targets').insert([{ title, url, css_selector, condition_type, target_value }]);
+      // 현재 등록된 항목들의 개수를 확인하여 다음 순서 번호(display_order) 결정
+      const { count, error: countError } = await supabaseClient
+        .from('targets')
+        .select('*', { count: 'exact', head: true });
+
+      const nextOrder = countError || count === null ? 0 : count;
+
+      const { error } = await supabaseClient.from('targets').insert([{ 
+        title, 
+        url, 
+        css_selector, 
+        condition_type, 
+        target_value,
+        display_order: nextOrder 
+      }]);
+
       if (error) return alert('등록 실패: ' + error.message);
       
       alert('성공적으로 등록되었습니다!');
@@ -152,24 +170,27 @@
       fetchTargets();
     }
 
-    // 4. 화살표 이동 함수 (순서 변경)
+    // 4. 화살표 이동 함수 (순서 변경 - 꼬임 방지 정렬 포함)
     async function moveOrder(id, direction) {
       const { data: allTargets, error } = await supabaseClient
         .from('targets')
         .select('id, display_order')
         .order('display_order', { ascending: true });
 
-      if (error || !allTargets) return;
+      if (error || !allTargets || allTargets.length <= 1) return;
 
-      allTargets.forEach((t, idx) => {
-        if (t.display_order === null || t.display_order === undefined) {
-          t.display_order = idx;
+      // 만약 display_order가 꼬여서 null이거나 중복인 경우를 대비해 0부터 순차 재정렬
+      for (let i = 0; i < allTargets.length; i++) {
+        if (allTargets[i].display_order !== i) {
+          await supabaseClient.from('targets').update({ display_order: i }).eq('id', allTargets[i].id);
+          allTargets[i].display_order = i;
         }
-      });
+      }
 
       const currentIndex = allTargets.findIndex(t => t.id === id);
       if (currentIndex === -1) return;
 
+      // 최상단에서 위로, 최하단에서 아래로 갈 때는 동작 안 함
       if (direction === 'up' && currentIndex === 0) return;
       if (direction === 'down' && currentIndex === allTargets.length - 1) return;
 
@@ -177,6 +198,7 @@
       const currentItem = allTargets[currentIndex];
       const swapItem = allTargets[swapIndex];
 
+      // 두 항목의 순서 맞교환
       await Promise.all([
         supabaseClient.from('targets').update({ display_order: swapItem.display_order }).eq('id', currentItem.id),
         supabaseClient.from('targets').update({ display_order: currentItem.display_order }).eq('id', swapItem.id)
@@ -275,7 +297,7 @@
       }
     }
 
-    // 6. 수정창 아코디언 열고 닫기 함수 (단일화)
+    // 6. 수정창 아코디언 열고 닫기 함수
     function toggleEdit(id) {
       const editSection = document.getElementById(`edit-${id}`);
       if (!editSection) return;
@@ -287,34 +309,47 @@
       }
     }
 
-// 7. 수정 내용 DB 저장 함수 (순서 꼬임 방지 코드 포함)
-async function saveEdit(id) {
-  const title = document.getElementById(`val-title-${id}`).value;
-  const url = document.getElementById(`val-url-${id}`).value;
-  const css_selector = document.getElementById(`val-selector-${id}`).value;
-  const condition_type = document.getElementById(`val-cond-${id}`).value;
-  const target_value_raw = document.getElementById(`val-target-${id}`).value;
-  const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
+    // 7. 수정 내용 DB 저장 함수 (기존 순서 고정 코드 포함)
+    async function saveEdit(id) {
+      const title = document.getElementById(`val-title-${id}`).value;
+      const url = document.getElementById(`val-url-${id}`).value;
+      const css_selector = document.getElementById(`val-selector-${id}`).value;
+      const condition_type = document.getElementById(`val-cond-${id}`).value;
+      const target_value_raw = document.getElementById(`val-target-${id}`).value;
+      const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
 
-  // 수정 요청 시 기존 순서가 유지되도록 업데이트 쿼리 전송
-  const { error } = await supabaseClient
-    .from('targets')
-    .update({ 
-      title: title, 
-      url: url, 
-      css_selector: css_selector, 
-      condition_type: condition_type, 
-      target_value: target_value 
-    })
-    .eq('id', id);
+      // 1. 먼저 수정하려는 항목의 현재 display_order 값을 안전하게 가져옴
+      const { data: currentItem, error: fetchError } = await supabaseClient
+        .from('targets')
+        .select('display_order')
+        .eq('id', id)
+        .single();
 
-  if (error) {
-    alert('수정 실패: ' + error.message);
-  } else {
-    toggleEdit(id); 
-    fetchTargets(); // 목록을 다시 불러올 때 기존 순서(display_order 기준)가 유지됨
-  }
-}
+      if (fetchError) {
+        alert('기존 순서 정보를 가져오지 못했습니다.');
+        return;
+      }
+
+      // 2. 업데이트할 때 기존 display_order 값을 그대로 함께 전달
+      const { error } = await supabaseClient
+        .from('targets')
+        .update({ 
+          title: title, 
+          url: url, 
+          css_selector: css_selector, 
+          condition_type: condition_type, 
+          target_value: target_value,
+          display_order: currentItem.display_order ?? 0 // 기존 순서 유지
+        })
+        .eq('id', id);
+
+      if (error) {
+        alert('수정 실패: ' + error.message);
+      } else {
+        toggleEdit(id); 
+        fetchTargets(); // 목록을 다시 불러올 때 순서가 섞이지 않고 제자리에 유지됨
+      }
+    }
   </script>
 </body>
 </html>
