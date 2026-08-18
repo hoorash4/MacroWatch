@@ -187,30 +187,13 @@
           <input type="text" id="edit-title" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
         <div>
-          <label class="text-xs text-slate-400 block mb-1">데이터 소스 유형</label>
-          <select id="edit-type" onchange="toggleEditTypeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-            <option value="SELECTOR">일반 웹 스크래핑</option>
-            <option value="FRED">연준 FRED API</option>
-            <option value="BOK">한국은행 ECOS API</option>
-            <option value="API">외부 JSON API (직접 입력)</option>
-          </select>
+          <label class="text-xs text-slate-400 block mb-1">대상 웹페이지 URL</label>
+          <input type="url" id="edit-url" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
-
-        <div id="edit-field-selector" class="space-y-3">
-          <input type="url" id="edit-url" placeholder="URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-          <input type="text" id="edit-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono">
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">수치 추출용 CSS Selector</label>
+          <input type="text" id="edit-selector" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono">
         </div>
-        <div id="edit-field-fred" class="hidden space-y-3">
-          <input type="text" id="edit-fred-id" placeholder="FRED Series ID" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-        </div>
-        <div id="edit-field-bok" class="hidden space-y-3">
-          <input type="text" id="edit-bok-code" placeholder="통계표 코드 (예: 722Y001)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-        </div>
-        <div id="edit-field-api" class="hidden space-y-3">
-          <input type="url" id="edit-api-url" placeholder="API URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-          <input type="text" id="edit-json-path" placeholder="JSON 경로" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-        </div>
-
         <div>
           <label class="text-xs text-slate-400 block mb-1">알림 조건 설정</label>
           <select id="edit-condition" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
