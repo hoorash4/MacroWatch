@@ -72,7 +72,7 @@ function toggleEditTypeFields() {
   document.getElementById('edit-field-api').classList.toggle('hidden', type !== 'API');
 }
 
-// ECOS API URL 생성 헬퍼 함수
+// ECOS API URL 생성 헬퍼
 function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
   return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
 }
