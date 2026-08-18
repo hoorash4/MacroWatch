@@ -25,32 +25,19 @@ async function getCurrentUserId() {
   return currentUserId;
 }
 
-// DB 연결 상태 확인 (Publishable Key 호환 수정)
-async function checkDbConnection() {
+// DB 연결 상태 표시
+function setDbStatus(state) {
   const statusEl = document.getElementById('db-status');
-  if (!supabaseClient) {
-    if (statusEl) {
-      statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950/60 text-red-400 border border-red-700/50 flex items-center gap-2 shadow-inner";
-      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> DB 설정 필요`;
-    }
-    return;
-  }
-  try {
-    // Publishable Key 호환을 위한 호환성 쿼리
-    const { error } = await supabaseClient.from('targets').select('id').limit(1);
-    if (error) throw error;
-    
-    if (statusEl) {
-      statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-green-950/60 text-green-400 border border-green-700/50 flex items-center gap-2 shadow-inner";
-      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> DB 연결 완료`;
-    }
-  } catch (err) {
-    console.error('Supabase Connection Error:', err);
-    if (statusEl) {
-      statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950/60 text-amber-400 border border-amber-700/50 flex items-center gap-2 shadow-inner";
-      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> 로컬 모드`;
-    }
-  }
+  if (!statusEl) return;
+  const states = {
+    loading: ['bg-slate-900/60 text-slate-400 border-slate-800', 'bg-slate-500 animate-pulse', 'DB 연결 확인 중...'],
+    connected: ['bg-green-950/60 text-green-400 border-green-700/50', 'bg-green-400', 'DB 연결 완료'],
+    missing: ['bg-red-950/60 text-red-400 border-red-700/50', 'bg-red-400', 'DB 설정 필요'],
+    error: ['bg-amber-950/60 text-amber-400 border-amber-700/50', 'bg-amber-400', 'DB 연결 오류']
+  };
+  const [colors, dot, label] = states[state] || states.error;
+  statusEl.className = `px-3 py-1.5 rounded-full text-xs font-semibold border flex items-center gap-2 shadow-inner ${colors}`;
+  statusEl.innerHTML = `<span class="w-2 h-2 rounded-full ${dot}"></span> ${label}`;
 }
 
 // 탭 전환 함수
@@ -98,27 +85,28 @@ function toggleTargetValueInput(conditionId, valueId) {
 
 // 추적 목록 조회
 async function fetchTargets() {
-  if (supabaseClient) {
-    try {
-      const userId = await getCurrentUserId();
-      if (!userId) {
-        targets = [];
-        renderTargets();
-        return;
-      }
-      const { data, error } = await supabaseClient
-        .from('targets')
-        .select('*')
-        .eq('user_id', userId)
-        .order('display_order', { ascending: true, nullsFirst: false });
-      if (!error && data) {
-        targets = data;
-        renderTargets();
-        return;
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  if (!supabaseClient) {
+    setDbStatus('missing');
+    targets = [];
+    renderTargets();
+    return;
+  }
+  setDbStatus('loading');
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) throw new Error('로그인 정보를 확인하지 못했습니다.');
+    const { data, error } = await supabaseClient
+      .from('targets')
+      .select('*')
+      .eq('user_id', userId)
+      .order('display_order', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    targets = data || [];
+    setDbStatus('connected');
+  } catch (error) {
+    console.error('Target fetch error:', error);
+    targets = [];
+    setDbStatus('error');
   }
   renderTargets();
 }
@@ -299,12 +287,20 @@ async function saveOrderToDb() {
   const userId = await getCurrentUserId();
   if (!userId) return;
 
-  for (let i = 0; i < targets.length; i++) {
-    await supabaseClient
-      .from('targets')
-      .update({ display_order: i })
-      .eq('id', targets[i].id)
-      .eq('user_id', userId);
+  try {
+    const results = await Promise.all(targets.map((target, displayOrder) =>
+      supabaseClient
+        .from('targets')
+        .update({ display_order: displayOrder })
+        .eq('id', target.id)
+        .eq('user_id', userId)
+    ));
+    const failed = results.find((result) => result.error);
+    if (failed?.error) throw failed.error;
+  } catch (error) {
+    console.error('Target order save error:', error);
+    await fetchTargets();
+    window.alert('순서를 저장하지 못해 기존 순서로 되돌렸습니다.');
   }
 }
 
