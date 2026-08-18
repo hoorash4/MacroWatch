@@ -131,7 +131,7 @@ function renderTargets() {
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
-            ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-blue-400 transition" title="원본 사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>` : ''}
+            ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-2 py-1 rounded text-xs text-slate-400 bg-slate-800 hover:text-blue-400 transition" title="원본 사이트 열기">링크</a>` : ''}
           </div>
           <p class="text-xs text-slate-400 mt-0.5 truncate">
             조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
@@ -379,6 +379,19 @@ function getConditionText(condition) {
     case 'cross': return '목표값 상/하향 돌파';
     default: return condition;
   }
+}
+
+function getOriginalUrl(item) {
+  const url = item?.url || '';
+  if (url.includes('api.stlouisfed.org/fred/series/observations')) {
+    try {
+      const seriesId = new URL(url).searchParams.get('series_id');
+      if (seriesId) return `https://fred.stlouisfed.org/series/${encodeURIComponent(seriesId)}`;
+    } catch (err) {
+      console.error('FRED URL Parse Error:', err);
+    }
+  }
+  return url;
 }
 
 function escapeHtml(str) {
