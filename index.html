@@ -59,8 +59,10 @@
       <h2 class="text-lg font-semibold mb-4 text-blue-400 flex items-center">
         <i class="fa-solid fa-plus-circle mr-2"></i>새 추적 항목 등록
       </h2>
+
+//입력 폼 부분
       
-      <form id="add-form" onsubmit="handleAddTarget(event)" class="space-y-4">
+<form id="add-form" onsubmit="handleAddTarget(event)" class="space-y-4">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div>
       <label class="block text-xs font-medium text-slate-400 mb-1">수집 방식</label>
@@ -97,8 +99,30 @@
     </div>
     <div>
       <label class="block text-xs font-medium text-slate-400 mb-1">JSON 데이터 경로 (JSON Path)</label>
-      <input type="text" id="input-json-path" placeholder="예: observations[0].value 또는 data.price" 
+      <input type="text" id="input-json-path" placeholder="예: observations[0].value" 
              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    </div>
+  </div>
+
+  <div class="p-3 bg-slate-800/50 border border-slate-700/60 rounded-lg space-y-3">
+    <span class="text-xs font-semibold text-blue-400 flex items-center">
+      <i class="fa-solid fa-bell mr-1.5"></i>알림발송 조건 설정
+    </span>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">비교 조건</label>
+        <select id="input-condition" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="changed">단순 값이 변경되었을 때</option>
+          <option value="lte">목표값 이하로 떨어졌을 때 (<=)</option>
+          <option value="gte">목표값 이상으로 올랐을 때 (>=)</option>
+          <option value="eq">목표값과 일치할 때 (==)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">목표 기준값 (Target Value)</label>
+        <input type="text" id="input-target-val" placeholder="예: 4.0 (단순 변경 알림 시 비워둠)" 
+               class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      </div>
     </div>
   </div>
 
@@ -108,6 +132,9 @@
     </button>
   </div>
 </form>
+
+//입력 폼 끝
+      
     </section>
 
     <section>
@@ -261,76 +288,95 @@
     }
 
     function createTargetCard(item) {
-      const card = document.createElement('div');
-      card.className = `bg-slate-800/90 rounded-xl p-5 border ${item.is_active ? 'border-slate-700' : 'border-slate-800 opacity-60'} shadow-md transition hover:border-slate-600`;
+  // 1. 조건 종류(condition_type)에 따른 표시 텍스트 변환
+  const condText = {
+    'changed': '값 변경 시',
+    'lte': `${item.target_value || ''} 이하일 때`,
+    'gte': `${item.target_value || ''} 이상일 때`,
+    'eq': `${item.target_value || ''} 일치 시`
+  }[item.condition_type || 'changed'];
 
-      card.innerHTML = `
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="space-y-1.5 flex-1">
-            <div class="flex items-center gap-2">
-              <span class="inline-block w-2.5 h-2.5 rounded-full ${item.is_active ? 'bg-emerald-400' : 'bg-slate-500'}"></span>
-              <h3 class="font-bold text-slate-100 text-base">${escapeHtml(item.title)}</h3>
-              <span class="text-xs px-2 py-0.5 rounded ${item.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-700 text-slate-400'}">
-                ${item.is_active ? '추적 중' : '일시정지'}
-              </span>
-            </div>
-            
-            <p class="text-xs text-slate-400 truncate max-w-xl">
-              <i class="fa-solid fa-link mr-1 text-slate-500"></i>
-              <a href="${escapeHtml(item.url)}" target="_blank" class="hover:underline hover:text-blue-400">${escapeHtml(item.url)}</a>
-            </p>
+  // 2. 수집 방식 구분 (API vs Selector)
+  const isApi = item.css_selector && item.css_selector.startswith ? item.css_selector.startswith('API:') : item.css_selector.startsWith('API:');
+  const typeBadge = isApi 
+    ? `<span class="text-[10px] bg-purple-950 text-purple-300 border border-purple-800 px-2 py-0.5 rounded-full font-mono">REST API</span>`
+    : `<span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded-full font-mono">WEB</span>`;
 
-            <p class="text-xs font-mono text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded inline-block">
-              <span class="text-slate-500">Selector:</span> ${escapeHtml(item.css_selector)}
-            </p>
-          </div>
+  // 3. 카드 HTML 생성
+  return `
+    <div class="bg-slate-800 border border-slate-700/80 rounded-xl p-4 shadow-sm hover:border-slate-600 transition space-y-3">
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-bold text-slate-100 text-base leading-snug">${item.title}</h3>
+        ${typeBadge}
+      </div>
 
-          <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-slate-700/50">
-            <div class="text-left md:text-right">
-              <span class="block text-[10px] text-slate-500">최근 감지된 수치</span>
-              <span class="text-sm font-semibold text-blue-400 font-mono">${item.last_value ? escapeHtml(item.last_value) : '미수집'}</span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <button onclick="toggleActive(${item.id}, ${item.is_active})" 
-                      title="${item.is_active ? '추적 정지' : '추적 시작'}"
-                      class="p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 text-xs transition">
-                <i class="fa-solid ${item.is_active ? 'fa-pause text-amber-400' : 'fa-play text-emerald-400'}"></i>
-              </button>
-              <button onclick="deleteTarget(${item.id})" 
-                      title="삭제"
-                      class="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs transition">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </div>
-          </div>
+      <div class="bg-slate-900/60 rounded-lg p-3 border border-slate-700/40">
+        <div class="text-[11px] text-slate-400 mb-0.5">최근 감지된 값</div>
+        <div class="text-lg font-mono font-bold text-blue-400">
+          ${item.last_value ? item.last_value : '<span class="text-xs text-slate-500 font-normal">아직 수집된 값 없음</span>'}
         </div>
-      `;
-      return card;
-    }
+      </div>
 
-    async function handleAddTarget(e) {
-      e.preventDefault();
-      if (!supabaseClient) return alert('먼저 Supabase 연동 정보를 입력하고 저장해 주세요.');
+      <div class="flex items-center justify-between pt-1">
+        <span class="text-xs bg-blue-950/80 text-blue-300 border border-blue-800/80 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+          <i class="fa-solid fa-bell text-[10px]"></i>
+          <span>${condText}</span>
+        </span>
 
-      const title = document.getElementById('input-title').value.trim();
-      const url = document.getElementById('input-url').value.trim();
-      const css_selector = document.getElementById('input-selector').value.trim();
+        <button onclick="deleteTarget('${item.id}')" class="text-xs text-slate-400 hover:text-red-400 transition p-1">
+          <i class="fa-regular fa-trash-can"></i> 삭제
+        </button>
+      </div>
+    </div>
+  `;
+}
 
-      try {
-        const { error } = await supabaseClient
-          .from('targets')
-          .insert([{ title, url, css_selector }]);
+async function handleAddTarget(e) {
+  e.preventDefault();
+  if (!supabaseClient) return alert('먼저 Supabase 연동 정보를 입력하고 저장해 주세요.');
 
-        if (error) throw error;
+  const type = document.getElementById('input-type').value;
+  const title = document.getElementById('input-title').value.trim();
+  const condition_type = document.getElementById('input-condition').value;
+  const target_value = document.getElementById('input-target-val').value.trim();
 
-        document.getElementById('add-form').reset();
-        fetchTargets();
+  let url = '';
+  let css_selector = '';
 
-      } catch (err) {
-        alert('추가 실패: ' + err.message);
-      }
-    }
+  if (type === 'API') {
+    url = document.getElementById('input-api-url').value.trim();
+    const jsonPath = document.getElementById('input-json-path').value.trim();
+    if (!url || !jsonPath) return alert('API URL과 JSON Path를 모두 입력해 주세요.');
+    css_selector = `API:${jsonPath}`;
+  } else {
+    url = document.getElementById('input-url').value.trim();
+    css_selector = document.getElementById('input-selector').value.trim();
+    if (!url || !css_selector) return alert('URL과 CSS Selector를 모두 입력해 주세요.');
+  }
+
+  try {
+    // Supabase DB에 저장
+    const { error } = await supabaseClient
+      .from('targets')
+      .insert([{ 
+        title, 
+        url, 
+        css_selector,
+        condition_type,  // 추가됨
+        target_value     // 추가됨
+      }]);
+
+    if (error) throw error;
+
+    document.getElementById('add-form').reset();
+    toggleTypeFields();
+    fetchTargets();
+    alert('추적 항목이 성공적으로 추가되었습니다!');
+
+  } catch (err) {
+    alert('추가 실패: ' + err.message);
+  }
+}
 
     async function toggleActive(id, currentStatus) {
       if (!supabaseClient) return;
