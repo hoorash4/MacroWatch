@@ -255,7 +255,8 @@ export default {
 
       const jwt = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
       if (!jwt) return json({ error: "로그인이 필요합니다." }, 401, origin);
-      const user = await authenticatedUser(supabaseUrl, anonKey, jwt);
+      const requestApiKey = request.headers.get("apikey") || anonKey;
+      const user = await authenticatedUser(supabaseUrl, requestApiKey, jwt);
       if (!user) {
         return json({ error: "로그인 정보가 유효하지 않습니다." }, 401, origin);
       }
