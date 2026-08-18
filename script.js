@@ -133,13 +133,13 @@ function renderTargets() {
           <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
           <div class="min-w-0 flex-1 py-3">
             <div class="flex items-center gap-2 min-w-0">
-              <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 text-left">
+              <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 max-w-[calc(100%-2.75rem)] text-left">
                 <span class="flex items-center gap-2">
                   <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
                   <i class="fa-solid ${String(item.id) === expandedTargetId ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px] text-slate-500"></i>
                 </span>
               </button>
-              ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-md p-1.5 text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition" title="출처 열기" aria-label="출처 열기"><i class="fa-solid fa-link text-xs"></i></a>` : ''}
+              ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition" title="출처 열기" aria-label="출처 열기"><i class="fa-solid fa-link text-xs"></i></a>` : ''}
             </div>
             <span class="block text-xs text-slate-400 mt-0.5 truncate">
               조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
