@@ -93,15 +93,6 @@ function toggleTargetValueInput(conditionId, valueId) {
   }
 }
 
-// 수정 모달 타입 선택 처리
-function toggleEditTypeFields() {
-  const type = document.getElementById('edit-type').value;
-  document.getElementById('edit-field-selector').classList.toggle('hidden', type !== 'SELECTOR');
-  document.getElementById('edit-field-fred').classList.toggle('hidden', type !== 'FRED');
-  document.getElementById('edit-field-bok').classList.toggle('hidden', type !== 'BOK');
-  document.getElementById('edit-field-api').classList.toggle('hidden', type !== 'API');
-}
-
 // ECOS API URL 생성 헬퍼 함수
 function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
   return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
