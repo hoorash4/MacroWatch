@@ -1,373 +1,355 @@
-const SUPABASE_URL = "https://xhghpywvthjuvespzdul.supabase.co";
-const SUPABASE_KEY = "sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc";
-const FRED_API_KEY = "12ce2a29eb8e65de769bb88cc9deb4b0";
+// Supabase 및 API 설정
+const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// FRED & ECOS API 키 설정
+const FRED_API_KEY = '12ce2a29eb8e65de769bb88cc9deb4b0'; 
+const ECOS_API_KEY = 'J3ECOLI9TGA6E8G39H40'; // 한국은행 ECOS API 키
 
-// 탭 전환 함수
-function switchTab(tabName) {
-  const trackerBtn = document.getElementById('tab-btn-tracker');
-  const newsBtn = document.getElementById('tab-btn-news');
-  const trackerContent = document.getElementById('tab-content-tracker');
-  const newsContent = document.getElementById('tab-content-news');
+// 상태 관리
+let targets = [];
+let currentEditId = null;
+let draggedItemIndex = null;
 
-  if (tabName === 'tracker') {
-    trackerBtn.className = "px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2";
-    newsBtn.className = "px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2";
-    trackerContent.classList.remove('hidden');
-    newsContent.classList.add('hidden');
-  } else if (tabName === 'news') {
-    newsBtn.className = "px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2";
-    trackerBtn.className = "px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2";
-    newsContent.classList.remove('hidden');
-    trackerContent.classList.add('hidden');
+// 초기화
+document.addEventListener('DOMContentLoaded', () => {
+  checkDbConnection();
+  fetchTargets();
+});
+
+// DB 연결 상태 확인
+async function checkDbConnection() {
+  const statusEl = document.getElementById('db-status');
+  if (!supabase) {
+    if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> DB 설정 필요`;
+    return;
+  }
+  try {
+    const { error } = await supabase.from('targets').select('id', { count: 'exact', head: true });
+    if (error) throw error;
+    if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> DB 연결 완료`;
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> 로컬 모드`;
   }
 }
 
-// 입력 필드 토글 함수
+// 탭 전환 함수
+function switchTab(tabName) {
+  const trackerTab = document.getElementById('tab-content-tracker');
+  const newsTab = document.getElementById('tab-content-news');
+  const trackerBtn = document.getElementById('tab-btn-tracker');
+  const newsBtn = document.getElementById('tab-btn-news');
+
+  if (tabName === 'tracker') {
+    trackerTab.classList.remove('hidden');
+    newsTab.classList.add('hidden');
+    trackerBtn.className = "px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2";
+    newsBtn.className = "px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2";
+  } else {
+    trackerTab.classList.add('hidden');
+    newsTab.classList.remove('hidden');
+    newsBtn.className = "px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2";
+    trackerBtn.className = "px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2";
+  }
+}
+
+// 등록 폼 타입 선택 처리
 function toggleTypeFields() {
   const type = document.getElementById('input-type').value;
   document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
+  document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
   document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
 }
 
-// 페이지 로드 시 DB 상태 확인 및 목록 조회
-window.addEventListener('DOMContentLoaded', async () => {
-  const statusBadge = document.getElementById('db-status');
-  try {
-    const { error } = await supabaseClient.from('targets').select('*').limit(1);
-    if (error) throw error;
-    statusBadge.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-green-950/60 text-green-400 border border-green-700/50 flex items-center gap-2";
-    statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> DB 연결 성공`;
-    fetchTargets();
-  } catch (err) {
-    statusBadge.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950/60 text-red-400 border border-red-700/50 flex items-center gap-2";
-    statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> DB 연결 실패`;
-  }
-});
-
-// 데이터 등록 함수
-async function handleAddTarget(e) {
-  e.preventDefault();
-  const type = document.getElementById('input-type').value;
-  const title = document.getElementById('input-title').value.trim();
-  const condition_type = document.getElementById('input-condition').value;
-  const target_value_raw = document.getElementById('input-target-val').value.trim();
-  const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
-
-  let url = '', css_selector = '';
-
-  if (type === 'FRED') {
-    const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
-    url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
-    css_selector = 'API:observations[0].value';
-  } else if (type === 'API') {
-    url = document.getElementById('input-api-url').value.trim();
-    css_selector = `API:${document.getElementById('input-json-path').value.trim()}`;
-  } else {
-    url = document.getElementById('input-url').value.trim();
-    css_selector = document.getElementById('input-selector').value.trim();
-  }
-
-  const { count, error: countError } = await supabaseClient
-    .from('targets')
-    .select('*', { count: 'exact', head: true });
-
-  const nextOrder = countError || count === null ? 0 : count;
-
-  const { error } = await supabaseClient.from('targets').insert([{ 
-    title, url, css_selector, condition_type, target_value, display_order: nextOrder, is_active: true 
-  }]);
-
-  if (error) return alert('등록 실패: ' + error.message);
-  
-  alert('성공적으로 등록되었습니다!');
-  document.getElementById('add-form').reset();
-  toggleTypeFields();
-  fetchTargets();
+// 수정 모달 타입 선택 처리
+function toggleEditTypeFields() {
+  const type = document.getElementById('edit-type').value;
+  document.getElementById('edit-field-selector').classList.toggle('hidden', type !== 'SELECTOR');
+  document.getElementById('edit-field-fred').classList.toggle('hidden', type !== 'FRED');
+  document.getElementById('edit-field-bok').classList.toggle('hidden', type !== 'BOK');
+  document.getElementById('edit-field-api').classList.toggle('hidden', type !== 'API');
 }
 
-// 드래그 앤 드롭 순서 변경 관련 변수 및 함수
-let draggedItem = null;
+// ECOS API URL 생성 헬퍼 함수
+function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
+  return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
+}
 
-function handleDragStart(e) {
-  const id = this.getAttribute('data-id');
-  const editSection = document.getElementById(`edit-${id}`);
-  if (editSection && !editSection.classList.contains('hidden')) {
-    e.preventDefault();
+// 추적 목록 조회
+async function fetchTargets() {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('targets')
+        .select('*')
+        .order('display_order', { ascending: true, nullsFirst: false });
+      if (!error && data) {
+        targets = data;
+        renderTargets();
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  renderTargets();
+}
+
+// 추적 목록 렌더링
+function renderTargets() {
+  const listEl = document.getElementById('target-list');
+  if (!listEl) return;
+
+  if (targets.length === 0) {
+    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center">등록된 추적 항목이 없습니다.</p>`;
     return;
   }
-  draggedItem = this;
-  this.classList.add('opacity-40', 'border-dashed', 'border-blue-500');
+
+  listEl.innerHTML = targets.map((item, index) => `
+    <div class="py-3 flex items-center justify-between gap-3 group border-b border-slate-800/80 last:border-0 hover:bg-slate-800/30 px-2 rounded-lg transition"
+         draggable="true"
+         ondragstart="handleDragStart(event, ${index})"
+         ondragover="handleDragOver(event)"
+         ondrop="handleDrop(event, ${index})"
+         ondragend="handleDragEnd(event)">
+      <div class="flex items-center gap-3 min-w-0">
+        <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${item.type}</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5 truncate">
+            조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition)}</span>
+            ${item.target_value !== null && item.target_value !== undefined ? `| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
+        <button onclick="openEditModal('${item.id}')" class="p-2 text-slate-400 hover:text-blue-400 transition" title="수정">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </button>
+        <button onclick="handleDeleteTarget('${item.id}')" class="p-2 text-slate-400 hover:text-red-400 transition" title="삭제">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 드래그 앤 드롭 핸들러
+function handleDragStart(e, index) {
+  draggedItemIndex = index;
   e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('opacity-40');
 }
 
 function handleDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
-  return false;
 }
 
-function handleDragEnter(e) { this.classList.add('bg-slate-800/80'); }
-function handleDragLeave(e) { this.classList.remove('bg-slate-800/80'); }
+function handleDrop(e, targetIndex) {
+  e.preventDefault();
+  if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
 
-function handleDrop(e) {
-  e.stopPropagation();
-  if (draggedItem !== this) {
-    const listContainer = document.getElementById('target-list');
-    const items = Array.from(listContainer.querySelectorAll('.draggable-item'));
-    const draggedIdx = items.indexOf(draggedItem);
-    const targetIdx = items.indexOf(this);
+  const movedItem = targets.splice(draggedItemIndex, 1)[0];
+  targets.splice(targetIndex, 0, movedItem);
 
-    if (draggedIdx < targetIdx) {
-      listContainer.insertBefore(draggedItem, this.nextSibling);
-    } else {
-      listContainer.insertBefore(draggedItem, this);
-    }
-    saveNewOrder();
-  }
-  return false;
+  targets.forEach((item, idx) => {
+    item.display_order = idx;
+  });
+
+  renderTargets();
+  saveOrderToDb();
 }
 
 function handleDragEnd(e) {
-  this.classList.remove('opacity-40', 'border-dashed', 'border-blue-500');
-  document.querySelectorAll('.draggable-item').forEach(item => {
-    item.classList.remove('bg-slate-800/80');
-  });
+  e.currentTarget.classList.remove('opacity-40');
+  draggedItemIndex = null;
 }
 
-async function saveNewOrder() {
-  const listContainer = document.getElementById('target-list');
-  const itemElements = listContainer.querySelectorAll('.draggable-item');
-  const updatePromises = Array.from(itemElements).map((el, index) => {
-    const id = parseInt(el.getAttribute('data-id'));
-    return supabaseClient.from('targets').update({ display_order: index }).eq('id', id);
-  });
-  await Promise.all(updatePromises);
+// 순서 변경 사항 DB 저장
+async function saveOrderToDb() {
+  if (!supabase) return;
+
+  for (let i = 0; i < targets.length; i++) {
+    await supabase
+      .from('targets')
+      .update({ display_order: i })
+      .eq('id', targets[i].id);
+  }
 }
-  
-// 리스트 목록 불러오기 및 렌더링
-async function fetchTargets() {
-  const listContainer = document.getElementById('target-list');
-  try {
-    const { data, error } = await supabaseClient.from('targets').select('*').order('display_order', { ascending: true });
-    if (error) throw error;
 
-    if (!data || data.length === 0) {
-      listContainer.innerHTML = `<p class="text-sm text-slate-500 py-4 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
-      return;
-    }
+// 추적 항목 추가
+async function handleAddTarget(e) {
+  e.preventDefault();
 
-const condTextMap = {
-      'changed': '단순 값 변경 시',
-      'gte': '목표값 상향 돌파',
-      'lte': '목표값 하향 돌파',
-      'cross': '상/하향 돌파 모두'
-    };
+  const title = document.getElementById('input-title').value;
+  const type = document.getElementById('input-type').value;
+  const condition = document.getElementById('input-condition').value;
+  const targetValStr = document.getElementById('input-target-val').value;
+  const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
 
-    listContainer.innerHTML = data.map((item) => {
-      const config = condConfig[item.condition_type] || { label: item.condition_type, icon: 'fa-bell' };
-      const targetValStr = item.target_value !== null && item.target_value !== undefined ? ` (${item.target_value})` : '';
-      
-      const isActive = item.is_active !== false;
-      const bellColorClass = isActive ? "text-amber-500 bg-amber-500/10 border-amber-500/30" : "text-slate-600 bg-slate-950 border-slate-800";
-      const bellIconClass = isActive ? "fa-bell" : "fa-bell-slash";
-      const bellTitle = isActive ? "알림 켜짐 (클릭하여 끄기)" : "알림 꺼짐 (클릭하여 켜기)";
-      
-      let displayUrl = item.url;
-      let itemType = 'SELECTOR'; // 기본 웹사이트
-      let fredSeriesId = '';
-      let jsonPath = '';
+  let config = {};
+  if (type === 'SELECTOR') {
+    config = { url: document.getElementById('input-url').value, selector: document.getElementById('input-selector').value };
+  } else if (type === 'FRED') {
+    config = { fred_id: document.getElementById('input-fred-id').value, api_key: FRED_API_KEY };
+  } else if (type === 'BOK') {
+    const bokCode = document.getElementById('input-bok-code').value;
+    config = { bok_code: bokCode, api_key: ECOS_API_KEY, ecos_url: buildEcosUrl(bokCode) };
+  } else if (type === 'API') {
+    config = { api_url: document.getElementById('input-api-url').value, json_path: document.getElementById('input-json-path').value };
+  }
 
-      // 1. FRED 판별
-      if (item.url && item.url.includes('stlouisfed.org/fred/series/observations')) {
-        itemType = 'FRED';
-        const match = item.url.match(/series_id=([^&]+)/);
-        if (match && match[1]) {
-          fredSeriesId = match[1];
-          displayUrl = `https://fred.stlouisfed.org/series/${fredSeriesId}`;
-        }
-      } 
-      // 2. 외부 API 판별 (css_selector가 'API:'로 시작하거나 url이 API 형태인 경우)
-      else if (item.css_selector && item.css_selector.startsWith('API:')) {
-        itemType = 'API';
-        jsonPath = item.css_selector.replace('API:', '');
+  const newItem = {
+    id: 'local_' + Date.now(),
+    title,
+    type,
+    condition,
+    target_value: targetVal,
+    config,
+    display_order: targets.length
+  };
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('targets')
+        .insert([{
+          title,
+          type,
+          condition,
+          target_value: targetVal,
+          config,
+          display_order: targets.length
+        }])
+        .select();
+
+      if (!error && data) {
+        targets.push(data[0]);
+        renderTargets();
+        document.getElementById('add-form').reset();
+        toggleTypeFields();
+        return;
       }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
-      const safeSelector = (item.css_selector || '').replace(/"/g, '&quot;');
+  targets.push(newItem);
+  renderTargets();
+  document.getElementById('add-form').reset();
+  toggleTypeFields();
+}
 
-      return `
-        <div class="draggable-item border-b border-slate-800/80 last:border-b-0 py-3 transition-all rounded-lg px-2 cursor-grab active:cursor-grabbing" 
-             draggable="true" data-id="${item.id}">
-          <div class="flex justify-between items-center" onclick="toggleEdit(${item.id})">
-            <div class="flex-1 pr-4 group">
-              <div class="flex items-center">
-                <i class="fa-solid fa-grip-vertical text-slate-600 mr-2.5 text-xs hover:text-slate-400" title="마우스로 끌어서 순서 변경"></i>
-                <span class="font-bold text-slate-200 group-hover:text-blue-400 transition mr-2">${item.title}</span>
-                <a href="${displayUrl}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-slate-500 hover:text-blue-400 bg-slate-800/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700 transition" title="원본 페이지로 이동">
-                  <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> 원본
-                </a>
-              </div>
-              <div class="text-xs text-slate-400 mt-1 ml-5 flex items-center">
-                <i class="fa-solid ${config.icon} mr-1.5 text-[10px] text-blue-400"></i>
-                감지 조건: <span class="text-slate-300 ml-1 font-medium">${config.label}${targetValStr}</span>
-              </div>
-            </div>
-            
-            <div class="flex items-center gap-3" onclick="event.stopPropagation()">
-              <span class="text-xs text-slate-400">최근: <strong class="text-slate-200">${item.last_value || '대기 중'}</strong></span>
-              <button onclick="toggleAlertBell(${item.id}, this)" class="${bellColorClass} p-1.5 rounded-lg border transition" title="${bellTitle}">
-                <i class="fa-solid ${bellIconClass} text-xs"></i>
-              </button>
-            </div>
-          </div>
+// 수정 모달 열기
+function openEditModal(id) {
+  const item = targets.find(t => t.id === id);
+  if (!item) return;
 
-          <div id="edit-${item.id}" class="hidden mt-3 pt-3 bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3 cursor-default" onclick="event.stopPropagation()">
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1 font-medium">항목 이름 수정</label>
-              <input type="text" id="val-title-${item.id}" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white">
-            </div>
-            
-            ${itemType === 'FRED' ? `
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1 font-medium">FRED Series ID</label>
-              <input type="text" id="val-fred-id-${item.id}" value="${fredSeriesId}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white font-mono">
-            </div>
-            ` : itemType === 'API' ? `
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1 font-medium">API 엔드포인트 URL</label>
-              <input type="text" id="val-api-url-${item.id}" value="${item.url}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1 font-medium">JSON 경로 (예: data.rate)</label>
-              <input type="text" id="val-json-path-${item.id}" value="${jsonPath}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300 font-mono">
-            </div>
-            ` : `
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1 font-medium">웹사이트 URL</label>
-              <input type="text" id="val-url-${item.id}" value="${item.url}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1 font-medium">CSS Selector</label>
-              <input type="text" id="val-selector-${item.id}" value="${safeSelector}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300 font-mono">
-            </div>
-            `}
+  currentEditId = id;
+  document.getElementById('edit-title').value = item.title;
+  document.getElementById('edit-type').value = item.type;
+  document.getElementById('edit-condition').value = item.condition;
+  document.getElementById('edit-target-val').value = item.target_value ?? '';
 
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-[11px] text-slate-400 block mb-1 font-medium">감지 조건</label>
-                <select id="val-cond-${item.id}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
-                  <option value="changed" ${item.condition_type === 'changed' ? 'selected' : ''}>단순 값 변경 시</option>
-                  <option value="gte" ${item.condition_type === 'gte' ? 'selected' : ''}>목표값 상향 돌파 시</option>
-                  <option value="lte" ${item.condition_type === 'lte' ? 'selected' : ''}>목표값 하향 돌파 시</option>
-                  <option value="eq" ${item.condition_type === 'eq' ? 'selected' : ''}>목표값 일치 시</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-[11px] text-slate-400 block mb-1 font-medium">목표값</label>
-                <input type="text" id="val-target-${item.id}" value="${item.target_value !== null && item.target_value !== undefined ? item.target_value : ''}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white" placeholder="예: 4.8">
-              </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-1">
-              <button onclick="toggleEdit(${item.id})" class="text-xs px-3 py-1.5 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 transition">취소</button>
-              <button onclick="saveEdit(${item.id}, '${itemType}')" class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition">저장하기</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
+  toggleEditTypeFields();
 
-    listContainer.querySelectorAll('.draggable-item').forEach(item => {
-      item.addEventListener('dragstart', handleDragStart);
-      item.addEventListener('dragover', handleDragOver);
-      item.addEventListener('dragenter', handleDragEnter);
-      item.addEventListener('dragleave', handleDragLeave);
-      item.addEventListener('drop', handleDrop);
-      item.addEventListener('dragend', handleDragEnd);
-    });
-  } catch (err) {
-    listContainer.innerHTML = `<p class="text-sm text-red-400 py-4 text-center">목록을 불러오는 중 오류가 발생했습니다.</p>`;
+  if (item.type === 'SELECTOR') {
+    document.getElementById('edit-url').value = item.config?.url || '';
+    document.getElementById('edit-selector').value = item.config?.selector || '';
+  } else if (item.type === 'FRED') {
+    document.getElementById('edit-fred-id').value = item.config?.fred_id || '';
+  } else if (item.type === 'BOK') {
+    document.getElementById('edit-bok-code').value = item.config?.bok_code || '';
+  } else if (item.type === 'API') {
+    document.getElementById('edit-api-url').value = item.config?.api_url || '';
+    document.getElementById('edit-json-path').value = item.config?.json_path || '';
+  }
+
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+// 수정 모달 닫기
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  currentEditId = null;
+}
+
+// 수정사항 저장
+async function saveEditTarget() {
+  if (!currentEditId) return;
+
+  const title = document.getElementById('edit-title').value;
+  const type = document.getElementById('edit-type').value;
+  const condition = document.getElementById('edit-condition').value;
+  const targetValStr = document.getElementById('edit-target-val').value;
+  const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
+
+  let config = {};
+  if (type === 'SELECTOR') {
+    config = { url: document.getElementById('edit-url').value, selector: document.getElementById('edit-selector').value };
+  } else if (type === 'FRED') {
+    config = { fred_id: document.getElementById('edit-fred-id').value, api_key: FRED_API_KEY };
+  } else if (type === 'BOK') {
+    const bokCode = document.getElementById('edit-bok-code').value;
+    config = { bok_code: bokCode, api_key: ECOS_API_KEY, ecos_url: buildEcosUrl(bokCode) };
+  } else if (type === 'API') {
+    config = { api_url: document.getElementById('edit-api-url').value, json_path: document.getElementById('edit-json-path').value };
+  }
+
+  const updatedData = { title, type, condition, target_value: targetVal, config };
+
+  if (supabase && !currentEditId.toString().startsWith('local_')) {
+    try {
+      const { error } = await supabase.from('targets').update(updatedData).eq('id', currentEditId);
+      if (error) throw error;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const index = targets.findIndex(t => t.id === currentEditId);
+  if (index !== -1) {
+    targets[index] = { ...targets[index], ...updatedData };
+  }
+
+  renderTargets();
+  closeEditModal();
+}
+
+// 항목 삭제
+async function handleDeleteTarget(id) {
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+
+  if (supabase && !id.toString().startsWith('local_')) {
+    try {
+      await supabase.from('targets').delete().eq('id', id);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  targets = targets.filter(t => t.id !== id);
+  renderTargets();
+}
+
+// 헬퍼 함수
+function getConditionText(condition) {
+  switch (condition) {
+    case 'changed': return '단순 변경';
+    case 'gte': return '목표값 상향 돌파';
+    case 'lte': return '목표값 하향 돌파';
+    case 'cross': return '목표값 상/하향 돌파';
+    default: return condition;
   }
 }
 
-function toggleEdit(id) {
-  const editSection = document.getElementById(`edit-${id}`);
-  if (!editSection) return;
-  const itemCard = editSection.closest('.draggable-item');
-  const isHidden = editSection.classList.contains('hidden');
-  editSection.classList.toggle('hidden');
-  if (isHidden) {
-    itemCard.setAttribute('draggable', 'false');
-    itemCard.classList.remove('cursor-grab', 'active:cursor-grabbing');
-  } else {
-    itemCard.setAttribute('draggable', 'true');
-    itemCard.classList.add('cursor-grab', 'active:cursor-grabbing');
-  }
-}
-
-async function toggleAlertBell(id, btnElement) {
-  const icon = btnElement.querySelector('i');
-  const isOn = icon.classList.contains('fa-bell');
-  const newActiveState = !isOn; 
-
-  const { error } = await supabaseClient
-    .from('targets')
-    .update({ is_active: newActiveState })
-    .eq('id', id);
-
-  if (error) {
-    alert('알림 상태 변경 중 오류가 발생했습니다: ' + error.message);
-    return;
-  }
-
-  if (isOn) {
-    icon.classList.remove('fa-bell', 'text-amber-500');
-    icon.classList.add('fa-bell-slash', 'text-slate-600');
-    btnElement.classList.remove('bg-amber-500/10', 'border-amber-500/30');
-    btnElement.classList.add('bg-slate-950', 'border-slate-800');
-    btnElement.title = "알림 꺼짐 (클릭하여 켜기)";
-  } else {
-    icon.classList.remove('fa-bell-slash', 'text-slate-600');
-    icon.classList.add('fa-bell', 'text-amber-500');
-    btnElement.classList.remove('bg-slate-950', 'border-slate-800');
-    btnElement.classList.add('bg-amber-500/10', 'border-amber-500/30');
-    btnElement.title = "알림 켜짐 (클릭하여 끄기)";
-  }
-}
-
-async function saveEdit(id, itemType) {
-  const title = document.getElementById(`val-title-${id}`).value.trim();
-  const condition_type = document.getElementById(`val-cond-${id}`).value;
-  const target_value_raw = document.getElementById(`val-target-${id}`).value.trim();
-  const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
-
-  let url = '', css_selector = '';
-
-  if (itemType === 'FRED') {
-    const seriesId = document.getElementById(`val-fred-id-${id}`).value.trim().toUpperCase();
-    url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
-    css_selector = 'API:observations[0].value';
-  } else if (itemType === 'API') {
-    url = document.getElementById(`val-api-url-${id}`).value.trim();
-    const jsonPath = document.getElementById(`val-json-path-${id}`).value.trim();
-    css_selector = `API:${jsonPath}`;
-  } else {
-    url = document.getElementById(`val-url-${id}`).value.trim();
-    css_selector = document.getElementById(`val-selector-${id}`).value.trim();
-  }
-
-  const { data: currentItem, error: fetchError } = await supabaseClient.from('targets').select('display_order').eq('id', id).single();
-  if (fetchError) return alert('기존 순서 정보를 가져오지 못했습니다.');
-
-  const { error } = await supabaseClient.from('targets').update({ 
-    title, url, css_selector, condition_type, target_value, display_order: currentItem.display_order ?? 0 
-  }).eq('id', id);
-
-  if (error) {
-    alert('수정 실패: ' + error.message);
-  } else {
-    toggleEdit(id);
-    fetchTargets();
-  }
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
