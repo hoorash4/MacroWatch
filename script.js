@@ -3,10 +3,6 @@ const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-// FRED & ECOS API 키 설정
-const FRED_API_KEY = '12ce2a29eb8e65de769bb88cc9deb4b0';
-const ECOS_API_KEY = 'J3ECOLI9TGA6E8G39H40';
-
 // 상태 관리
 let targets = [];
 let currentEditId = null;
@@ -108,10 +104,6 @@ function toggleTargetValueInput(conditionId, valueId) {
   } else {
     valueEl.placeholder = valueEl.dataset.defaultPlaceholder || '';
   }
-}
-
-function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
-  return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
 }
 
 // 추적 목록 조회
@@ -330,22 +322,32 @@ async function handleAddTarget(e) {
 
   let url = '';
   let cssSelector = '';
+  let sourceType = 'web';
+  let sourceConfig = {};
 
   if (type === 'SELECTOR') {
     url = document.getElementById('input-url').value.trim();
     cssSelector = document.getElementById('input-selector').value.trim();
   } else if (type === 'FRED') {
     const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
-    url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
+    url = `https://fred.stlouisfed.org/series/${encodeURIComponent(seriesId)}`;
     cssSelector = 'API:observations[0].value';
+    sourceType = 'fred';
+    sourceConfig = { series_id: seriesId };
   } else if (type === 'BOK') {
-    const bokCode = document.getElementById('input-bok-code').value.trim();
-    url = buildEcosUrl(bokCode);
+    const statCode = document.getElementById('input-bok-code').value.trim().toUpperCase();
+    const itemCode = document.getElementById('input-bok-item-code').value.trim();
+    const dataCycle = document.getElementById('input-bok-cycle').value;
+    url = 'https://ecos.bok.or.kr/';
     cssSelector = 'API:StatisticSearch.row[0].DATA_VALUE';
+    sourceType = 'ecos';
+    sourceConfig = { stat_code: statCode, item_code: itemCode, data_cycle: dataCycle };
   } else if (type === 'API') {
     url = document.getElementById('input-api-url').value.trim();
     const jsonPath = document.getElementById('input-json-path').value.trim();
     cssSelector = jsonPath ? `API:${jsonPath}` : '';
+    sourceType = 'json_api';
+    sourceConfig = { json_path: jsonPath };
   }
 
   const newItem = {
@@ -353,6 +355,8 @@ async function handleAddTarget(e) {
     title,
     url,
     css_selector: cssSelector,
+    source_type: sourceType,
+    source_config: sourceConfig,
     condition_type: conditionType,
     target_value: targetVal,
     is_active: true,
@@ -367,6 +371,8 @@ async function handleAddTarget(e) {
           title,
           url,
           css_selector: cssSelector,
+          source_type: sourceType,
+          source_config: sourceConfig,
           condition_type: conditionType,
           target_value: targetVal,
           is_active: true,
