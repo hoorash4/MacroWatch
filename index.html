@@ -98,9 +98,25 @@
           </div>
 
           <div id="field-bok" class="hidden space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">한국은행 통계표 코드</label>
+                <input autocomplete="off" type="text" id="input-bok-code" placeholder="예: 817Y002" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">통계 항목 코드</label>
+                <input autocomplete="off" type="text" id="input-bok-item-code" placeholder="예: 010210000" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              </div>
+            </div>
             <div>
-              <label class="text-xs text-slate-400 block mb-1">한국은행 통계표 코드</label>
-              <input autocomplete="off" type="text" id="input-bok-code" placeholder="예: 722Y001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <label class="text-xs text-slate-400 block mb-1">원본 데이터 주기</label>
+              <select id="input-bok-cycle" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                <option value="D">일별</option>
+                <option value="M">월별</option>
+                <option value="Q">분기별</option>
+                <option value="S">반기별</option>
+                <option value="A">연별</option>
+              </select>
             </div>
           </div>
 
