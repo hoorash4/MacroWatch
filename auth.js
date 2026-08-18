@@ -102,12 +102,24 @@
       event.preventDefault();
       beginKakaoLogin();
     });
+    const showServicePreparing = () => {
+      document.getElementById('service-preparing-modal')?.classList.remove('hidden');
+      document.getElementById('service-preparing-close')?.focus();
+    };
+    const hideServicePreparing = () => {
+      document.getElementById('service-preparing-modal')?.classList.add('hidden');
+    };
     document.getElementById('password-login-form')?.addEventListener('submit', (event) => {
       event.preventDefault();
-      window.alert('서비스 준비 중입니다.');
+      showServicePreparing();
     });
-    document.getElementById('signup-placeholder-button')?.addEventListener('click', () => {
-      window.alert('서비스 준비 중입니다.');
+    document.getElementById('signup-placeholder-button')?.addEventListener('click', showServicePreparing);
+    document.getElementById('service-preparing-close')?.addEventListener('click', hideServicePreparing);
+    document.getElementById('service-preparing-modal')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) hideServicePreparing();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') hideServicePreparing();
     });
     document.getElementById('profile-button')?.addEventListener('click', async () => {
       elements.profileModal.classList.remove('hidden');
