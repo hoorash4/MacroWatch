@@ -14,19 +14,21 @@
   <div class="max-w-4xl mx-auto space-y-6">
     
     <!-- 헤더 영역 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-      <div class="p-3 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400 text-xl shadow-lg shadow-blue-500/10">
-        <i class="fa-solid fa-satellite-dish animate-pulse"></i>
-      </div>
-      <div>
-        <h1 class="text-xl font-extrabold text-white tracking-tight">MacroWatch</h1>
-        <p class="text-xs text-slate-400">맞춤형 경제지표 수치 변동 알리미</p>
-      </div>
-      <div id="db-status" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-yellow-950/60 text-yellow-400 border border-yellow-700/50 flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
-        DB 연결 확인 중...
-      </div>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+  <div class="flex items-center gap-2">
+    <div class="p-3 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400 text-xl shadow-lg shadow-blue-500/10">
+      <i class="fa-solid fa-satellite-dish animate-pulse"></i>
     </div>
+    <div>
+      <h1 class="text-xl font-extrabold text-white tracking-tight">MacroWatch</h1>
+      <p class="text-xs text-slate-400">맞춤형 경제지표 수치 변동 알리미</p>
+    </div>
+  </div>
+
+  <div id="db-status" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-400 border border-slate-700/60 flex items-center gap-2 shadow-inner">
+    <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span> DB 연결 확인 중...
+  </div>
+</div>
 
     <!-- 새로운 추적 항목 추가 폼 -->
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6">
@@ -40,7 +42,7 @@
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">수집 방식</label>
             <select id="input-type" onchange="toggleTypeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-200">
-              <option value="SELECTOR">일반 웹 Scraping</option>
+              <option value="SELECTOR">웹 스크래핑</option>
               <option value="FRED">FRED 경제지표</option>
               <option value="API">범용 API</option>
             </select>
