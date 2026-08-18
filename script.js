@@ -145,13 +145,10 @@ function renderTargets() {
   }
 
   listEl.innerHTML = targets.map((item, index) => `
-    <div data-drop-indicator="${index}" class="flex h-3 items-center" ondragover="handleDragOverBoundary(event, ${index})" ondrop="handleDrop(event, ${index})"><div data-drop-line class="h-px w-full rounded-full bg-transparent transition-colors duration-150"></div></div>
-    <div class="py-3 border-b border-slate-800/80 last:border-0">
-      <div class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
+    <div data-target-container="${index}" class="py-3 border-b border-slate-800/80 first:border-t" style="${index === 0 ? 'border-top-color: transparent;' : ''}${index === targets.length - 1 ? 'border-bottom-color: transparent;' : ''}" ondragover="handleDragOver(event, ${index})" ondrop="handleDrop(event, ${index})">
+      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
            ondragstart="handleDragStart(event, ${index})"
-           ondragover="handleDragOver(event, ${index})"
-           ondrop="handleDrop(event, ${index})"
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
@@ -206,7 +203,7 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `).join('') + `<div data-drop-indicator="${targets.length}" class="flex h-3 items-center" ondragover="handleDragOverBoundary(event, ${targets.length})" ondrop="handleDrop(event, ${targets.length})"><div data-drop-line class="h-px w-full rounded-full bg-transparent transition-colors duration-150"></div></div>`;
+  `).join('');
 }
 
 function toggleTargetDetails(id) {
@@ -243,23 +240,24 @@ async function toggleTargetActive(id) {
 function setDropIndicator(index) {
   if (dropIndicatorIndex === index) return;
 
-  document.querySelectorAll('[data-drop-line]').forEach((line) => {
-    line.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
-    line.classList.add('bg-transparent');
-  });
-
+  clearDropIndicator();
   dropIndicatorIndex = index;
-  const activeLine = document.querySelector(`[data-drop-indicator="${index}"] [data-drop-line]`);
-  if (activeLine) {
-    activeLine.classList.remove('bg-transparent');
-    activeLine.classList.add('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+
+  const containers = document.querySelectorAll('[data-target-container]');
+  if (index === 0) {
+    containers[0]?.style.setProperty('border-top-color', 'white');
+  } else {
+    containers[index - 1]?.style.setProperty('border-bottom-color', 'white');
   }
 }
 
 function clearDropIndicator() {
-  document.querySelectorAll('[data-drop-line]').forEach((line) => {
-    line.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
-    line.classList.add('bg-transparent');
+  const containers = document.querySelectorAll('[data-target-container]');
+  containers.forEach((container, index) => {
+    if (index === 0) {
+      container.style.setProperty('border-top-color', 'transparent');
+    }
+    container.style.setProperty('border-bottom-color', index === containers.length - 1 ? 'transparent' : '');
   });
   dropIndicatorIndex = null;
 }
@@ -275,14 +273,9 @@ function handleDragOver(e, targetIndex) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
-  const rect = e.currentTarget.getBoundingClientRect();
+  const targetRow = e.currentTarget.querySelector('[data-target-row]') || e.currentTarget;
+  const rect = targetRow.getBoundingClientRect();
   const insertIndex = e.clientY < rect.top + rect.height / 2 ? targetIndex : targetIndex + 1;
-  setDropIndicator(insertIndex);
-}
-
-function handleDragOverBoundary(e, insertIndex) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
   setDropIndicator(insertIndex);
 }
 
