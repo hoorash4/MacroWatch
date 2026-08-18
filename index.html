@@ -168,7 +168,9 @@
                 <span class="font-bold text-slate-200">${item.title}</span>
                 <span class="text-xs text-slate-400 block mt-0.5">조건: ${conditionLabel} ${targetBadge}</span>
               </div>
-              <span class="text-xs px-2.5 py-1 bg-slate-800 text-slate-300 rounded border border-slate-700">최근값: ${item.current_value || '미수집'}</span>
+              <span class="text-xs px-2.5 py-1 bg-slate-800 text-slate-300 rounded border border-slate-700">
+                최근값: ${item.last_value || '대기 중...'}
+              </span>
             </div>
           `;
         }).join('');
