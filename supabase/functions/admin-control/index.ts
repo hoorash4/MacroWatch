@@ -108,7 +108,7 @@ async function updateWorkflowSchedule(times: string[], token: string) {
     /  schedule:\r?\n[\s\S]*?  workflow_dispatch:/,
     `  schedule:\n    # GitHub Actions cron uses UTC. Managed from MacroWatch admin.\n${cronLines}\n  workflow_dispatch:`,
   );
-  if (next === current) throw new Error("워크플로 일정 영역을 찾지 못했습니다.");
+  if (next === current) return;
 
   await githubRequest(path, token, {
     method: "PUT",
@@ -156,6 +156,15 @@ export default {
 
       const body = await request.json();
       const action = String(body?.action || "");
+
+      if (action === "workflow_status") {
+        const kind = String(body?.kind || "");
+        if (kind !== "check" && kind !== "backup") {
+          return json({ error: "확인할 작업 종류가 올바르지 않습니다." }, 400, origin);
+        }
+        const workflow = kind === "check" ? CHECK_WORKFLOW : BACKUP_WORKFLOW;
+        return json({ run: await latestRun(workflow, githubToken) }, 200, origin);
+      }
 
       if (action === "status") {
         const [
