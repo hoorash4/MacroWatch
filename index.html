@@ -139,7 +139,20 @@
       fetchTargets();
     }
 
+    
     // 4. 리스트 목록 불러오기 및 조건 텍스트 매핑 함수
+
+    
+async function moveOrder(id, direction) {
+  const { data: current } = await supabaseClient.from('targets').select('display_order').eq('id', id).single();
+  const newOrder = direction === 'up' ? current.display_order - 1 : current.display_order + 1;
+  
+  await supabaseClient.from('targets').update({ display_order: newOrder }).eq('id', id);
+  fetchTargets(); // 목록 새로고침
+}
+
+
+    
     async function fetchTargets() {
       const listContainer = document.getElementById('target-list');
       try {
@@ -172,6 +185,10 @@
                 최근값: ${item.last_value || '대기 중...'}
               </span>
             </div>
+            <div class="flex gap-1">
+  <button onclick="moveOrder(${item.id}, 'up')" class="text-slate-500 hover:text-white">▲</button>
+  <button onclick="moveOrder(${item.id}, 'down')" class="text-slate-500 hover:text-white">▼</button>
+</div>
           `;
         }).join('');
 
