@@ -200,18 +200,27 @@ async function moveOrder(id, direction) {
           const targetBadge = item.target_value ? `(${item.target_value})` : '';
           
           return `
-<div class="py-3 flex justify-between items-center text-sm">
-      <!-- 정보 영역 (왼쪽) -->
-      <div class="flex-1">
-        <span class="font-bold text-slate-200">${item.title}</span>
-        <span class="text-xs text-slate-400 block mt-0.5">조건: ${conditionLabel}</span>
+<div class="border-b border-slate-700">
+      <!-- 기본 뷰 영역 -->
+      <div class="py-3 flex justify-between items-center" id="view-${item.id}">
+        <span class="font-bold text-slate-200 cursor-pointer hover:text-blue-400" 
+              onclick="toggleEdit(${item.id})">${item.title}</span>
+        <div class="flex items-center gap-2">
+           <span class="text-xs text-slate-500 mr-2">최근: ${item.last_value || '대기 중'}</span>
+           <button onclick="moveOrder(${item.id}, 'up')">▲</button>
+           <button onclick="moveOrder(${item.id}, 'down')">▼</button>
+        </div>
       </div>
-      
-      <!-- 버튼 영역 (오른쪽 끝으로 밀기) -->
-      <div class="flex items-center gap-2 pl-4">
-        <span class="text-xs text-slate-500 mr-2">최근: ${item.last_value || '대기 중...'}</span>
-        <button onclick="moveOrder(${item.id}, 'up')" class="p-1 hover:text-blue-400 transition">▲</button>
-        <button onclick="moveOrder(${item.id}, 'down')" class="p-1 hover:text-blue-400 transition">▼</button>
+
+      <!-- 수정용 입력 영역 (평소엔 hidden) -->
+      <div id="edit-${item.id}" class="hidden py-3 bg-slate-900 px-3 rounded-lg my-2 border border-slate-600">
+        <input type="text" id="val-title-${item.id}" value="${item.title}" class="w-full bg-transparent text-white border-b border-slate-700 mb-2">
+        <input type="text" id="val-url-${item.id}" value="${item.url}" class="w-full bg-transparent text-slate-400 text-xs border-b border-slate-700 mb-2">
+        <input type="text" id="val-selector-${item.id}" value="${item.css_selector}" class="w-full bg-transparent text-slate-400 text-xs border-b border-slate-700">
+        <div class="flex justify-end gap-2 mt-3">
+          <button onclick="toggleEdit(${item.id})" class="text-xs text-slate-500">취소</button>
+          <button onclick="saveEdit(${item.id})" class="text-xs bg-blue-600 px-3 py-1 rounded">저장</button>
+        </div>
       </div>
     </div>
           `;
@@ -221,6 +230,26 @@ async function moveOrder(id, direction) {
         listContainer.innerHTML = `<p class="text-sm text-red-400 py-4 text-center">목록을 불러오는 중 오류가 발생했습니다.</p>`;
       }
     }
+
+    // 수정창 토글 (열기/닫기)
+function toggleEdit(id) {
+  document.getElementById(`view-${id}`).classList.toggle('hidden');
+  document.getElementById(`edit-${id}`).classList.toggle('hidden');
+}
+
+// 수정 내용 DB에 저장
+async function saveEdit(id) {
+  const title = document.getElementById(`val-title-${id}`).value;
+  const url = document.getElementById(`val-url-${id}`).value;
+  const css_selector = document.getElementById(`val-selector-${id}`).value;
+
+  await supabaseClient
+    .from('targets')
+    .update({ title, url, css_selector })
+    .eq('id', id);
+
+  fetchTargets(); // 새로고침하여 닫힌 상태로 복구
+}
   </script>
 </body>
 </html>
