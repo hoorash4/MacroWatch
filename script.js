@@ -6,6 +6,7 @@ const supabaseClient = window.macroWatchSupabase
 
 // 상태 관리
 let targets = [];
+let targetLoadError = false;
 let currentEditId = null;
 let currentDeleteId = null;
 let draggedItemIndex = null;
@@ -92,6 +93,7 @@ async function fetchTargets() {
     return;
   }
   setDbStatus('loading');
+  targetLoadError = false;
   try {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('로그인 정보를 확인하지 못했습니다.');
@@ -106,6 +108,7 @@ async function fetchTargets() {
   } catch (error) {
     console.error('Target fetch error:', error);
     targets = [];
+    targetLoadError = true;
     setDbStatus('error');
   }
   renderTargets();
@@ -115,6 +118,11 @@ async function fetchTargets() {
 function renderTargets() {
   const listEl = document.getElementById('target-list');
   if (!listEl) return;
+
+  if (targetLoadError) {
+    listEl.innerHTML = `<p class="text-sm text-amber-300 py-6 text-center"><i class="fa-solid fa-triangle-exclamation mr-2"></i>연결 오류가 발생했습니다.<br><span class="text-xs text-slate-400">로그아웃 후 다시 시도해 주세요.</span></p>`;
+    return;
+  }
 
   if (targets.length === 0) {
     listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
