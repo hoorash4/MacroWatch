@@ -103,7 +103,7 @@
   }
 
   function setKakaoStatus(connected, message) {
-    elements.kakaoStatus.textContent = message || (connected ? '로그인한 카카오 계정에 알림이 연결되어 있습니다.' : '카카오 알림 연결을 확인하지 못했습니다.');
+    elements.kakaoStatus.textContent = message || (connected ? '로그인 한 카카오 계정으로 지표 변동 알림이 전송 됩니다.' : '카카오 알림 연결을 확인하지 못했습니다.');
     elements.kakaoBadge.textContent = connected ? '연결됨' : '확인 필요';
     elements.kakaoBadge.className = connected
       ? 'shrink-0 rounded-full border border-emerald-700/50 bg-emerald-950/60 px-2.5 py-1 text-[11px] font-semibold text-emerald-400'
