@@ -460,16 +460,6 @@ def main() -> int:
                 result = CheckResult(target, previous, current, condition_met(target, previous, current))
 
                 db.request(
-                    "POST",
-                    "history",
-                    body={
-                        "target_id": target_id,
-                        "recorded_value": json_number(current),
-                        "recorded_at": now_iso,
-                    },
-                    prefer="return=minimal",
-                )
-                db.request(
                     "PATCH",
                     "targets",
                     params={"id": f"eq.{target_id}"},
