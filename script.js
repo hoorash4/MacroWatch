@@ -373,7 +373,7 @@ async function handleDeleteTarget(id) {
 // 헬퍼 함수
 function getConditionText(condition) {
   switch (condition) {
-    case 'changed': return '단순 변경';
+    case 'changed': return '단순 값 변경';
     case 'gte': return '목표값 상향 돌파';
     case 'lte': return '목표값 하향 돌파';
     case 'cross': return '목표값 상/하향 돌파';
