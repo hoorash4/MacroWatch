@@ -43,18 +43,18 @@
       
       <!-- 등록 폼 -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-        <h2 class="text-sm font-bold text-white mb-4 flex items-center">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center">
           <i class="fa-solid fa-plus-circle mr-2 text-blue-500"></i> 새로운 경제지표 추적 등록
         </h2>
         <form id="add-form" onsubmit="handleAddTarget(event)" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-xs text-slate-400 block mb-1">지표 이름 (예: 투텐 스프레드)</label>
-              <input type="text" id="input-title" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <label class="text-xs text-slate-400 block mb-1">지표 이름 <span class="text-slate-500 font-normal ml-1">(예: 미국 10년물 국채금리)</span></label>
+              <input type="text" id="input-title" required placeholder="지표명을 입력하세요" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">데이터 소스 유형</label>
-              <select id="input-type" onchange="toggleTypeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <select id="input-type" onchange="toggleTypeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
                 <option value="SELECTOR">일반 웹 스크래핑</option>
                 <option value="FRED">연준 FRED API</option>
                 <option value="BOK">한국은행 ECOS API</option>
@@ -67,11 +67,11 @@
           <div id="field-selector" class="space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">대상 웹페이지 URL</label>
-              <input type="url" id="input-url" placeholder="https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <input type="url" id="input-url" placeholder="https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">수치 추출용 CSS Selector</label>
-              <input type="text" id="input-selector" placeholder="#price-box" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <input type="text" id="input-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none font-mono">
             </div>
           </div>
 
@@ -79,7 +79,7 @@
           <div id="field-fred" class="hidden space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">FRED Series ID (예: DGS10)</label>
-              <input type="text" id="input-fred-id" placeholder="DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <input type="text" id="input-fred-id" placeholder="DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
@@ -87,16 +87,7 @@
           <div id="field-bok" class="hidden space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">한국은행 통계표 코드 (예: 722Y001)</label>
-              <input type="text" id="input-bok-code" placeholder="722Y001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
-            </div>
-            <div>
-              <label class="text-xs text-slate-400 block mb-1">데이터 주기</label>
-              <select id="input-bok-cycle" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
-                <option value="M">월간 (M)</option>
-                <option value="D">일간 (D)</option>
-                <option value="Q">분기 (Q)</option>
-                <option value="A">연간 (A)</option>
-              </select>
+              <input type="text" id="input-bok-code" placeholder="722Y001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
@@ -104,11 +95,11 @@
           <div id="field-api" class="hidden space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">JSON API 엔드포인트 URL</label>
-              <input type="url" id="input-api-url" placeholder="https://api.example.com/data" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <input type="url" id="input-api-url" placeholder="https://api.example.com/data" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">JSON 추출 경로 (예: data.price)</label>
-              <input type="text" id="input-json-path" placeholder="data.price" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <input type="text" id="input-json-path" placeholder="data.price" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
@@ -116,7 +107,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             <div>
               <label class="text-xs text-slate-400 block mb-1">알림 조건 설정</label>
-              <select id="input-condition" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <select id="input-condition" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
                 <option value="changed">단순 값 변경 시</option>
                 <option value="gte">목표값 상향 돌파 시</option>
                 <option value="lte">목표값 하향 돌파 시</option>
@@ -125,11 +116,11 @@
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">비교 기준 목표값 (선택)</label>
-              <input type="number" step="any" id="input-target-val" placeholder="예: 0.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <input type="number" step="any" id="input-target-val" placeholder="예: 0.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
-          <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-blue-600/20">
+          <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition shadow-lg shadow-blue-600/20">
             추적 항목 등록하기
           </button>
         </form>
@@ -138,11 +129,11 @@
       <!-- 추적 중인 목록 영역 -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-sm font-bold text-white flex items-center">
+          <h2 class="text-lg font-bold text-white flex items-center">
             <i class="fa-solid fa-list-check mr-2 text-blue-500"></i> 현재 추적 중인 항목
           </h2>
-          <span class="text-[11px] text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
-            <i class="fa-solid fa-arrows-up-down text-[9px] mr-1"></i> 순서 변경 가능
+          <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+            <i class="fa-solid fa-arrows-up-down text-[10px] mr-1"></i> 순서 변경 가능
           </span>
         </div>
         <div id="target-list" class="divide-y divide-slate-800/80">
@@ -156,23 +147,23 @@
     <div id="tab-content-news" class="space-y-6 hidden">
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-sm font-bold text-white flex items-center">
+          <h2 class="text-lg font-bold text-white flex items-center">
             <i class="fa-solid fa-newspaper mr-2 text-blue-500"></i> 글로벌 거시경제 핵심 브리핑
           </h2>
-          <span class="text-[11px] text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+          <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
             AI 실시간 필터링 적용됨
           </span>
         </div>
         <div id="news-list" class="divide-y divide-slate-800">
           <div class="py-4 space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] text-blue-400 font-semibold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40">연준(Fed) 정책</span>
-              <span class="text-[11px] text-slate-500">2026-08-18</span>
+              <span class="text-xs text-blue-400 font-semibold bg-blue-950/60 px-2.5 py-0.5 rounded border border-blue-800/40">연준(Fed) 정책</span>
+              <span class="text-xs text-slate-500">2026-08-18</span>
             </div>
-            <h3 class="text-sm font-bold text-slate-200 hover:text-blue-400 cursor-pointer">
+            <h3 class="text-base font-bold text-slate-200 hover:text-blue-400 cursor-pointer">
               미 연방준비제도, 차기 금리 결정 앞두고 물가 지표 면밀 주시 시사
             </h3>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <p class="text-sm text-slate-400 leading-relaxed">
               개별 기업 실적 노이즈는 제외하고 거시경제 전반의 금리 경로에 파장을 미칠 수 있는 인플레이션 지표 발표 임박 관련 외신 요약 내용입니다.
             </p>
           </div>
@@ -182,21 +173,21 @@
 
   </div>
 
-  <!-- 편집/수정용 모달 (필요 시 렌더링되거나 숨겨지는 공간) -->
+  <!-- 편집/수정용 모달 -->
   <div id="edit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-lg space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-pen-to-square mr-1 text-blue-500"></i> 추적 항목 수정</h3>
+        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-pen-to-square mr-1 text-blue-500"></i> 추적 항목 수정</h3>
         <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="space-y-3">
         <div>
           <label class="text-xs text-slate-400 block mb-1">지표 이름</label>
-          <input type="text" id="edit-title" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <input type="text" id="edit-title" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">데이터 소스 유형</label>
-          <select id="edit-type" onchange="toggleEditTypeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <select id="edit-type" onchange="toggleEditTypeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
             <option value="SELECTOR">일반 웹 스크래핑</option>
             <option value="FRED">연준 FRED API</option>
             <option value="BOK">한국은행 ECOS API</option>
@@ -204,23 +195,25 @@
           </select>
         </div>
 
-        <!-- 수정 모달 내 필드들 (필요에 따라 JS에서 제어) -->
+        <!-- 수정 모달 내 필드들 -->
         <div id="edit-field-selector" class="space-y-3">
-          <input type="url" id="edit-url" placeholder="URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
-          <input type="text" id="edit-selector" placeholder="CSS Selector" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <input type="url" id="edit-url" placeholder="URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="text" id="edit-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono">
         </div>
         <div id="edit-field-fred" class="hidden space-y-3">
-          <input type="text" id="edit-fred-id" placeholder="FRED Series ID" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <input type="text" id="edit-fred-id" placeholder="FRED Series ID" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
-
+        <div id="edit-field-bok" class="hidden space-y-3">
+          <input type="text" id="edit-bok-code" placeholder="통계표 코드 (예: 722Y001)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+        </div>
         <div id="edit-field-api" class="hidden space-y-3">
-          <input type="url" id="edit-api-url" placeholder="API URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
-          <input type="text" id="edit-json-path" placeholder="JSON 경로" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <input type="url" id="edit-api-url" placeholder="API URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="text" id="edit-json-path" placeholder="JSON 경로" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
 
         <div>
           <label class="text-xs text-slate-400 block mb-1">알림 조건 설정</label>
-          <select id="edit-condition" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <select id="edit-condition" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
             <option value="changed">단순 값 변경 시</option>
             <option value="gte">목표값 상향 돌파 시</option>
             <option value="lte">목표값 하향 돌파 시</option>
@@ -229,12 +222,12 @@
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">비교 기준 목표값</label>
-          <input type="number" step="any" id="edit-target-val" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+          <input type="number" step="any" id="edit-target-val" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
       </div>
       <div class="flex gap-2 pt-2">
-        <button onclick="closeEditModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">취소</button>
-        <button onclick="saveEditTarget()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition">저장하기</button>
+        <button onclick="closeEditModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold rounded-lg transition">취소</button>
+        <button onclick="saveEditTarget()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition">저장하기</button>
       </div>
     </div>
   </div>
