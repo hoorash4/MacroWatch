@@ -77,29 +77,23 @@
   }
 
   async function invokeAdmin(action, payload = {}, retried = false) {
-    const { data, error } = await db.functions.invoke('admin-control', {
-      body: { action, ...payload },
-      headers: { Authorization: `Bearer ${await getAccessToken()}` }
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-control`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${await getAccessToken()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action, ...payload })
     });
-    if (error) {
-      const status = error.context?.status;
-      if (status === 401 && !retried) {
-        const refreshed = await db.auth.refreshSession();
-        if (!refreshed.error && refreshed.data.session) {
-          return invokeAdmin(action, payload, true);
-        }
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401 && !retried) {
+      const refreshed = await db.auth.refreshSession();
+      if (!refreshed.error && refreshed.data.session) {
+        return invokeAdmin(action, payload, true);
       }
-      let message = data?.error;
-      if (!message && error.context) {
-        try {
-          const details = await error.context.json();
-          message = details?.error;
-        } catch (_) {
-          // 응답 본문을 읽을 수 없으면 SDK 오류 메시지를 사용합니다.
-        }
-      }
-      throw new Error(message || error.message || '관리자 요청에 실패했습니다.');
     }
+    if (!response.ok) throw new Error(data?.error || `관리자 요청에 실패했습니다. (${response.status})`);
     if (data?.error) throw new Error(data.error);
     return data;
   }
