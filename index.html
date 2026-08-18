@@ -442,6 +442,13 @@
 #app-shell .text-slate-500{color:#8794a8!important}
 #app-shell .bg-slate-900:not(:first-child){background:#0d2a55!important;border-color:rgba(255,255,255,.12)!important}
 @media(max-width:640px){#app-shell{width:calc(100% - 1rem)!important;padding:1rem!important;border-radius:1.25rem!important}}
+</style><style id="dashboard-loading-state">
+#app-shell>.bg-slate-900:first-child #db-status{display:none!important}
+@keyframes dashboardSpin{to{transform:rotate(360deg)}}
+@keyframes dashboardDots{0%,20%{content:""}40%{content:"."}60%{content:".."}80%,100%{content:"..."}}
+#target-list>p:first-child{display:flex!important;align-items:center;justify-content:center;gap:.6rem;color:#aeb8c8!important}
+#target-list>p:first-child:before{content:"";width:14px;height:14px;border:2px solid rgba(209,165,93,.28);border-top-color:#d1a55d;border-radius:50%;animation:dashboardSpin .8s linear infinite}
+#target-list>p:first-child:after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dashboardDots 1.2s steps(1,end) infinite}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
