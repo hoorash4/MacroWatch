@@ -103,6 +103,15 @@ async function unlinkKakaoAccount(
   }
 }
 
+async function authenticatedUser(supabaseUrl: string, anonKey: string, jwt: string) {
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: anonKey, Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) return null;
+  const user = await response.json().catch(() => null);
+  return user?.id ? user : null;
+}
+
 export default {
   async fetch(request: Request) {
     const origin = request.headers.get("Origin");
@@ -246,8 +255,8 @@ export default {
 
       const jwt = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
       if (!jwt) return json({ error: "로그인이 필요합니다." }, 401, origin);
-      const { data: userData, error: userError } = await admin.auth.getUser(jwt);
-      if (userError || !userData.user) {
+      const user = await authenticatedUser(supabaseUrl, anonKey, jwt);
+      if (!user) {
         return json({ error: "로그인 정보가 유효하지 않습니다." }, 401, origin);
       }
 
@@ -255,7 +264,7 @@ export default {
         const { data: channel } = await admin
           .from("notification_channels")
           .select("config, is_active")
-          .eq("user_id", userData.user.id)
+          .eq("user_id", user.id)
           .eq("channel", "kakao_self")
           .maybeSingle();
         const config = channel?.config && typeof channel.config === "object" ? channel.config : {};
@@ -269,7 +278,7 @@ export default {
         const { data: channel } = await admin
           .from("notification_channels")
           .select("config")
-          .eq("user_id", userData.user.id)
+          .eq("user_id", user.id)
           .eq("channel", "kakao_self")
           .maybeSingle();
         const config = channel?.config && typeof channel.config === "object"
@@ -277,10 +286,10 @@ export default {
           : {};
         await unlinkKakaoAccount(config, kakaoClientId, kakaoClientSecret);
 
-        await admin.from("device_tokens").delete().eq("user_id", userData.user.id);
-        await admin.from("notification_channels").delete().eq("user_id", userData.user.id);
-        await admin.from("targets").delete().eq("user_id", userData.user.id);
-        const { error: deleteError } = await admin.auth.admin.deleteUser(userData.user.id);
+        await admin.from("device_tokens").delete().eq("user_id", user.id);
+        await admin.from("notification_channels").delete().eq("user_id", user.id);
+        await admin.from("targets").delete().eq("user_id", user.id);
+        const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
         if (deleteError) throw deleteError;
         return json({ deleted: true }, 200, origin);
       }
