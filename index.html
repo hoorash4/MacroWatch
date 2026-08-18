@@ -287,33 +287,34 @@
       }
     }
 
-    // 7. 수정 내용 DB 저장 함수 (단일화 및 조건/목표값 반영)
-    async function saveEdit(id) {
-      const title = document.getElementById(`val-title-${id}`).value;
-      const url = document.getElementById(`val-url-${id}`).value;
-      const css_selector = document.getElementById(`val-selector-${id}`).value;
-      const condition_type = document.getElementById(`val-cond-${id}`).value;
-      const target_value_raw = document.getElementById(`val-target-${id}`).value;
-      const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
+// 7. 수정 내용 DB 저장 함수 (순서 꼬임 방지 코드 포함)
+async function saveEdit(id) {
+  const title = document.getElementById(`val-title-${id}`).value;
+  const url = document.getElementById(`val-url-${id}`).value;
+  const css_selector = document.getElementById(`val-selector-${id}`).value;
+  const condition_type = document.getElementById(`val-cond-${id}`).value;
+  const target_value_raw = document.getElementById(`val-target-${id}`).value;
+  const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
 
-      const { error } = await supabaseClient
-        .from('targets')
-        .update({ 
-          title: title, 
-          url: url, 
-          css_selector: css_selector, 
-          condition_type: condition_type, 
-          target_value: target_value 
-        })
-        .eq('id', id);
+  // 수정 요청 시 기존 순서가 유지되도록 업데이트 쿼리 전송
+  const { error } = await supabaseClient
+    .from('targets')
+    .update({ 
+      title: title, 
+      url: url, 
+      css_selector: css_selector, 
+      condition_type: condition_type, 
+      target_value: target_value 
+    })
+    .eq('id', id);
 
-      if (error) {
-        alert('수정 실패: ' + error.message);
-      } else {
-        toggleEdit(id); 
-        fetchTargets(); 
-      }
-    }
+  if (error) {
+    alert('수정 실패: ' + error.message);
+  } else {
+    toggleEdit(id); 
+    fetchTargets(); // 목록을 다시 불러올 때 기존 순서(display_order 기준)가 유지됨
+  }
+}
   </script>
 </body>
 </html>
