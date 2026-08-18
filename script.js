@@ -176,16 +176,23 @@ async function fetchTargets() {
       const bellTitle = isActive ? "알림 켜짐 (클릭하여 끄기)" : "알림 꺼짐 (클릭하여 켜기)";
       
       let displayUrl = item.url;
-      let isFred = false;
+      let itemType = 'SELECTOR'; // 기본 웹사이트
       let fredSeriesId = '';
+      let jsonPath = '';
 
+      // 1. FRED 판별
       if (item.url && item.url.includes('stlouisfed.org/fred/series/observations')) {
-        isFred = true;
+        itemType = 'FRED';
         const match = item.url.match(/series_id=([^&]+)/);
         if (match && match[1]) {
           fredSeriesId = match[1];
           displayUrl = `https://fred.stlouisfed.org/series/${fredSeriesId}`;
         }
+      } 
+      // 2. 외부 API 판별 (css_selector가 'API:'로 시작하거나 url이 API 형태인 경우)
+      else if (item.css_selector && item.css_selector.startsWith('API:')) {
+        itemType = 'API';
+        jsonPath = item.css_selector.replace('API:', '');
       }
 
       const safeSelector = (item.css_selector || '').replace(/"/g, '&quot;');
@@ -222,10 +229,19 @@ async function fetchTargets() {
               <input type="text" id="val-title-${item.id}" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white">
             </div>
             
-            ${isFred ? `
+            ${itemType === 'FRED' ? `
             <div>
               <label class="text-[11px] text-slate-400 block mb-1 font-medium">FRED Series ID</label>
               <input type="text" id="val-fred-id-${item.id}" value="${fredSeriesId}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white font-mono">
+            </div>
+            ` : itemType === 'API' ? `
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1 font-medium">API 엔드포인트 URL</label>
+              <input type="text" id="val-api-url-${item.id}" value="${item.url}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1 font-medium">JSON 경로 (예: data.rate)</label>
+              <input type="text" id="val-json-path-${item.id}" value="${jsonPath}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300 font-mono">
             </div>
             ` : `
             <div>
@@ -255,7 +271,7 @@ async function fetchTargets() {
             </div>
             <div class="flex justify-end gap-2 pt-1">
               <button onclick="toggleEdit(${item.id})" class="text-xs px-3 py-1.5 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 transition">취소</button>
-              <button onclick="saveEdit(${item.id}, ${isFred})" class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition">저장하기</button>
+              <button onclick="saveEdit(${item.id}, '${itemType}')" class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition">저장하기</button>
             </div>
           </div>
         </div>
@@ -320,7 +336,7 @@ async function toggleAlertBell(id, btnElement) {
   }
 }
 
-async function saveEdit(id, isFred) {
+async function saveEdit(id, itemType) {
   const title = document.getElementById(`val-title-${id}`).value.trim();
   const condition_type = document.getElementById(`val-cond-${id}`).value;
   const target_value_raw = document.getElementById(`val-target-${id}`).value.trim();
@@ -328,10 +344,14 @@ async function saveEdit(id, isFred) {
 
   let url = '', css_selector = '';
 
-  if (isFred) {
+  if (itemType === 'FRED') {
     const seriesId = document.getElementById(`val-fred-id-${id}`).value.trim().toUpperCase();
     url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
     css_selector = 'API:observations[0].value';
+  } else if (itemType === 'API') {
+    url = document.getElementById(`val-api-url-${id}`).value.trim();
+    const jsonPath = document.getElementById(`val-json-path-${id}`).value.trim();
+    css_selector = `API:${jsonPath}`;
   } else {
     url = document.getElementById(`val-url-${id}`).value.trim();
     css_selector = document.getElementById(`val-selector-${id}`).value.trim();
