@@ -68,11 +68,27 @@
     document.getElementById('operation-modal').classList.add('hidden');
   }
 
-  async function invokeAdmin(action, payload = {}) {
+  async function getAccessToken() {
+    const { data, error } = await db.auth.getSession();
+    if (error || !data.session?.access_token) {
+      throw new Error('로그인이 필요합니다.');
+    }
+    return data.session.access_token;
+  }
+
+  async function invokeAdmin(action, payload = {}, retried = false) {
     const { data, error } = await db.functions.invoke('admin-control', {
-      body: { action, ...payload }
+      body: { action, ...payload },
+      headers: { Authorization: `Bearer ${await getAccessToken()}` }
     });
     if (error) {
+      const status = error.context?.status;
+      if (status === 401 && !retried) {
+        const refreshed = await db.auth.refreshSession();
+        if (!refreshed.error && refreshed.data.session) {
+          return invokeAdmin(action, payload, true);
+        }
+      }
       let message = data?.error;
       if (!message && error.context) {
         try {
