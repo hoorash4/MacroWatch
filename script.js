@@ -422,10 +422,10 @@ async function confirmDeleteTarget() {
 // 헬퍼 함수
 function getConditionText(condition) {
   switch (condition) {
-    case 'changed': return '값 변동 감지';
-    case 'gte': return '목표값 상향 돌파';
-    case 'lte': return '목표값 하향 돌파';
-    case 'cross': return '목표값 상/하향 돌파';
+    case 'changed': return '지표값 변동 감지';
+    case 'gte': return '설정값 상향 돌파';
+    case 'lte': return '설정값 하향 돌파';
+    case 'cross': return '설정값 상/하향 돌파';
     default: return condition;
   }
 }
