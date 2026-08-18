@@ -10,6 +10,7 @@ const ECOS_API_KEY = 'J3ECOLI9TGA6E8G39H40'; // 한국은행 ECOS API 키
 // 상태 관리
 let targets = [];
 let currentEditId = null;
+let currentDeleteId = null;
 let draggedItemIndex = null;
 let expandedTargetId = null;
 
@@ -358,19 +359,33 @@ async function saveEditTarget() {
 }
 
 // 항목 삭제
-async function handleDeleteTarget(id) {
-  if (!confirm('정말 삭제하시겠습니까?')) return;
+function handleDeleteTarget(id) {
+  currentDeleteId = id;
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
 
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.add('hidden');
+  currentDeleteId = null;
+}
+
+async function confirmDeleteTarget() {
+  if (!currentDeleteId) return;
+
+  const id = currentDeleteId;
   if (supabaseClient && !id.toString().startsWith('local_')) {
     try {
-      await supabaseClient.from('targets').delete().eq('id', id);
+      const { error } = await supabaseClient.from('targets').delete().eq('id', id);
+      if (error) throw error;
     } catch (err) {
       console.error(err);
+      return;
     }
   }
 
-  targets = targets.filter(t => t.id !== id);
+  targets = targets.filter(t => String(t.id) !== String(id));
   renderTargets();
+  closeDeleteModal();
 }
 
 // 헬퍼 함수
