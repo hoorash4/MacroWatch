@@ -403,7 +403,7 @@ def send_kakao_message(access_token: str, results: list[CheckResult]) -> None:
             "web_url": "https://hoorash4.github.io/macrowatch/",
             "mobile_web_url": "https://hoorash4.github.io/macrowatch/",
         },
-        "button_title": "대시보드 열기",
+        "button_title": "MacroWatch",
     }
     response = requests.post(
         "https://kapi.kakao.com/v2/api/talk/memo/default/send",
