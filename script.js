@@ -18,23 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleTargetValueInput('input-condition', 'input-target-val');
 });
 
-document.addEventListener('focusin', (event) => {
-  const input = event.target;
-  if (!input.matches?.('input[placeholder]')) return;
-
-  if (input.dataset.placeholder === undefined) {
-    input.dataset.placeholder = input.placeholder;
-  }
-  input.placeholder = '';
-});
-
-document.addEventListener('focusout', (event) => {
-  const input = event.target;
-  if (input.matches?.('input[placeholder]') && !input.value) {
-    input.placeholder = input.dataset.placeholder ?? '';
-  }
-});
-
 // DB 연결 상태 확인 (Publishable Key 호환 수정)
 async function checkDbConnection() {
   const statusEl = document.getElementById('db-status');
