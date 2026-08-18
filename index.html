@@ -224,7 +224,32 @@
       background-size: 40px 40px;
     }
   </style>
-</head>
+<style id="minimal-editorial-layout">
+.auth-canvas{background:#ece9e2!important;border:0!important;border-radius:0!important;min-height:calc(100vh - 2rem)!important}
+.auth-canvas>div{max-width:none!important;min-height:calc(100vh - 2rem)!important;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr)!important}
+.auth-brand-panel,.left-gold-dots{background:#f7f5f0!important;border:0!important;border-right:1px solid #d9d4ca!important;border-radius:0!important;padding:clamp(2rem,5vw,5.5rem)!important}
+.left-gold-dots>div:first-child>div:first-child{align-items:flex-start!important}
+.left-gold-dots>div:first-child>div:first-child>div:first-child{flex-direction:column!important;align-items:flex-start!important;gap:1.25rem!important}
+.evotive-source-logo{width:150px!important;height:94px!important}
+.brand-lockup{width:auto!important}
+.brand-lockup .brand-name{font-size:clamp(1.7rem,3vw,2.7rem)!important;letter-spacing:.045em!important;line-height:1!important}
+.brand-lockup .brand-tagline{font-size:.68rem!important;letter-spacing:.24em!important;margin-top:.55rem!important}
+.left-gold-dots>div:first-child>div:first-child>span{display:none!important}
+.left-gold-dots .mt-12{margin-top:clamp(4rem,10vh,8rem)!important;max-width:620px!important}
+.left-gold-dots .mt-12>div:first-child{border:0!important;background:transparent!important;padding:0!important}
+.left-gold-dots h1{font-size:clamp(2.6rem,5vw,5.2rem)!important;line-height:1.08!important;letter-spacing:-.065em!important}
+.left-gold-dots h1 span{background:none!important;color:#071b42!important}
+.left-gold-dots h1:after{content:"";display:block;width:72px;height:3px;background:#b98a45;margin-top:2rem}
+.left-gold-dots .mt-12 p{font-size:1rem!important;max-width:500px!important;margin-top:2rem!important;color:#5f6875!important}
+.left-gold-dots>div:last-child{max-width:620px!important;border:0!important;border-top:1px solid #d9d4ca!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:1.25rem 0 0!important}
+.left-gold-dots>div:last-child .grid>div{background:#eeece6!important;border:0!important;border-radius:0!important}
+.auth-canvas>div>section:last-child{background:#e5e1d9!important;position:relative!important;padding:clamp(2rem,6vw,7rem)!important}
+.auth-canvas>div>section:last-child:before{content:"MACROWATCH / PRIVATE ACCESS";position:absolute;top:clamp(2rem,5vw,5.5rem);right:clamp(2rem,6vw,7rem);font:600 .62rem/1 Pretendard,sans-serif;letter-spacing:.2em;color:#8e8a82}
+.auth-panel{max-width:430px!important;border-radius:2px!important;padding:clamp(2rem,4vw,3.5rem)!important;border:1px solid #d8d2c7!important;box-shadow:18px 18px 0 #d5d0c6!important}
+.auth-panel h2{font-size:1.8rem!important;letter-spacing:-.04em!important}
+@media(max-width:1023px){.auth-canvas{min-height:calc(100vh - 1.5rem)!important}.auth-canvas>div{display:block!important}.left-gold-dots{display:flex!important;min-height:auto!important;padding:2.5rem 1.5rem!important}.left-gold-dots .mt-12{margin-top:3rem!important}.left-gold-dots h1{font-size:2.7rem!important}.left-gold-dots>div:last-child{margin-top:3rem!important}.auth-canvas>div>section:last-child{padding:2.5rem 1.5rem 4rem!important}.auth-canvas>div>section:last-child:before{display:none!important}.auth-panel{box-shadow:10px 10px 0 #d5d0c6!important;margin:auto!important}}
+@media(max-width:480px){.brand-lockup .brand-name{font-size:1.55rem!important}.brand-lockup .brand-tagline{font-size:.55rem!important}.left-gold-dots h1{font-size:2.25rem!important}.left-gold-dots .grid{grid-template-columns:1fr!important}}
+</style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
 
