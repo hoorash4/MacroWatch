@@ -181,9 +181,8 @@
     const requested = new Date(requestedAt).getTime() - 5000;
     for (let attempt = 0; attempt < 120; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
-      const status = await invokeAdmin('status');
-      applyStatus(status);
-      const run = kind === 'check' ? status.check : status.backup;
+      const { run } = await invokeAdmin('workflow_status', { kind });
+      setBadge(document.getElementById(kind === 'check' ? 'check-badge' : 'backup-badge'), run);
       if (run && new Date(run.created_at).getTime() >= requested && run.status === 'completed') {
         return run;
       }
