@@ -277,21 +277,37 @@ async function fetchTargets() {
 
     // 수정 내용 저장 함수 (조건 및 목표값 포함)
 async function saveEdit(id) {
+  // 1. 입력된 값들을 정확하게 가져오는지 확인
   const title = document.getElementById(`val-title-${id}`).value;
   const url = document.getElementById(`val-url-${id}`).value;
   const css_selector = document.getElementById(`val-selector-${id}`).value;
   const condition_type = document.getElementById(`val-cond-${id}`).value;
-  const target_value = document.getElementById(`val-target-${id}`).value;
+  const target_value_raw = document.getElementById(`val-target-${id}`).value;
 
-  const { error } = await supabaseClient
+  // 숫자로 변환 (빈 값이면 null 처리)
+  const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
+
+  console.log("저장 시도 데이터:", { id, title, url, css_selector, condition_type, target_value });
+
+  // 2. Supabase 업데이트 실행
+  const { data, error } = await supabaseClient
     .from('targets')
-    .update({ title, url, css_selector, condition_type, target_value: target_value ? parseFloat(target_value) : null })
-    .eq('id', id);
+    .update({ 
+      title: title, 
+      url: url, 
+      css_selector: css_selector, 
+      condition_type: condition_type, 
+      target_value: target_value 
+    })
+    .eq('id', id)
+    .select(); // 업데이트된 결과를 받아오도록 수정
 
   if (error) {
-    alert('수정 실패: ' + error.message);
+    console.error('Supabase 업데이트 에러:', error.message);
+    alert('저장 실패: ' + error.message);
   } else {
-    fetchTargets();
+    console.log('저장 성공 결과:', data);
+    fetchTargets(); // 목록 새로고침
   }
 }
 
