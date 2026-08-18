@@ -236,23 +236,16 @@ function setDropIndicator(index) {
   dropIndicatorIndex = index;
 
   const containers = document.querySelectorAll('[data-target-container]');
-  if (index === 0) {
-    containers[0]?.style.setProperty('border-top-color', 'white', 'important');
+  if (index < containers.length) {
+    containers[index]?.style.setProperty('box-shadow', 'inset 0 1px 0 white');
   } else {
-    containers[index - 1]?.style.setProperty('border-bottom-color', 'white', 'important');
+    containers[containers.length - 1]?.style.setProperty('box-shadow', 'inset 0 -1px 0 white');
   }
 }
 
 function clearDropIndicator() {
-  const containers = document.querySelectorAll('[data-target-container]');
-  containers.forEach((container, index) => {
-    if (index === 0) {
-      container.style.removeProperty('border-top-color');
-    }
-    container.style.removeProperty('border-bottom-color');
-    if (index === containers.length - 1) {
-      container.style.setProperty('border-bottom-color', 'transparent');
-    }
+  document.querySelectorAll('[data-target-container]').forEach(container => {
+    container.style.removeProperty('box-shadow');
   });
   dropIndicatorIndex = null;
 }
