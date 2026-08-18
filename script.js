@@ -116,11 +116,11 @@ function renderTargets() {
   if (!listEl) return;
 
   if (targets.length === 0) {
-    listEl.innerHTML = \`<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>\`;
+    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
     return;
   }
 
-  listEl.innerHTML = targets.map((item, index) => \`
+  listEl.innerHTML = targets.map((item, index) => `
     <div class="py-3 border-b border-slate-800/80 last:border-0">
       <div class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
@@ -137,17 +137,17 @@ function renderTargets() {
             </span>
             <span class="block text-xs text-slate-400 mt-0.5 truncate">
               조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
-              ${item.target_value !== null && item.target_value !== undefined ? \`| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>\` : ''}
+              ${item.target_value !== null && item.target_value !== undefined ? `| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
             </span>
           </button>
-          ${item.url ? \`<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>출처</span></a>\` : ''}
+          ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>출처</span></a>` : ''}
         </div>
         <div class="shrink-0 text-right">
           <span class="block text-[10px] text-slate-500">현재값</span>
           <span class="block text-sm font-bold text-blue-400 font-mono">${item.last_value ?? '—'}</span>
         </div>
       </div>
-      ${String(item.id) === expandedTargetId ? \`
+      ${String(item.id) === expandedTargetId ? `
         <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
           <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 text-xs">
             <div class="sm:col-span-2">
@@ -172,9 +172,9 @@ function renderTargets() {
             <button onclick="handleDeleteTarget('${item.id}')" class="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition"><i class="fa-solid fa-trash-can mr-1"></i>삭제</button>
           </div>
         </div>
-      \` : ''}
+      ` : ''}
     </div>
-  \`).join('');
+  `).join('');
 }
 
 function toggleTargetDetails(id) {
