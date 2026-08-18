@@ -147,16 +147,41 @@ export default {
       const action = String(body?.action || "");
 
       if (action === "status") {
-        const [{ data: settings }, check, backup] = await Promise.all([
+        const [
+          { data: settings },
+          check,
+          backup,
+          { count: total, error: totalError },
+          { count: active, error: activeError },
+          { count: errorCount, error: errorCountError },
+          { data: errors, error: errorsError },
+        ] = await Promise.all([
           admin.from("app_settings").select("value, updated_at").eq("key", "target_check_schedule").maybeSingle(),
           latestRun(CHECK_WORKFLOW, githubToken),
           latestRun(BACKUP_WORKFLOW, githubToken),
+          admin.from("targets").select("id", { count: "exact", head: true }),
+          admin.from("targets").select("id", { count: "exact", head: true }).eq("is_active", true),
+          admin.from("targets").select("id", { count: "exact", head: true }).not("last_error", "is", null).neq("last_error", ""),
+          admin.from("targets")
+            .select("id,title,last_error,last_checked_at")
+            .not("last_error", "is", null)
+            .neq("last_error", "")
+            .order("last_checked_at", { ascending: false, nullsFirst: false })
+            .limit(100),
         ]);
+        const databaseError = totalError || activeError || errorCountError || errorsError;
+        if (databaseError) throw databaseError;
         return json({
           schedule: settings?.value || { times: ["08:00", "18:00"], timezone: "Asia/Seoul" },
           schedule_updated_at: settings?.updated_at || null,
           check,
           backup,
+          database: {
+            total: total || 0,
+            active: active || 0,
+            error_count: errorCount || 0,
+            errors: errors || [],
+          },
         }, 200, origin);
       }
 
