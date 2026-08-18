@@ -2,6 +2,7 @@
   const AUTH_SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
   const AUTH_SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
   const authClient = window.supabase?.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+  window.macroWatchSupabase = authClient;
   const elements = {};
 
   function setMessage(message = '') {
@@ -14,11 +15,40 @@
     elements.submitLabel.textContent = isBusy ? '카카오 연결 중' : label;
   }
 
-  async function invokeKakao(action, payload = {}) {
-    const { data, error } = await authClient.functions.invoke('kakao-auth', {
-      body: { action, ...payload }
-    });
-    if (error) throw new Error(data?.error || error.message || '카카오 요청에 실패했습니다.');
+  async function getAccessToken() {
+    const { data, error } = await authClient.auth.getSession();
+    if (error || !data.session?.access_token) {
+      throw new Error('로그인이 필요합니다.');
+    }
+    return data.session.access_token;
+  }
+
+  async function invokeKakao(action, payload = {}, retried = false) {
+    const requiresAuth = action !== 'start' && action !== 'exchange';
+    const options = { body: { action, ...payload } };
+    if (requiresAuth) {
+      options.headers = { Authorization: `Bearer ${await getAccessToken()}` };
+    }
+    const { data, error } = await authClient.functions.invoke('kakao-auth', options);
+    if (error) {
+      const status = error.context?.status;
+      if (requiresAuth && status === 401 && !retried) {
+        const refreshed = await authClient.auth.refreshSession();
+        if (!refreshed.error && refreshed.data.session) {
+          return invokeKakao(action, payload, true);
+        }
+      }
+      let message = data?.error;
+      if (!message && error.context) {
+        try {
+          const details = await error.context.json();
+          message = details?.error;
+        } catch (_) {
+          // 응답 본문을 읽을 수 없으면 SDK 오류 메시지를 사용합니다.
+        }
+      }
+      throw new Error(message || error.message || '카카오 요청에 실패했습니다.');
+    }
     if (data?.error) throw new Error(data.error);
     return data;
   }
