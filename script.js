@@ -85,7 +85,12 @@ function toggleTargetValueInput(conditionId, valueId) {
 
   const isValueChange = conditionEl.value === 'changed';
   valueEl.disabled = isValueChange;
-  if (isValueChange) valueEl.value = '';
+  if (isValueChange) {
+    valueEl.value = '';
+    valueEl.placeholder = '설정 없이 지표값이 변동하면 알려줍니다.';
+  } else {
+    valueEl.placeholder = valueEl.dataset.defaultPlaceholder || '';
+  }
 }
 
 // 수정 모달 타입 선택 처리
