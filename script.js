@@ -10,13 +10,19 @@ let currentDeleteId = null;
 let draggedItemIndex = null;
 let dropIndicatorIndex = null;
 let expandedTargetId = null;
+let currentUserId = null;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
-  checkDbConnection();
-  fetchTargets();
   toggleTargetValueInput('input-condition', 'input-target-val');
 });
+
+async function getCurrentUserId() {
+  if (currentUserId) return currentUserId;
+  const { data } = await supabaseClient.auth.getSession();
+  currentUserId = data.session?.user?.id || null;
+  return currentUserId;
+}
 
 // DB 연결 상태 확인 (Publishable Key 호환 수정)
 async function checkDbConnection() {
@@ -93,9 +99,16 @@ function toggleTargetValueInput(conditionId, valueId) {
 async function fetchTargets() {
   if (supabaseClient) {
     try {
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        targets = [];
+        renderTargets();
+        return;
+      }
       const { data, error } = await supabaseClient
         .from('targets')
         .select('*')
+        .eq('user_id', userId)
         .order('display_order', { ascending: true, nullsFirst: false });
       if (!error && data) {
         targets = data;
@@ -196,10 +209,12 @@ async function toggleTargetActive(id) {
 
   if (supabaseClient && !String(id).startsWith('local_')) {
     try {
+      const userId = await getCurrentUserId();
       const { error } = await supabaseClient
         .from('targets')
         .update({ is_active: nextIsActive })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', userId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
@@ -280,12 +295,15 @@ function handleDragEnd(e) {
 // 순서 변경 사항 DB 저장
 async function saveOrderToDb() {
   if (!supabaseClient) return;
+  const userId = await getCurrentUserId();
+  if (!userId) return;
 
   for (let i = 0; i < targets.length; i++) {
     await supabaseClient
       .from('targets')
       .update({ display_order: i })
-      .eq('id', targets[i].id);
+      .eq('id', targets[i].id)
+      .eq('user_id', userId);
   }
 }
 
@@ -329,8 +347,15 @@ async function handleAddTarget(e) {
     sourceConfig = { json_path: jsonPath };
   }
 
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    window.alert('로그인 정보가 없습니다. 다시 로그인해 주세요.');
+    return;
+  }
+
   const newItem = {
     id: 'local_' + Date.now(),
+    user_id: userId,
     title,
     url,
     css_selector: cssSelector,
@@ -347,6 +372,7 @@ async function handleAddTarget(e) {
       const { data, error } = await supabaseClient
         .from('targets')
         .insert([{
+          user_id: userId,
           title,
           url,
           css_selector: cssSelector,
@@ -426,7 +452,12 @@ async function saveEditTarget() {
 
   if (supabaseClient && !currentEditId.toString().startsWith('local_')) {
     try {
-      const { error } = await supabaseClient.from('targets').update(updatedData).eq('id', currentEditId);
+      const userId = await getCurrentUserId();
+      const { error } = await supabaseClient
+        .from('targets')
+        .update(updatedData)
+        .eq('id', currentEditId)
+        .eq('user_id', userId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
@@ -460,7 +491,12 @@ async function confirmDeleteTarget() {
   const id = currentDeleteId;
   if (supabaseClient && !id.toString().startsWith('local_')) {
     try {
-      const { error } = await supabaseClient.from('targets').delete().eq('id', id);
+      const userId = await getCurrentUserId();
+      const { error } = await supabaseClient
+        .from('targets')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
