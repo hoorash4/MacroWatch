@@ -237,9 +237,9 @@ function setDropIndicator(index) {
 
   const containers = document.querySelectorAll('[data-target-container]');
   if (index === 0) {
-    containers[0]?.style.setProperty('border-top-color', 'white');
+    containers[0]?.style.setProperty('border-top-color', 'white', 'important');
   } else {
-    containers[index - 1]?.style.setProperty('border-bottom-color', 'white');
+    containers[index - 1]?.style.setProperty('border-bottom-color', 'white', 'important');
   }
 }
 
@@ -247,9 +247,12 @@ function clearDropIndicator() {
   const containers = document.querySelectorAll('[data-target-container]');
   containers.forEach((container, index) => {
     if (index === 0) {
-      container.style.setProperty('border-top-color', 'transparent');
+      container.style.removeProperty('border-top-color');
     }
-    container.style.setProperty('border-bottom-color', index === containers.length - 1 ? 'transparent' : '');
+    container.style.removeProperty('border-bottom-color');
+    if (index === containers.length - 1) {
+      container.style.setProperty('border-bottom-color', 'transparent');
+    }
   });
   dropIndicatorIndex = null;
 }
