@@ -134,6 +134,8 @@
 
   </div>
 
+
+  
   <script>
     let supabaseClient = null;
 
@@ -312,6 +314,10 @@
   `;
 }
 
+
+    
+const FRED_API_KEY = "12ce2a29eb8e65de769bb88cc9deb4b0";
+
 async function handleAddTarget(e) {
   e.preventDefault();
   if (!supabaseClient) return alert('먼저 Supabase 연동 정보를 입력하고 저장해 주세요.');
@@ -324,31 +330,59 @@ async function handleAddTarget(e) {
   let url = '';
   let css_selector = '';
 
-  if (type === 'API') {
+  if (!title) return alert('항목 이름을 입력해 주세요.');
+
+  // 1. FRED 선택 시
+  if (type === 'FRED') {
+    const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
+    if (!seriesId) return alert('FRED Series ID를 입력해 주세요.');
+
+    url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
+    css_selector = 'API:observations[0].value';
+
+    // ✨ [FRED ID 실시간 유효성 검증]
+    try {
+      const checkRes = await fetch(url);
+      const checkData = await checkRes.json();
+
+      // FRED에서 에러 코드를 반환하거나 observations 배열이 비어있으면 저장 중단
+      if (checkData.error_code || !checkData.observations || checkData.observations.length === 0) {
+        return alert('존재하지 않거나 조회할 수 없는 FRED Series ID입니다. 확인 후 다시 입력해 주세요.');
+      }
+    } catch (err) {
+      return alert('FRED ID 검증 중 오류가 발생했습니다: ' + err.message);
+    }
+
+  // 2. 범용 API 선택 시
+  } else if (type === 'API') {
     url = document.getElementById('input-api-url').value.trim();
     const jsonPath = document.getElementById('input-json-path').value.trim();
     if (!url || !jsonPath) return alert('API URL과 JSON Path를 모두 입력해 주세요.');
+    
     css_selector = `API:${jsonPath}`;
+
+  // 3. 일반 웹 Scraping 선택 시
   } else {
     url = document.getElementById('input-url').value.trim();
     css_selector = document.getElementById('input-selector').value.trim();
     if (!url || !css_selector) return alert('URL과 CSS Selector를 모두 입력해 주세요.');
   }
 
+  // 4. Supabase DB에 최종 저장
   try {
-    // Supabase DB에 저장
     const { error } = await supabaseClient
       .from('targets')
       .insert([{ 
         title, 
         url, 
         css_selector,
-        condition_type,  // 추가됨
-        target_value     // 추가됨
+        condition_type,
+        target_value
       }]);
 
     if (error) throw error;
 
+    // 폼 초기화 및 목록 새로고침
     document.getElementById('add-form').reset();
     toggleTypeFields();
     fetchTargets();
@@ -358,6 +392,8 @@ async function handleAddTarget(e) {
     alert('추가 실패: ' + err.message);
   }
 }
+
+    
 
     async function toggleActive(id, currentStatus) {
       if (!supabaseClient) return;
