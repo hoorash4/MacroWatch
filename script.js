@@ -22,15 +22,24 @@ document.addEventListener('DOMContentLoaded', () => {
 async function checkDbConnection() {
   const statusEl = document.getElementById('db-status');
   if (!supabase) {
-    if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> DB 설정 필요`;
+    if (statusEl) {
+      statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950/60 text-red-400 border border-red-700/50 flex items-center gap-2 shadow-inner";
+      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> DB 설정 필요`;
+    }
     return;
   }
   try {
     const { error } = await supabase.from('targets').select('id', { count: 'exact', head: true });
     if (error) throw error;
-    if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> DB 연결 완료`;
+    if (statusEl) {
+      statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-green-950/60 text-green-400 border border-green-700/50 flex items-center gap-2 shadow-inner";
+      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> DB 연결 완료`;
+    }
   } catch (err) {
-    if (statusEl) statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> 로컬 모드`;
+    if (statusEl) {
+      statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950/60 text-amber-400 border border-amber-700/50 flex items-center gap-2 shadow-inner";
+      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> 로컬 모드`;
+    }
   }
 }
 
@@ -72,7 +81,7 @@ function toggleEditTypeFields() {
   document.getElementById('edit-field-api').classList.toggle('hidden', type !== 'API');
 }
 
-// ECOS API URL 생성 헬퍼
+// ECOS API URL 생성 헬퍼 함수
 function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
   return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
 }
@@ -103,7 +112,7 @@ function renderTargets() {
   if (!listEl) return;
 
   if (targets.length === 0) {
-    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center">등록된 추적 항목이 없습니다.</p>`;
+    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
     return;
   }
 
@@ -187,22 +196,27 @@ async function saveOrderToDb() {
 async function handleAddTarget(e) {
   e.preventDefault();
 
-  const title = document.getElementById('input-title').value;
+  const title = document.getElementById('input-title').value.trim();
   const type = document.getElementById('input-type').value;
   const condition = document.getElementById('input-condition').value;
-  const targetValStr = document.getElementById('input-target-val').value;
+  const targetValStr = document.getElementById('input-target-val').value.trim();
   const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
 
   let config = {};
   if (type === 'SELECTOR') {
-    config = { url: document.getElementById('input-url').value, selector: document.getElementById('input-selector').value };
+    config = { url: document.getElementById('input-url').value.trim(), selector: document.getElementById('input-selector').value.trim() };
   } else if (type === 'FRED') {
-    config = { fred_id: document.getElementById('input-fred-id').value, api_key: FRED_API_KEY };
+    const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
+    config = { 
+      fred_id: seriesId, 
+      api_key: FRED_API_KEY,
+      url: `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`
+    };
   } else if (type === 'BOK') {
-    const bokCode = document.getElementById('input-bok-code').value;
+    const bokCode = document.getElementById('input-bok-code').value.trim();
     config = { bok_code: bokCode, api_key: ECOS_API_KEY, ecos_url: buildEcosUrl(bokCode) };
   } else if (type === 'API') {
-    config = { api_url: document.getElementById('input-api-url').value, json_path: document.getElementById('input-json-path').value };
+    config = { api_url: document.getElementById('input-api-url').value.trim(), json_path: document.getElementById('input-json-path').value.trim() };
   }
 
   const newItem = {
@@ -234,6 +248,9 @@ async function handleAddTarget(e) {
         renderTargets();
         document.getElementById('add-form').reset();
         toggleTypeFields();
+        return;
+      } else if (error) {
+        alert('등록 실패: ' + error.message);
         return;
       }
     } catch (err) {
@@ -285,22 +302,27 @@ function closeEditModal() {
 async function saveEditTarget() {
   if (!currentEditId) return;
 
-  const title = document.getElementById('edit-title').value;
+  const title = document.getElementById('edit-title').value.trim();
   const type = document.getElementById('edit-type').value;
   const condition = document.getElementById('edit-condition').value;
-  const targetValStr = document.getElementById('edit-target-val').value;
+  const targetValStr = document.getElementById('edit-target-val').value.trim();
   const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
 
   let config = {};
   if (type === 'SELECTOR') {
-    config = { url: document.getElementById('edit-url').value, selector: document.getElementById('edit-selector').value };
+    config = { url: document.getElementById('edit-url').value.trim(), selector: document.getElementById('edit-selector').value.trim() };
   } else if (type === 'FRED') {
-    config = { fred_id: document.getElementById('edit-fred-id').value, api_key: FRED_API_KEY };
+    const seriesId = document.getElementById('edit-fred-id').value.trim().toUpperCase();
+    config = { 
+      fred_id: seriesId, 
+      api_key: FRED_API_KEY,
+      url: `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`
+    };
   } else if (type === 'BOK') {
-    const bokCode = document.getElementById('edit-bok-code').value;
+    const bokCode = document.getElementById('edit-bok-code').value.trim();
     config = { bok_code: bokCode, api_key: ECOS_API_KEY, ecos_url: buildEcosUrl(bokCode) };
   } else if (type === 'API') {
-    config = { api_url: document.getElementById('edit-api-url').value, json_path: document.getElementById('edit-json-path').value };
+    config = { api_url: document.getElementById('edit-api-url').value.trim(), json_path: document.getElementById('edit-json-path').value.trim() };
   }
 
   const updatedData = { title, type, condition, target_value: targetVal, config };
