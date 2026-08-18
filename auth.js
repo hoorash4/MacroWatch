@@ -49,9 +49,25 @@
     return data.session;
   }
 
+  async function updateAdminLink() {
+    const link = document.getElementById('admin-page-link');
+    if (!link) return;
+    link.classList.add('hidden');
+    const { data: sessionData } = await authClient.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (!userId) return;
+    const { data, error } = await authClient
+      .from('user_accounts')
+      .select('is_admin')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!error && data?.is_admin === true) link.classList.remove('hidden');
+  }
+
   async function showDashboard() {
     elements.authScreen.classList.add('hidden');
     elements.appShell.classList.remove('hidden');
+    await updateAdminLink();
     await window.checkDbConnection?.();
     await window.fetchTargets?.();
   }
