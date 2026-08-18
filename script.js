@@ -131,22 +131,29 @@ function renderTargets() {
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
-          <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 py-3 text-left">
-            <span class="flex items-center gap-2">
-              <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
-              <i class="fa-solid ${String(item.id) === expandedTargetId ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px] text-slate-500"></i>
-            </span>
+          <div class="min-w-0 flex-1 py-3">
+            <div class="flex items-center gap-2 min-w-0">
+              <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 text-left">
+                <span class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
+                  <i class="fa-solid ${String(item.id) === expandedTargetId ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px] text-slate-500"></i>
+                </span>
+              </button>
+              ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-md p-1.5 text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition" title="출처 열기" aria-label="출처 열기"><i class="fa-solid fa-link text-xs"></i></a>` : ''}
+            </div>
             <span class="block text-xs text-slate-400 mt-0.5 truncate">
               조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
               ${item.target_value !== null && item.target_value !== undefined ? `| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
             </span>
-          </button>
-          ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>출처</span></a>` : ''}
+          </div>
         </div>
         <div class="shrink-0 text-right">
           <span class="block text-[10px] text-slate-500">현재값</span>
           <span class="block text-sm font-bold text-blue-400 font-mono">${item.last_value ?? '—'}</span>
         </div>
+        <button type="button" onclick="toggleTargetActive('${item.id}')" class="shrink-0 rounded-md p-2 transition ${item.is_active !== false ? 'text-blue-300 hover:bg-blue-500/20 hover:text-blue-100' : 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'}" title="${item.is_active !== false ? '알림 끄기' : '알림 켜기'}" aria-label="${item.is_active !== false ? '알림 끄기' : '알림 켜기'}">
+          <i class="fa-solid ${item.is_active !== false ? 'fa-bell' : 'fa-bell-slash'}"></i>
+        </button>
       </div>
       ${String(item.id) === expandedTargetId ? `
         <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
@@ -181,6 +188,30 @@ function renderTargets() {
 function toggleTargetDetails(id) {
   const targetId = String(id);
   expandedTargetId = expandedTargetId === targetId ? null : targetId;
+  renderTargets();
+}
+
+async function toggleTargetActive(id) {
+  const index = targets.findIndex(item => String(item.id) === String(id));
+  if (index === -1) return;
+
+  const item = targets[index];
+  const nextIsActive = item.is_active === false;
+
+  if (supabaseClient && !String(id).startsWith('local_')) {
+    try {
+      const { error } = await supabaseClient
+        .from('targets')
+        .update({ is_active: nextIsActive })
+        .eq('id', id);
+      if (error) throw error;
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+  }
+
+  targets[index] = { ...item, is_active: nextIsActive };
   renderTargets();
 }
 
