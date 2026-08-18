@@ -43,8 +43,9 @@
       <form id="auth-form" autocomplete="off" class="space-y-4">
         <div class="rounded-xl border border-yellow-500/25 bg-yellow-500/5 p-4">
           <h2 class="text-base font-bold text-white">카카오로 시작하기</h2>
-          <p class="mt-2 text-xs leading-relaxed text-slate-400">별도 회원가입 없이 카카오 계정으로 가입과 로그인이 함께 처리됩니다.</p>
-          <p class="mt-2 text-[11px] leading-relaxed text-slate-500">카카오 앱 사용자 식별값과 나에게 메시지 보내기 권한만 사용하며, 전화번호·이메일·닉네임·프로필 사진은 수집하지 않습니다.</p>
+          <p class="mt-2 text-xs leading-relaxed text-slate-400">카카오 계정으로 가입과 로그인이 함께 처리됩니다.</p>
+          <p class="mt-2 text-[11px] leading-relaxed text-slate-500">알림을 보내기 위해 카카오 계정 연동이 필요합니다.</p>
+          <p class="mt-1 text-[11px] leading-relaxed text-slate-500">전화번호, 이메일 등 불필요한 개인정보는 수집하지 않습니다.</p>
         </div>
         <p id="auth-message" role="alert" class="min-h-5 text-center text-xs text-red-400"></p>
         <button id="auth-submit" type="submit" class="flex w-full items-center justify-center rounded-lg bg-yellow-400 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-yellow-500/10 transition hover:bg-yellow-300 disabled:cursor-wait disabled:opacity-60">
@@ -52,6 +53,30 @@
           <i class="fa-solid fa-comment mr-2"></i>
           <span id="auth-submit-label">카카오로 계속하기</span>
         </button>
+      </form>
+
+      <div class="my-5 flex items-center gap-3 text-[11px] text-slate-600">
+        <span class="h-px flex-1 bg-slate-800"></span>
+        <span>ID/PW 로그인</span>
+        <span class="h-px flex-1 bg-slate-800"></span>
+      </div>
+
+      <form id="password-login-form" autocomplete="off" class="space-y-3">
+        <div>
+          <label for="login-id" class="mb-1.5 block text-xs font-semibold text-slate-400">아이디</label>
+          <input id="login-id" type="text" autocomplete="username" placeholder="아이디 입력" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+        </div>
+        <div>
+          <label for="login-password" class="mb-1.5 block text-xs font-semibold text-slate-400">비밀번호</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+        </div>
+        <button id="password-login-button" type="submit" class="flex w-full items-center justify-center rounded-lg border border-slate-700 bg-slate-800 py-3 text-sm font-bold text-slate-200 transition hover:border-slate-600 hover:bg-slate-700">
+          로그인
+        </button>
+        <p class="text-center text-xs text-slate-500">
+          아직 계정이 없나요?
+          <button id="signup-placeholder-button" type="button" class="ml-1 font-bold text-blue-400 transition hover:text-blue-300">회원가입</button>
+        </p>
       </form>
     </section>
   </main>
@@ -325,7 +350,7 @@
     </div>
   </div>
 
-  <script src="auth.js?v=3"></script>
+  <script src="auth.js?v=4"></script>
   <script src="script.js"></script>
 </body>
 </html>
