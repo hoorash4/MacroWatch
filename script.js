@@ -3,6 +3,10 @@ const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+// FRED & ECOS API 키 설정
+const FRED_API_KEY = '12ce2a29eb8e65de769bb88cc9deb4b0';
+const ECOS_API_KEY = 'J3ECOLI9TGA6E8G39H40';
+
 // 상태 관리
 let targets = [];
 let currentEditId = null;
@@ -65,6 +69,14 @@ function switchTab(tabName) {
   }
 }
 
+function toggleTypeFields() {
+  const type = document.getElementById('input-type').value;
+  document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
+  document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
+  document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
+  document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
+}
+
 function toggleTargetValueInput(conditionId, valueId) {
   const conditionEl = document.getElementById(conditionId);
   const valueEl = document.getElementById(valueId);
@@ -78,6 +90,10 @@ function toggleTargetValueInput(conditionId, valueId) {
   } else {
     valueEl.placeholder = valueEl.dataset.defaultPlaceholder || '';
   }
+}
+
+function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
+  return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
 }
 
 // 추적 목록 조회
@@ -253,11 +269,30 @@ async function handleAddTarget(e) {
   e.preventDefault();
 
   const title = document.getElementById('input-title').value.trim();
-  const url = document.getElementById('input-url').value.trim();
-  const cssSelector = document.getElementById('input-selector').value.trim();
+  const type = document.getElementById('input-type').value;
   const conditionType = document.getElementById('input-condition').value;
   const targetValStr = document.getElementById('input-target-val').value.trim();
   const targetVal = conditionType === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
+
+  let url = '';
+  let cssSelector = '';
+
+  if (type === 'SELECTOR') {
+    url = document.getElementById('input-url').value.trim();
+    cssSelector = document.getElementById('input-selector').value.trim();
+  } else if (type === 'FRED') {
+    const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
+    url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
+    cssSelector = 'API:observations[0].value';
+  } else if (type === 'BOK') {
+    const bokCode = document.getElementById('input-bok-code').value.trim();
+    url = buildEcosUrl(bokCode);
+    cssSelector = 'API:StatisticSearch.row[0].DATA_VALUE';
+  } else if (type === 'API') {
+    url = document.getElementById('input-api-url').value.trim();
+    const jsonPath = document.getElementById('input-json-path').value.trim();
+    cssSelector = jsonPath ? `API:${jsonPath}` : '';
+  }
 
   const newItem = {
     id: 'local_' + Date.now(),
@@ -289,6 +324,7 @@ async function handleAddTarget(e) {
         targets.push(data[0]);
         renderTargets();
         document.getElementById('add-form').reset();
+        toggleTypeFields();
         toggleTargetValueInput('input-condition', 'input-target-val');
         return;
       }
@@ -305,6 +341,7 @@ async function handleAddTarget(e) {
   targets.push(newItem);
   renderTargets();
   document.getElementById('add-form').reset();
+  toggleTypeFields();
   toggleTargetValueInput('input-condition', 'input-target-val');
 }
 
