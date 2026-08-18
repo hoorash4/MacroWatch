@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>웹 데이터 모니터링 대시보드</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    
+    <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-5">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+          <i class="fa-solid font-bold fa-chart-line mr-2"></i>웹 데이터 추적 대시보드
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">추적할 웹사이트와 수치의 CSS Selector를 관리합니다.</p>
+      </div>
+      <button onclick="fetchTargets()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm px-4 py-2 rounded-lg border border-slate-700 transition">
+        <i class="fa-solid fa-rotate mr-1.5"></i>새로고침
+      </button>
+    </header>
+
+    <div id="config-banner" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 hidden">
+      <h3 class="font-semibold text-amber-400 mb-2"><i class="fa-solid fa-key mr-2"></i>Supabase 연동 정보 입력</h3>
+      <p class="text-xs text-slate-300 mb-3">설정 정보가 없습니다. Supabase URL과 Anon Key를 입력해 주세요.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <input id="cfg-url" type="text" placeholder="https://xxx.supabase.co" class="bg-slate-800 text-sm p-2.5 rounded border border-slate-700 focus:outline-none focus:border-blue-500">
+        <input id="cfg-key" type="password" placeholder="eyJhbGci..." class="bg-slate-800 text-sm p-2.5 rounded border border-slate-700 focus:outline-none focus:border-blue-500">
+      </div>
+      <button onclick="saveConfig()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-4 py-2 rounded font-medium transition">설정 저장</button>
+    </div>
+
+    <section class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/60 shadow-xl mb-8">
+      <h2 class="text-lg font-semibold mb-4 text-blue-400 flex items-center">
+        <i class="fa-solid fa-plus-circle mr-2"></i>새 추적 항목 등록
+      </h2>
+      
+      <form id="add-form" onsubmit="handleAddTarget(event)" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">항목 이름 (Title)</label>
+            <input type="text" id="input-title" required placeholder="예: 아이폰 16 최저가" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-slate-400 mb-1">웹사이트 URL</label>
+            <input type="url" id="input-url" required placeholder="https://example.com/product/123" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">CSS Selector (크롬 개발자 도구 복사값)</label>
+          <input type="text" id="input-selector" required placeholder="예: #price-amount > span.number" 
+                 class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm px-6 py-2.5 rounded-lg shadow-lg shadow-blue-600/20 transition flex items-center">
+            <i class="fa-solid fa-check mr-2"></i>추적 항목 추가
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-slate-200">추적 중인 항목 목록</h2>
+        <span id="target-count" class="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700">총 0개</span>
+      </div>
+
+      <div id="loading" class="text-center py-12 text-slate-500 hidden">
+        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+        <p class="text-sm">데이터를 불러오는 중입니다...</p>
+      </div>
+
+      <div id="target-list" class="grid grid-cols-1 gap-4">
+        </div>
+    </section>
+
+  </div>
+
+  <script>
+    // 1. Supabase 접속 설정 (환경변수 대체용 LocalStorage 관리)
+    let SUPABASE_URL = localStorage.getItem('SP_URL') || '';
+    let SUPABASE_KEY = localStorage.getItem('SP_KEY') || '';
+    let supabase = null;
+
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } else {
+      document.getElementById('config-banner').classList.remove('hidden');
+    }
+
+    function saveConfig() {
+      const url = document.getElementById('cfg-url').value.trim();
+      const key = document.getElementById('cfg-key').value.trim();
+
+      if (!url || !key) return alert('URL과 Key를 모두 입력해 주세요.');
+
+      localStorage.setItem('SP_URL', url);
+      localStorage.setItem('SP_KEY', key);
+
+      SUPABASE_URL = url;
+      SUPABASE_KEY = key;
+      supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      document.getElementById('config-banner').classList.add('hidden');
+      fetchTargets();
+    }
+
+    // 2. 목록 불러오기 (Read)
+    async function fetchTargets() {
+      if (!supabase) return;
+
+      const listEl = document.getElementById('target-list');
+      const loadingEl = document.getElementById('loading');
+      
+      loadingEl.classList.remove('hidden');
+      listEl.innerHTML = '';
+
+      try {
+        const { data, error } = await supabase
+          .from('targets')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error) throw error;
+
+        document.getElementById('target-count').textContent = `총 ${data.length}개`;
+
+        if (data.length === 0) {
+          listEl.innerHTML = `
+            <div class="bg-slate-800/40 rounded-xl p-8 text-center text-slate-500 border border-slate-800">
+              <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
+              <p class="text-sm">등록된 추적 항목이 없습니다. 위에서 새 항목을 추가해 보세요!</p>
+            </div>
+          `;
+          return;
+        }
+
+        data.forEach(item => {
+          listEl.appendChild(createTargetCard(item));
+        });
+
+      } catch (err) {
+        alert('데이터 로드 실패: ' + err.message);
+      } finally {
+        loadingEl.classList.add('hidden');
+      }
+    }
+
+    // 카드 생성 헬퍼
+    function createTargetCard(item) {
+      const card = document.createElement('div');
+      card.className = `bg-slate-800/90 rounded-xl p-5 border ${item.is_active ? 'border-slate-700' : 'border-slate-800 opacity-60'} shadow-md transition hover:border-slate-600`;
+
+      card.innerHTML = `
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="inline-block w-2.5 h-2.5 rounded-full ${item.is_active ? 'bg-emerald-400' : 'bg-slate-500'}"></span>
+              <h3 class="font-bold text-slate-100 text-base">${escapeHtml(item.title)}</h3>
+              <span class="text-xs px-2 py-0.5 rounded ${item.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-700 text-slate-400'}">
+                ${item.is_active ? '추적 중' : '일시정지'}
+              </span>
+            </div>
+            
+            <p class="text-xs text-slate-400 truncate max-w-xl">
+              <i class="fa-solid fa-link mr-1 text-slate-500"></i>
+              <a href="${escapeHtml(item.url)}" target="_blank" class="hover:underline hover:text-blue-400">${escapeHtml(item.url)}</a>
+            </p>
+
+            <p class="text-xs font-mono text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded inline-block">
+              <span class="text-slate-500">Selector:</span> ${escapeHtml(item.css_selector)}
+            </p>
+          </div>
+
+          <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-slate-700/50">
+            <div class="text-left md:text-right">
+              <span class="block text-[10px] text-slate-500">최근 감지된 수치</span>
+              <span class="text-sm font-semibold text-blue-400 font-mono">${item.last_value ? escapeHtml(item.last_value) : '미수집'}</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="toggleActive(${item.id}, ${item.is_active})" 
+                      title="${item.is_active ? '추적 정지' : '추적 시작'}"
+                      class="p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 text-xs transition">
+                <i class="fa-solid ${item.is_active ? 'fa-pause text-amber-400' : 'fa-play text-emerald-400'}"></i>
+              </button>
+              <button onclick="deleteTarget(${item.id})" 
+                      title="삭제"
+                      class="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    // 3. 새 타겟 추가 (Create)
+    async function handleAddTarget(e) {
+      e.preventDefault();
+      if (!supabase) return alert('Supabase 접속 설정이 필요합니다.');
+
+      const title = document.getElementById('input-title').value.trim();
+      const url = document.getElementById('input-url').value.trim();
+      const css_selector = document.getElementById('input-selector').value.trim();
+
+      try {
+        const { error } = await supabase
+          .from('targets')
+          .insert([{ title, url, css_selector }]);
+
+        if (error) throw error;
+
+        // 폼 초기화 및 목록 갱신
+        document.getElementById('add-form').reset();
+        fetchTargets();
+
+      } catch (err) {
+        alert('추가 실패: ' + err.message);
+      }
+    }
+
+    // 4. 활성화 상태 토글 (Update)
+    async function toggleActive(id, currentStatus) {
+      try {
+        const { error } = await supabase
+          .from('targets')
+          .update({ is_active: !currentStatus })
+          .eq('id', id);
+
+        if (error) throw error;
+        fetchTargets();
+      } catch (err) {
+        alert('수정 실패: ' + err.message);
+      }
+    }
+
+    // 5. 항목 삭제 (Delete)
+    async function deleteTarget(id) {
+      if (!confirm('정말 이 항목을 삭제하시겠습니까?')) return;
+
+      try {
+        const { error } = await supabase
+          .from('targets')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        fetchTargets();
+      } catch (err) {
+        alert('삭제 실패: ' + err.message);
+      }
+    }
+
+    // XSS 방지용 유틸리티
+    function escapeHtml(str) {
+      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
+    }
+
+    // 페이지 로드 시 실행
+    if (supabase) fetchTargets();
+  </script>
+</body>
+</html>
