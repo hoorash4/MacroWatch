@@ -342,6 +342,14 @@ def format_number(value: Decimal | None) -> str:
     return normalized.rstrip("0").rstrip(".") if "." in normalized else normalized
 
 
+def json_number(value: Decimal | None) -> int | float | None:
+    if value is None:
+        return None
+    if value == value.to_integral_value():
+        return int(value)
+    return float(value)
+
+
 def condition_label(condition: str) -> str:
     return {
         "gte": "설정값 상향 돌파",
@@ -421,8 +429,8 @@ def record_alerts(
             {
                 "target_id": target["id"],
                 "user_id": target.get("user_id"),
-                "previous_value": format_number(result.previous_value),
-                "current_value": format_number(result.current_value),
+                "previous_value": json_number(result.previous_value),
+                "current_value": json_number(result.current_value),
                 "condition_type": target.get("condition_type") or "changed",
                 "target_value": target.get("target_value"),
                 "channel": "kakao_self",
@@ -457,7 +465,7 @@ def main() -> int:
                     "history",
                     body={
                         "target_id": target_id,
-                        "recorded_value": format_number(current),
+                        "recorded_value": json_number(current),
                         "recorded_at": now_iso,
                     },
                     prefer="return=minimal",
@@ -467,7 +475,7 @@ def main() -> int:
                     "targets",
                     params={"id": f"eq.{target_id}"},
                     body={
-                        "last_value": format_number(current),
+                        "last_value": json_number(current),
                         "last_checked_at": now_iso,
                         "last_error": None,
                     },
