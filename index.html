@@ -88,12 +88,12 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             <div>
               <label class="text-xs text-slate-400 block mb-1">감지 조건 설정</label>
-              <select id="input-condition" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
-                <option value="changed">단순 값 변경 시</option>
-                <option value="gte">목표값 상향 돌파 시</option>
-                <option value="lte">목표값 하향 돌파 시</option>
-                <option value="eq">목표값 일치 시</option>
-              </select>
+<select id="input-condition" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+  <option value="changed">단순 값 변경 시</option>
+  <option value="gte">목표값 상향 돌파 시</option>
+  <option value="lte">목표값 하향 돌파 시</option>
+  <option value="cross">상/하향 돌파 모두</option>
+</select>
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">목표 기준값 (선택 사항)</label>
