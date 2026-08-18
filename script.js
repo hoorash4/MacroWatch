@@ -199,7 +199,7 @@ async function fetchTargets() {
             
             <div class="flex items-center gap-3" onclick="event.stopPropagation()">
               <span class="text-xs text-slate-400">최근: <strong class="text-slate-200">${item.last_value || '대기 중'}</strong></span>
-              <button onclick="toggleAlertBell(${item.id}, this)" class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg bg-slate-800/60 border border-slate-700/80 transition" title="알림 켜기/끄기">
+              <button onclick="toggleAlertBell(${item.id}, this)" class="text-amber-500 hover:text-amber-400 p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 transition" title="알림 켜기/끄기">
                 <i class="fa-solid fa-bell text-xs"></i>
               </button>
             </div>
@@ -272,17 +272,23 @@ function toggleEdit(id) {
 
 function toggleAlertBell(id, btnElement) {
   const icon = btnElement.querySelector('i');
-  const isMuted = icon.classList.contains('fa-bell-slash');
-  if (isMuted) {
-    icon.classList.remove('fa-bell-slash', 'text-slate-600');
-    icon.classList.add('fa-bell', 'text-blue-400');
-    btnElement.classList.remove('bg-slate-950', 'border-slate-800');
-    btnElement.classList.add('bg-slate-800/60', 'border-slate-700/80');
-  } else {
-    icon.classList.remove('fa-bell', 'text-blue-400');
+  // 현재 아이콘이 켜져 있는(fa-bell) 상태인지 확인
+  const isOn = icon.classList.contains('fa-bell');
+  
+  if (isOn) {
+    // 알림 끄기 상태로 전환 (회색조)
+    icon.classList.remove('fa-bell', 'text-amber-500');
     icon.classList.add('fa-bell-slash', 'text-slate-600');
-    btnElement.classList.remove('bg-slate-800/60', 'border-slate-700/80');
+    btnElement.classList.remove('bg-amber-500/10', 'border-amber-500/30');
     btnElement.classList.add('bg-slate-950', 'border-slate-800');
+    btnElement.title = "알림 꺼짐 (클릭하여 켜기)";
+  } else {
+    // 알림 켜기 상태로 전환 (진득한 주황/호박색)
+    icon.classList.remove('fa-bell-slash', 'text-slate-600');
+    icon.classList.add('fa-bell', 'text-amber-500');
+    btnElement.classList.remove('bg-slate-950', 'border-slate-800');
+    btnElement.classList.add('bg-amber-500/10', 'border-amber-500/30');
+    btnElement.title = "알림 켜짐 (클릭하여 끄기)";
   }
 }
 
