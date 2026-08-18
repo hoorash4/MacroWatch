@@ -2,48 +2,51 @@
   const AUTH_SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
   const AUTH_SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
   const authClient = window.supabase?.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
-
   const elements = {};
 
-  function phoneToEmail(phone) {
-    const digits = String(phone || '').replace(/\D/g, '');
-    if (!/^01\d{8,9}$/.test(digits)) {
-      throw new Error('전화번호를 정확히 입력해 주세요.');
-    }
-    return {
-      digits,
-      email: `${digits}@phone.macrowatch.example.com`
-    };
-  }
-
-  function setMessage(message = '', tone = 'error') {
+  function setMessage(message = '') {
     elements.message.textContent = message;
-    elements.message.className = `min-h-5 text-center text-xs ${tone === 'success' ? 'text-emerald-400' : 'text-red-400'}`;
   }
 
-  function setBusy(isBusy) {
+  function setBusy(isBusy, label = '카카오로 계속하기') {
     elements.submit.disabled = isBusy;
-    elements.submit.classList.toggle('opacity-60', isBusy);
     elements.spinner.classList.toggle('hidden', !isBusy);
-    elements.submitLabel.textContent = isBusy ? '처리 중' : (elements.form.dataset.mode === 'signup' ? '회원가입' : '로그인');
+    elements.submitLabel.textContent = isBusy ? '카카오 연결 중' : label;
   }
 
-  function setMode(mode) {
-    const isSignup = mode === 'signup';
-    elements.form.dataset.mode = isSignup ? 'signup' : 'login';
-    elements.title.textContent = isSignup ? '회원가입' : '로그인';
-    elements.description.textContent = isSignup
-      ? '전화번호와 비밀번호로 계정을 만듭니다.'
-      : '등록한 전화번호와 비밀번호를 입력하세요.';
-    elements.confirmWrap.classList.toggle('hidden', !isSignup);
-    elements.kakaoWrap.classList.toggle('hidden', !isSignup);
-    elements.confirm.required = isSignup;
-    elements.submitLabel.textContent = isSignup ? '회원가입' : '로그인';
-    elements.modePrompt.textContent = isSignup ? '이미 계정이 있나요?' : '아직 계정이 없나요?';
-    elements.modeToggle.textContent = isSignup ? '로그인' : '회원가입';
-    elements.password.autocomplete = isSignup ? 'new-password' : 'current-password';
-    elements.confirm.value = '';
+  async function invokeKakao(action, payload = {}) {
+    const { data, error } = await authClient.functions.invoke('kakao-auth', {
+      body: { action, ...payload }
+    });
+    if (error) throw new Error(data?.error || error.message || '카카오 요청에 실패했습니다.');
+    if (data?.error) throw new Error(data.error);
+    return data;
+  }
+
+  async function beginKakaoLogin() {
+    setBusy(true);
     setMessage();
+    try {
+      const data = await invokeKakao('start');
+      if (!data?.authorize_url) throw new Error('카카오 로그인 주소를 받지 못했습니다.');
+      window.location.assign(data.authorize_url);
+    } catch (error) {
+      setMessage(error.message || '카카오 로그인을 시작하지 못했습니다.');
+      setBusy(false);
+    }
+  }
+
+  async function finishKakaoLogin(code, state) {
+    setBusy(true);
+    setMessage('카카오 로그인을 완료하는 중입니다.');
+    const tokens = await invokeKakao('exchange', { code, state });
+    const { data, error } = await authClient.auth.setSession({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token
+    });
+    if (error || !data.session) throw error || new Error('로그인 세션을 저장하지 못했습니다.');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return data.session;
   }
 
   async function showDashboard() {
@@ -53,107 +56,20 @@
     await window.fetchTargets?.();
   }
 
-  function showLogin() {
+  function showLogin(message = '') {
     elements.appShell.classList.add('hidden');
     elements.authScreen.classList.remove('hidden');
-    elements.form.reset();
-    setMode('login');
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    if (!authClient) {
-      setMessage('로그인 기능을 불러오지 못했습니다.');
-      return;
-    }
-
-    const mode = elements.form.dataset.mode;
-    let account;
-    try {
-      account = phoneToEmail(elements.phone.value);
-    } catch (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    if (elements.password.value.length < 6) {
-      setMessage('비밀번호는 6자 이상 입력해 주세요.');
-      return;
-    }
-    if (mode === 'signup' && elements.password.value !== elements.confirm.value) {
-      setMessage('비밀번호가 서로 다릅니다.');
-      return;
-    }
-
-    setBusy(true);
-    setMessage();
-    try {
-      const result = mode === 'signup'
-        ? await authClient.auth.signUp({
-            email: account.email,
-            password: elements.password.value,
-            options: {
-              data: {
-                phone_number: account.digits,
-                kakao_alert_opt_in: elements.kakaoOptIn.checked
-              }
-            }
-          })
-        : await authClient.auth.signInWithPassword({
-            email: account.email,
-            password: elements.password.value
-          });
-
-      if (result.error) throw result.error;
-      if (!result.data.session) {
-        throw new Error('로그인 세션을 만들지 못했습니다.');
-      }
-      if (mode === 'signup' && elements.kakaoOptIn.checked) {
-        await startKakaoConnection();
-        return;
-      }
-      await showDashboard();
-    } catch (error) {
-      const duplicate = /already registered|already exists/i.test(error.message || '');
-      const invalid = /invalid login credentials/i.test(error.message || '');
-      setMessage(duplicate
-        ? '이미 가입된 전화번호입니다.'
-        : invalid
-          ? '전화번호 또는 비밀번호가 올바르지 않습니다.'
-          : (error.message || '요청을 처리하지 못했습니다.'));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function invokeKakao(action, payload = {}) {
-    const { data, error } = await authClient.functions.invoke('kakao-auth', {
-      body: { action, ...payload }
-    });
-    if (error) throw new Error(data?.error || error.message || '카카오 연결 요청에 실패했습니다.');
-    if (data?.error) throw new Error(data.error);
-    return data;
-  }
-
-  async function startKakaoConnection() {
-    const button = elements.kakaoConnectButton;
-    if (button) button.disabled = true;
-    try {
-      const data = await invokeKakao('start');
-      if (!data?.authorize_url) throw new Error('카카오 연결 주소를 받지 못했습니다.');
-      window.location.assign(data.authorize_url);
-    } finally {
-      if (button) button.disabled = false;
-    }
+    setBusy(false);
+    setMessage(message);
   }
 
   function setKakaoStatus(connected, message) {
-    elements.kakaoStatus.textContent = message || (connected ? '카카오 계정이 연결되어 있습니다.' : '아직 카카오 계정이 연결되지 않았습니다.');
-    elements.kakaoBadge.textContent = connected ? '연결됨' : '미연결';
+    elements.kakaoStatus.textContent = message || (connected ? '로그인한 카카오 계정에 알림이 연결되어 있습니다.' : '카카오 알림 연결을 확인하지 못했습니다.');
+    elements.kakaoBadge.textContent = connected ? '연결됨' : '확인 필요';
     elements.kakaoBadge.className = connected
       ? 'shrink-0 rounded-full border border-emerald-700/50 bg-emerald-950/60 px-2.5 py-1 text-[11px] font-semibold text-emerald-400'
       : 'shrink-0 rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-400';
-    elements.kakaoConnectButton.querySelector('span').textContent = connected ? '카카오톡 다시 연결하기' : '카카오톡 연동하기';
+    elements.kakaoConnectButton.querySelector('span').textContent = '카카오 계정 다시 연결하기';
   }
 
   async function loadKakaoStatus() {
@@ -169,89 +85,67 @@
     }
   }
 
-  async function openProfile() {
-    elements.profileModal.classList.remove('hidden');
-    await loadKakaoStatus();
-  }
-
-  function closeProfile() {
-    elements.profileModal.classList.add('hidden');
-  }
-
   async function initialize() {
     elements.authScreen = document.getElementById('auth-screen');
     elements.appShell = document.getElementById('app-shell');
     elements.form = document.getElementById('auth-form');
-    elements.title = document.getElementById('auth-title');
-    elements.description = document.getElementById('auth-description');
-    elements.phone = document.getElementById('auth-phone');
-    elements.password = document.getElementById('auth-password');
-    elements.confirm = document.getElementById('auth-password-confirm');
-    elements.confirmWrap = document.getElementById('auth-confirm-wrap');
-    elements.kakaoWrap = document.getElementById('auth-kakao-wrap');
-    elements.kakaoOptIn = document.getElementById('auth-kakao-opt-in');
-    elements.profileModal = document.getElementById('profile-modal');
-    elements.kakaoStatus = document.getElementById('kakao-connection-status');
-    elements.kakaoBadge = document.getElementById('kakao-status-badge');
-    elements.kakaoConnectButton = document.getElementById('kakao-connect-button');
     elements.submit = document.getElementById('auth-submit');
     elements.submitLabel = document.getElementById('auth-submit-label');
     elements.spinner = document.getElementById('auth-spinner');
     elements.message = document.getElementById('auth-message');
-    elements.modePrompt = document.getElementById('auth-mode-prompt');
-    elements.modeToggle = document.getElementById('auth-mode-toggle');
+    elements.profileModal = document.getElementById('profile-modal');
+    elements.kakaoStatus = document.getElementById('kakao-connection-status');
+    elements.kakaoBadge = document.getElementById('kakao-status-badge');
+    elements.kakaoConnectButton = document.getElementById('kakao-connect-button');
 
-    elements.form.addEventListener('submit', handleSubmit);
-    elements.phone.addEventListener('input', () => {
-      elements.phone.value = elements.phone.value.replace(/\D/g, '').slice(0, 11);
+    elements.form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      beginKakaoLogin();
     });
-    document.getElementById('profile-button')?.addEventListener('click', openProfile);
-    document.getElementById('profile-close-button')?.addEventListener('click', closeProfile);
-    elements.kakaoConnectButton.addEventListener('click', async () => {
-      try {
-        await startKakaoConnection();
-      } catch (error) {
-        setKakaoStatus(false, error.message || '카카오 연결을 시작하지 못했습니다.');
-      }
+    document.getElementById('profile-button')?.addEventListener('click', async () => {
+      elements.profileModal.classList.remove('hidden');
+      await loadKakaoStatus();
     });
-    elements.modeToggle.addEventListener('click', () => {
-      setMode(elements.form.dataset.mode === 'signup' ? 'login' : 'signup');
+    document.getElementById('profile-close-button')?.addEventListener('click', () => {
+      elements.profileModal.classList.add('hidden');
     });
+    elements.kakaoConnectButton.addEventListener('click', beginKakaoLogin);
     document.getElementById('logout-button')?.addEventListener('click', async () => {
       await authClient?.auth.signOut();
       showLogin();
     });
 
     if (!authClient) {
-      setMessage('로그인 기능을 불러오지 못했습니다.');
+      showLogin('로그인 기능을 불러오지 못했습니다.');
       return;
     }
 
-    const { data } = await authClient.auth.getSession();
-    if (data.session) {
+    try {
       const params = new URLSearchParams(window.location.search);
-      const kakaoCode = params.get('code');
-      const kakaoState = params.get('state');
-      const kakaoError = params.get('error_description') || params.get('error');
-      let openSettingsAfterLogin = false;
+      const code = params.get('code');
+      const state = params.get('state');
+      const oauthError = params.get('error_description') || params.get('error');
+      let session = null;
 
-      if (kakaoCode && kakaoState) {
-        try {
-          await invokeKakao('exchange', { code: kakaoCode, state: kakaoState });
-          openSettingsAfterLogin = true;
-        } catch (error) {
-          window.alert(error.message || '카카오 계정 연결에 실패했습니다.');
-        }
+      if (code && state) {
+        session = await finishKakaoLogin(code, state);
+      } else if (oauthError) {
         window.history.replaceState({}, document.title, window.location.pathname);
-      } else if (kakaoError) {
-        window.alert('카카오 계정 연결이 취소되었습니다.');
-        window.history.replaceState({}, document.title, window.location.pathname);
+        throw new Error('카카오 로그인이 취소되었습니다.');
+      } else {
+        const result = await authClient.auth.getSession();
+        session = result.data.session;
       }
 
-      await showDashboard();
-      if (openSettingsAfterLogin) await openProfile();
-    } else {
-      showLogin();
+      if (session?.user?.user_metadata?.auth_provider === 'kakao') {
+        await showDashboard();
+      } else {
+        if (session) await authClient.auth.signOut();
+        showLogin();
+      }
+    } catch (error) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showLogin(error.message || '로그인하지 못했습니다.');
     }
 
     authClient.auth.onAuthStateChange((event) => {
