@@ -139,19 +139,43 @@
       fetchTargets();
     }
 
-    
-    // 4. 리스트 목록 불러오기 및 조건 텍스트 매핑 함수
-
-    
-async function moveOrder(id, direction) {
-  const { data: current } = await supabaseClient.from('targets').select('display_order').eq('id', id).single();
-  const newOrder = direction === 'up' ? current.display_order - 1 : current.display_order + 1;
   
-  await supabaseClient.from('targets').update({ display_order: newOrder }).eq('id', id);
+
+    // 리스트 순서 정해주기
+async function moveOrder(id, direction) {
+  // 1. 현재 모든 데이터를 가져와서 정렬된 순서대로 리스트화
+  const { data: allTargets, error } = await supabaseClient
+    .from('targets')
+    .select('id, display_order')
+    .order('display_order', { ascending: true });
+
+  if (error) return;
+
+  // 2. 현재 아이템의 인덱스 찾기
+  const currentIndex = allTargets.findIndex(t => t.id === id);
+  
+  // 3. 안전장치: 맨 위인데 위로가기, 혹은 맨 아래인데 아래로가기 방지
+  if (direction === 'up' && currentIndex === 0) return; // 이미 맨 위
+  if (direction === 'down' && currentIndex === allTargets.length - 1) return; // 이미 맨 아래
+
+  // 4. 위치 바꿀 대상 결정
+  const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+  const targetToSwap = allTargets[swapIndex];
+
+  // 5. 서로 display_order 값을 맞교환
+  const currentOrder = allTargets[currentIndex].display_order;
+  const swapOrder = targetToSwap.display_order;
+
+  // 두 업데이트를 병렬로 실행
+  await Promise.all([
+    supabaseClient.from('targets').update({ display_order: swapOrder }).eq('id', id),
+    supabaseClient.from('targets').update({ display_order: currentOrder }).eq('id', targetToSwap.id)
+  ]);
+
   fetchTargets(); // 목록 새로고침
 }
 
-
+    // 4. 리스트 목록 불러오기 및 조건 텍스트 매핑 함수
     
     async function fetchTargets() {
       const listContainer = document.getElementById('target-list');
