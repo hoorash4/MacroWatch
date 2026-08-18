@@ -51,6 +51,9 @@
     .evotive-mark span:nth-child(6) { width: 66%; margin-left: 17%; }
     .evotive-mark span:nth-child(7) { width: 42%; margin-left: 29%; }
     .metric-pulse { box-shadow: 0 0 0 5px rgba(89, 190, 161, .08); }
+    .auth-brand-panel { background: linear-gradient(145deg, #ffffff 0%, #f7f6f2 100%); }
+    .evotive-logo { width: min(100%, 370px); height: auto; }
+    .brand-rule { height: 1px; width: 48px; background: #b98a45; }
 
   </style>
 </head>
@@ -60,51 +63,41 @@
   <main id="auth-screen" class="auth-canvas hidden relative min-h-[calc(100vh-2rem)] overflow-hidden rounded-[1.75rem] border border-white/5 sm:min-h-[calc(100vh-3rem)]">
     <div class="auth-grid pointer-events-none absolute inset-0 opacity-70"></div>
     <div class="relative mx-auto grid min-h-[calc(100vh-2rem)] max-w-6xl lg:grid-cols-[1.15fr_.85fr] sm:min-h-[calc(100vh-3rem)]">
-      <section class="relative hidden flex-col justify-between border-r border-white/10 px-10 py-10 lg:flex xl:px-14">
+      <section class="auth-brand-panel relative hidden flex-col justify-between border-r border-slate-200 px-10 py-10 lg:flex xl:px-14">
         <div>
-          <div class="flex items-center gap-4">
-            <div class="rounded-2xl border border-[#d1a55d]/30 bg-[#d1a55d]/10 p-3">
-              <div class="evotive-mark" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-            </div>
+          <div class="flex items-center gap-5">
+            <div class="flex h-20 w-24 items-center justify-center"><svg class="h-10 w-[66px]" viewBox="0 0 360 240" aria-hidden="true"><g fill="none" stroke="#071B42" stroke-linecap="round"><path d="M139 23h82M96 43h168M69 65h222M50 89h260M39 115h282M38 141h284M49 167h262M69 191h222M98 213h164M140 231h80" stroke-width="5"/></g><path d="M40 128h150c10 0 14-11 23-11h93" fill="none" stroke="#071B42" stroke-width="8" stroke-linecap="round"/><path d="M204 128h118" fill="none" stroke="#B98A45" stroke-width="5" stroke-linecap="round"/><circle cx="336" cy="128" r="6" fill="#B98A45"/></svg></div>
             <div>
-              <p class="text-[10px] font-bold tracking-[.26em] text-[#d1a55d]">EVOTIVE RESEARCH</p>
-              <p class="mt-1 text-xs tracking-[.16em] text-slate-400">INDEPENDENT MACRO ADVISOR</p>
+              <p class="font-serif text-lg font-semibold tracking-[.12em] text-[#071B42]">EVOTIVE RESEARCH</p>
+              <p class="mt-1 text-[10px] font-semibold tracking-[.24em] text-slate-500">INDEPENDENT MACRO ADVISOR</p>
             </div>
           </div>
 
-          <div class="mt-20 max-w-xl">
-            <p class="text-xs font-bold tracking-[.2em] text-[#d1a55d]">MACROWATCH / PRIVATE ACCESS</p>
-            <h1 class="mt-5 text-5xl font-semibold leading-[1.08] tracking-[-.04em] text-white">Know the shift<br><span class="text-slate-400">before the noise.</span></h1>
-            <p class="mt-6 max-w-md text-base leading-7 text-slate-400">주요 경제지표의 변화를 조용히 추적하고, 필요한 순간에만 알림을 받으세요.</p>
+          <div class="mt-16 max-w-xl">
+            <p class="text-xs font-bold tracking-[.2em] text-[#a67531]">MACROWATCH / PRIVATE ACCESS</p>
+            <h1 class="mt-5 font-serif text-5xl font-semibold leading-[1.08] tracking-[-.04em] text-[#071B42]">Evolving insight,<br><span class="text-slate-500">adaptive edge.</span></h1>
+            <p class="mt-6 max-w-md text-base leading-7 text-slate-600">주요 경제지표의 변화를 조용히 추적하고, 필요한 순간에만 알림을 받으세요.</p>
           </div>
         </div>
 
-        <div class="max-w-xl rounded-2xl border border-white/10 bg-slate-950/35 p-5 backdrop-blur-sm">
-          <div class="mb-4 flex items-center justify-between">
-            <p class="text-xs font-bold tracking-[.14em] text-slate-300">MARKET MONITOR</p>
-            <span class="inline-flex items-center gap-2 text-xs text-emerald-300"><span class="metric-pulse h-2 w-2 rounded-full bg-emerald-400"></span> LIVE</span>
-          </div>
-          <div class="grid grid-cols-3 gap-3">
-            <div class="rounded-xl border border-white/5 bg-white/[.035] p-3">
-              <p class="text-[10px] tracking-wide text-slate-500">US 10Y YIELD</p><p class="mt-2 font-mono text-sm font-bold text-white">4.28%</p><p class="mt-1 text-[10px] text-emerald-300">+0.04%</p>
-            </div>
-            <div class="rounded-xl border border-white/5 bg-white/[.035] p-3">
-              <p class="text-[10px] tracking-wide text-slate-500">USD / KRW</p><p class="mt-2 font-mono text-sm font-bold text-white">1,382.4</p><p class="mt-1 text-[10px] text-[#d1a55d]">MONITORING</p>
-            </div>
-            <div class="rounded-xl border border-white/5 bg-white/[.035] p-3">
-              <p class="text-[10px] tracking-wide text-slate-500">WTI CRUDE</p><p class="mt-2 font-mono text-sm font-bold text-white">$78.62</p><p class="mt-1 text-[10px] text-emerald-300">+1.18%</p>
-            </div>
-          </div>
+        <div class="max-w-xl">
+          <div class="mb-5"><svg class="evotive-logo" viewBox="0 0 360 240" role="img" aria-label="Evotive Research logo">
+  <g fill="none" stroke="#071B42" stroke-linecap="round">
+    <path d="M139 23h82" stroke-width="4"/><path d="M96 43h168" stroke-width="5"/><path d="M69 65h222" stroke-width="5"/><path d="M50 89h260" stroke-width="5"/><path d="M39 115h282" stroke-width="5"/><path d="M38 141h284" stroke-width="5"/><path d="M49 167h262" stroke-width="5"/><path d="M69 191h222" stroke-width="5"/><path d="M98 213h164" stroke-width="5"/><path d="M140 231h80" stroke-width="4"/>
+  </g>
+  <path d="M40 128h150c10 0 14-11 23-11h93" fill="none" stroke="#071B42" stroke-width="8" stroke-linecap="round"/>
+  <path d="M204 128h118" fill="none" stroke="#B98A45" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="336" cy="128" r="6" fill="#B98A45"/>
+</svg></div>
+          <div class="flex items-center gap-3 text-[10px] font-bold tracking-[.18em] text-[#a67531]"><span class="brand-rule"></span> EVOLVING INSIGHT · ADAPTIVE EDGE</div>
         </div>
       </section>
 
       <section class="flex min-h-full items-center justify-center px-5 py-9 sm:px-10">
         <div class="w-full max-w-sm">
-          <div class="mb-10 flex items-center justify-between lg:hidden">
-            <div class="flex items-center gap-3">
-              <div class="rounded-xl border border-[#d1a55d]/30 bg-[#d1a55d]/10 p-2"><div class="evotive-mark scale-75 origin-left" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-              <p class="text-[10px] font-bold tracking-[.19em] text-[#d1a55d]">EVOTIVE RESEARCH</p>
-            </div>
+          <div class="mb-10 flex items-center gap-3 lg:hidden">
+            <div class="flex h-12 w-16 items-center justify-center"><svg class="h-10 w-[66px]" viewBox="0 0 360 240" aria-hidden="true"><g fill="none" stroke="#071B42" stroke-linecap="round"><path d="M139 23h82M96 43h168M69 65h222M50 89h260M39 115h282M38 141h284M49 167h262M69 191h222M98 213h164M140 231h80" stroke-width="5"/></g><path d="M40 128h150c10 0 14-11 23-11h93" fill="none" stroke="#071B42" stroke-width="8" stroke-linecap="round"/><path d="M204 128h118" fill="none" stroke="#B98A45" stroke-width="5" stroke-linecap="round"/><circle cx="336" cy="128" r="6" fill="#B98A45"/></svg></div>
+            <p class="font-serif text-sm font-semibold tracking-[.1em] text-[#d1a55d]">EVOTIVE RESEARCH</p>
           </div>
           <div class="auth-panel rounded-3xl border border-white/10 p-7 sm:p-9">
             <div class="mb-8">
