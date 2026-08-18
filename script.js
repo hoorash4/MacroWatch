@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchTargets();
 });
 
-// DB 연결 상태 확인
+// DB 연결 상태 확인 (Publishable Key 호환 수정)
 async function checkDbConnection() {
   const statusEl = document.getElementById('db-status');
   if (!supabase) {
@@ -29,13 +29,16 @@ async function checkDbConnection() {
     return;
   }
   try {
-    const { error } = await supabase.from('targets').select('id', { count: 'exact', head: true });
+    // Publishable Key 호환을 위한 호환성 쿼리
+    const { error } = await supabase.from('targets').select('id').limit(1);
     if (error) throw error;
+    
     if (statusEl) {
       statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-green-950/60 text-green-400 border border-green-700/50 flex items-center gap-2 shadow-inner";
       statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> DB 연결 완료`;
     }
   } catch (err) {
+    console.error('Supabase Connection Error:', err);
     if (statusEl) {
       statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950/60 text-amber-400 border border-amber-700/50 flex items-center gap-2 shadow-inner";
       statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> 로컬 모드`;
