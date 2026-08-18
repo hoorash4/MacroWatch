@@ -318,10 +318,17 @@ async function saveEdit(id) {
 
 
     
-    // 수정창 토글 (열기/닫기)
+// 수정창 아코디언 열고 닫기 함수
 function toggleEdit(id) {
-  document.getElementById(`view-${id}`).classList.toggle('hidden');
-  document.getElementById(`edit-${id}`).classList.toggle('hidden');
+  const editSection = document.getElementById(`edit-${id}`);
+  if (!editSection) return;
+
+  // hidden 클래스가 있으면 제거(열기), 없으면 추가(닫기)
+  if (editSection.classList.contains('hidden')) {
+    editSection.classList.remove('hidden');
+  } else {
+    editSection.classList.add('hidden');
+  }
 }
 
 // 수정 내용 DB에 저장
