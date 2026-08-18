@@ -455,6 +455,9 @@ function getOriginalUrl(item) {
       console.error('FRED URL Parse Error:', err);
     }
   }
+  if (url.includes('ecos.bok.or.kr/api/StatisticSearch/')) {
+    return 'https://ecos.bok.or.kr/';
+  }
   return url;
 }
 
