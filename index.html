@@ -124,10 +124,10 @@
             <div>
               <label class="text-xs text-slate-400 block mb-1">알림 조건 설정</label>
               <select id="input-condition" onchange="toggleTargetValueInput('input-condition', 'input-target-val')" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
-                <option value="changed">지표값 변동 감지 시</option>
                 <option value="gte">설정값 상향 돌파 시</option>
                 <option value="lte">설정값 하향 돌파 시</option>
                 <option value="cross">상/하향 돌파 모두</option>
+                <option value="changed" selected>지표값 변동 감지 시</option>
               </select>
             </div>
             <div>
@@ -212,10 +212,10 @@
         <div>
           <label class="text-xs text-slate-400 block mb-1">알림 조건 설정</label>
           <select id="edit-condition" onchange="toggleTargetValueInput('edit-condition', 'edit-target-val')" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-            <option value="changed">단순 값 변경 시</option>
             <option value="gte">목표값 상향 돌파 시</option>
             <option value="lte">목표값 하향 돌파 시</option>
             <option value="cross">상/하향 돌파 모두</option>
+            <option value="changed" selected>단순 값 변경 시</option>
           </select>
         </div>
         <div>
