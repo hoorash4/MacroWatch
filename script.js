@@ -18,6 +18,7 @@ let expandedTargetId = null;
 document.addEventListener('DOMContentLoaded', () => {
   checkDbConnection();
   fetchTargets();
+  toggleTargetValueInput('input-condition', 'input-target-val');
 });
 
 // DB 연결 상태 확인 (Publishable Key 호환 수정)
@@ -75,6 +76,16 @@ function toggleTypeFields() {
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
   document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
   document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
+}
+
+function toggleTargetValueInput(conditionId, valueId) {
+  const conditionEl = document.getElementById(conditionId);
+  const valueEl = document.getElementById(valueId);
+  if (!conditionEl || !valueEl) return;
+
+  const isValueChange = conditionEl.value === 'changed';
+  valueEl.disabled = isValueChange;
+  if (isValueChange) valueEl.value = '';
 }
 
 // 수정 모달 타입 선택 처리
@@ -267,7 +278,7 @@ async function handleAddTarget(e) {
   const type = document.getElementById('input-type').value;
   const condition = document.getElementById('input-condition').value;
   const targetValStr = document.getElementById('input-target-val').value.trim();
-  const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
+  const targetVal = condition === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
 
   let config = {};
   if (type === 'SELECTOR') {
@@ -342,6 +353,7 @@ function openEditModal(id) {
   document.getElementById('edit-selector').value = item.css_selector || '';
   document.getElementById('edit-condition').value = item.condition_type || 'changed';
   document.getElementById('edit-target-val').value = item.target_value ?? '';
+  toggleTargetValueInput('edit-condition', 'edit-target-val');
 
   document.getElementById('edit-modal').classList.remove('hidden');
 }
@@ -361,7 +373,7 @@ async function saveEditTarget() {
   const cssSelector = document.getElementById('edit-selector').value.trim();
   const conditionType = document.getElementById('edit-condition').value;
   const targetValStr = document.getElementById('edit-target-val').value.trim();
-  const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
+  const targetVal = conditionType === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
   const updatedData = {
     title,
     url,
