@@ -1,7 +1,7 @@
 // Supabase 및 API 설정
 const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // FRED & ECOS API 키 설정
 const FRED_API_KEY = '12ce2a29eb8e65de769bb88cc9deb4b0'; 
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // DB 연결 상태 확인 (Publishable Key 호환 수정)
 async function checkDbConnection() {
   const statusEl = document.getElementById('db-status');
-  if (!supabase) {
+  if (!supabaseClient) {
     if (statusEl) {
       statusEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950/60 text-red-400 border border-red-700/50 flex items-center gap-2 shadow-inner";
       statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> DB 설정 필요`;
@@ -30,7 +30,7 @@ async function checkDbConnection() {
   }
   try {
     // Publishable Key 호환을 위한 호환성 쿼리
-    const { error } = await supabase.from('targets').select('id').limit(1);
+    const { error } = await supabaseClient.from('targets').select('id').limit(1);
     if (error) throw error;
     
     if (statusEl) {
@@ -91,9 +91,9 @@ function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = 
 
 // 추적 목록 조회
 async function fetchTargets() {
-  if (supabase) {
+  if (supabaseClient) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('targets')
         .select('*')
         .order('display_order', { ascending: true, nullsFirst: false });
@@ -185,10 +185,10 @@ function handleDragEnd(e) {
 
 // 순서 변경 사항 DB 저장
 async function saveOrderToDb() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   for (let i = 0; i < targets.length; i++) {
-    await supabase
+    await supabaseClient
       .from('targets')
       .update({ display_order: i })
       .eq('id', targets[i].id);
@@ -232,9 +232,9 @@ async function handleAddTarget(e) {
     display_order: targets.length
   };
 
-  if (supabase) {
+  if (supabaseClient) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('targets')
         .insert([{
           title,
@@ -330,9 +330,9 @@ async function saveEditTarget() {
 
   const updatedData = { title, type, condition, target_value: targetVal, config };
 
-  if (supabase && !currentEditId.toString().startsWith('local_')) {
+  if (supabaseClient && !currentEditId.toString().startsWith('local_')) {
     try {
-      const { error } = await supabase.from('targets').update(updatedData).eq('id', currentEditId);
+      const { error } = await supabaseClient.from('targets').update(updatedData).eq('id', currentEditId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
@@ -352,9 +352,9 @@ async function saveEditTarget() {
 async function handleDeleteTarget(id) {
   if (!confirm('정말 삭제하시겠습니까?')) return;
 
-  if (supabase && !id.toString().startsWith('local_')) {
+  if (supabaseClient && !id.toString().startsWith('local_')) {
     try {
-      await supabase.from('targets').delete().eq('id', id);
+      await supabaseClient.from('targets').delete().eq('id', id);
     } catch (err) {
       console.error(err);
     }
