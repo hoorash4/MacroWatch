@@ -131,21 +131,27 @@ function renderTargets() {
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${item.type}</span>
+            ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-blue-400 transition" title="원본 사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>` : ''}
           </div>
           <p class="text-xs text-slate-400 mt-0.5 truncate">
-            조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition)}</span>
+            조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
             ${item.target_value !== null && item.target_value !== undefined ? `| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
-        <button onclick="openEditModal('${item.id}')" class="p-2 text-slate-400 hover:text-blue-400 transition" title="수정">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button onclick="handleDeleteTarget('${item.id}')" class="p-2 text-slate-400 hover:text-red-400 transition" title="삭제">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
+          <button onclick="openEditModal('${item.id}')" class="p-2 text-slate-400 hover:text-blue-400 transition" title="수정">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button onclick="handleDeleteTarget('${item.id}')" class="p-2 text-slate-400 hover:text-red-400 transition" title="삭제">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+        <div class="text-right">
+          <span class="block text-[10px] text-slate-500">현재값</span>
+          <span class="block text-sm font-bold text-blue-400 font-mono">${item.last_value ?? '—'}</span>
+        </div>
       </div>
     </div>
   `).join('');
