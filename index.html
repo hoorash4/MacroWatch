@@ -407,6 +407,26 @@
 @media(min-width:701px){#auth-screen .header-product-label{margin-right:8px!important}}
 </style><style id="middle-panel-dot-grid">
 #auth-screen .grid.flex-1{background-image:radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px)!important;background-size:36px 36px!important}
+</style><style id="dashboard-workspace-layout">
+#app-shell{max-width:1180px!important}
+#app-shell>.bg-slate-900:first-child{background:#f7f5f0!important;border-color:#d9d4ca!important;box-shadow:0 14px 35px rgba(0,0,0,.18)!important}
+#app-shell>.bg-slate-900:first-child h1{color:#071b42!important}
+#app-shell>.bg-slate-900:first-child p{color:#64748b!important}
+#app-shell>.bg-slate-900:first-child #db-status{width:12px;height:12px;padding:0;border-radius:999px;background:#42b883!important;border:0!important;font-size:0!important;box-shadow:0 0 0 4px rgba(66,184,131,.14)}
+#app-shell>.bg-slate-900:first-child #db-status span{display:none}
+#app-shell>.bg-slate-900:first-child button,#app-shell>.bg-slate-900:first-child a{background:#fff!important;border-color:#d9d4ca!important;color:#64748b!important}
+#app-shell>.flex.border-b{border-color:#d9d4ca!important}
+#app-shell>.flex.border-b button{color:#64748b!important}
+#app-shell>.flex.border-b button.text-blue-400{color:#071b42!important;border-color:#b98a45!important}
+#tab-content-tracker{display:grid!important;grid-template-columns:minmax(0,1fr) 360px;gap:1.25rem;align-items:start}
+#tab-content-tracker>div:first-child{grid-column:2;grid-row:1;background:#f7f5f0!important;border-color:#d9d4ca!important;box-shadow:0 14px 30px rgba(7,27,66,.08)!important}
+#tab-content-tracker>div:last-child{grid-column:1;grid-row:1;background:#f7f5f0!important;border-color:#d9d4ca!important;box-shadow:0 14px 30px rgba(7,27,66,.08)!important}
+#tab-content-tracker h2,#tab-content-tracker label{color:#071b42!important}
+#tab-content-tracker input,#tab-content-tracker select{background:#fff!important;border-color:#d9d4ca!important;color:#071b42!important}
+#tab-content-tracker button[type="submit"]{background:#071b42!important}
+#tab-content-tracker button[type="submit"]:hover{background:#12366f!important}
+#tab-content-news>div{background:#f7f5f0!important;border-color:#d9d4ca!important}
+@media(max-width:900px){#tab-content-tracker{grid-template-columns:1fr}#tab-content-tracker>div:first-child,#tab-content-tracker>div:last-child{grid-column:1;grid-row:auto}#tab-content-tracker>div:first-child{order:2}#tab-content-tracker>div:last-child{order:1}}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
