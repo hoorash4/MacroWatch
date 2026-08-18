@@ -15,7 +15,7 @@
     <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-5">
       <div>
         <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-          <i class="fa-solid font-bold fa-chart-line mr-2"></i>웹 데이터 추적 대시보드
+          <i class="fa-solid fa-chart-line mr-2"></i>웹 데이터 추적 대시보드
         </h1>
         <p class="text-slate-400 text-sm mt-1">추적할 웹사이트와 수치의 CSS Selector를 관리합니다.</p>
       </div>
@@ -24,14 +24,29 @@
       </button>
     </header>
 
-    <div id="config-banner" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 hidden">
-      <h3 class="font-semibold text-amber-400 mb-2"><i class="fa-solid fa-key mr-2"></i>Supabase 연동 정보 입력</h3>
-      <p class="text-xs text-slate-300 mb-3">설정 정보가 없습니다. Supabase URL과 Anon Key를 입력해 주세요.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-        <input id="cfg-url" type="text" placeholder="https://xxx.supabase.co" class="bg-slate-800 text-sm p-2.5 rounded border border-slate-700 focus:outline-none focus:border-blue-500">
-        <input id="cfg-key" type="password" placeholder="eyJhbGci..." class="bg-slate-800 text-sm p-2.5 rounded border border-slate-700 focus:outline-none focus:border-blue-500">
+    <div id="config-banner" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5 mb-8">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-semibold text-amber-400 flex items-center">
+          <i class="fa-solid fa-key mr-2"></i>Supabase 연동 정보 설정
+        </h3>
+        <span id="config-status" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">미연결</span>
       </div>
-      <button onclick="saveConfig()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-4 py-2 rounded font-medium transition">설정 저장</button>
+      <p class="text-xs text-slate-300 mb-3">Supabase 프로젝트의 <b>Project URL</b>과 <b>anon public Key</b>를 입력하고 연결 버튼을 눌러주세요.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Project URL</label>
+          <input id="cfg-url" type="text" placeholder="https://xxx.supabase.co" class="w-full bg-slate-800 text-sm p-2.5 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">anon public Key</label>
+          <input id="cfg-key" type="password" placeholder="eyJhbGciOi..." class="w-full bg-slate-800 text-sm p-2.5 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="resetConfig()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg border border-slate-700 transition">초기화</button>
+        <button onclick="saveConfig()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-5 py-2 rounded-lg font-medium transition shadow-lg shadow-amber-600/20">연결 및 저장</button>
+      </div>
     </div>
 
     <section class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700/60 shadow-xl mb-8">
@@ -85,15 +100,30 @@
   </div>
 
   <script>
-    // 1. Supabase 접속 설정 (환경변수 대체용 LocalStorage 관리)
-    let SUPABASE_URL = localStorage.getItem('SP_URL') || '';
-    let SUPABASE_KEY = localStorage.getItem('SP_KEY') || '';
-    let supabase = null;
+    let supabaseClient = null;
 
-    if (SUPABASE_URL && SUPABASE_KEY) {
-      supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } else {
-      document.getElementById('config-banner').classList.remove('hidden');
+    // 페이지 로드 시 기존 저장 정보 불러오기
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUrl = localStorage.getItem('SP_URL') || '';
+      const savedKey = localStorage.getItem('SP_KEY') || '';
+
+      if (savedUrl) document.getElementById('cfg-url').value = savedUrl;
+      if (savedKey) document.getElementById('cfg-key').value = savedKey;
+
+      if (savedUrl && savedKey) {
+        initSupabase(savedUrl, savedKey);
+      }
+    });
+
+    function initSupabase(url, key) {
+      try {
+        supabaseClient = supabase.createClient(url, key);
+        document.getElementById('config-status').textContent = '연결됨';
+        document.getElementById('config-status').className = 'text-xs px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        fetchTargets();
+      } catch (e) {
+        alert('Supabase 클라이언트 생성 실패: ' + e.message);
+      }
     }
 
     function saveConfig() {
@@ -105,17 +135,23 @@
       localStorage.setItem('SP_URL', url);
       localStorage.setItem('SP_KEY', key);
 
-      SUPABASE_URL = url;
-      SUPABASE_KEY = key;
-      supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-      document.getElementById('config-banner').classList.add('hidden');
-      fetchTargets();
+      initSupabase(url, key);
     }
 
-    // 2. 목록 불러오기 (Read)
+    function resetConfig() {
+      localStorage.removeItem('SP_URL');
+      localStorage.removeItem('SP_KEY');
+      document.getElementById('cfg-url').value = '';
+      document.getElementById('cfg-key').value = '';
+      document.getElementById('config-status').textContent = '미연결';
+      document.getElementById('config-status').className = 'text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700';
+      supabaseClient = null;
+      document.getElementById('target-list').innerHTML = '';
+      document.getElementById('target-count').textContent = '총 0개';
+    }
+
     async function fetchTargets() {
-      if (!supabase) return;
+      if (!supabaseClient) return;
 
       const listEl = document.getElementById('target-list');
       const loadingEl = document.getElementById('loading');
@@ -124,7 +160,7 @@
       listEl.innerHTML = '';
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('targets')
           .select('*')
           .order('id', { ascending: false });
@@ -154,7 +190,6 @@
       }
     }
 
-    // 카드 생성 헬퍼
     function createTargetCard(item) {
       const card = document.createElement('div');
       card.className = `bg-slate-800/90 rounded-xl p-5 border ${item.is_active ? 'border-slate-700' : 'border-slate-800 opacity-60'} shadow-md transition hover:border-slate-600`;
@@ -204,23 +239,21 @@
       return card;
     }
 
-    // 3. 새 타겟 추가 (Create)
     async function handleAddTarget(e) {
       e.preventDefault();
-      if (!supabase) return alert('Supabase 접속 설정이 필요합니다.');
+      if (!supabaseClient) return alert('먼저 Supabase 연동 정보를 입력하고 저장해 주세요.');
 
       const title = document.getElementById('input-title').value.trim();
       const url = document.getElementById('input-url').value.trim();
       const css_selector = document.getElementById('input-selector').value.trim();
 
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('targets')
           .insert([{ title, url, css_selector }]);
 
         if (error) throw error;
 
-        // 폼 초기화 및 목록 갱신
         document.getElementById('add-form').reset();
         fetchTargets();
 
@@ -229,10 +262,10 @@
       }
     }
 
-    // 4. 활성화 상태 토글 (Update)
     async function toggleActive(id, currentStatus) {
+      if (!supabaseClient) return;
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('targets')
           .update({ is_active: !currentStatus })
           .eq('id', id);
@@ -244,12 +277,12 @@
       }
     }
 
-    // 5. 항목 삭제 (Delete)
     async function deleteTarget(id) {
+      if (!supabaseClient) return;
       if (!confirm('정말 이 항목을 삭제하시겠습니까?')) return;
 
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('targets')
           .delete()
           .eq('id', id);
@@ -261,13 +294,9 @@
       }
     }
 
-    // XSS 방지용 유틸리티
     function escapeHtml(str) {
       return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
     }
-
-    // 페이지 로드 시 실행
-    if (supabase) fetchTargets();
   </script>
 </body>
 </html>
