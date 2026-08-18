@@ -72,7 +72,18 @@
     const { data, error } = await db.functions.invoke('admin-control', {
       body: { action, ...payload }
     });
-    if (error) throw new Error(data?.error || error.message || '관리자 요청에 실패했습니다.');
+    if (error) {
+      let message = data?.error;
+      if (!message && error.context) {
+        try {
+          const details = await error.context.json();
+          message = details?.error;
+        } catch (_) {
+          // 응답 본문을 읽을 수 없으면 SDK 오류 메시지를 사용합니다.
+        }
+      }
+      throw new Error(message || error.message || '관리자 요청에 실패했습니다.');
+    }
     if (data?.error) throw new Error(data.error);
     return data;
   }
@@ -114,6 +125,20 @@
     document.getElementById('schedule-time-2').value = scheduleTimes[1] || '18:00';
     document.getElementById('schedule-label').textContent = `매일 ${scheduleTimes.join(' · ')}`;
     document.getElementById('next-check-time').textContent = nextScheduledCheck(scheduleTimes);
+    applyDatabaseStatus(data.database);
+  }
+
+  function applyDatabaseStatus(database) {
+    const total = Number(database?.total || 0);
+    const active = Number(database?.active || 0);
+    const errors = Array.isArray(database?.errors) ? database.errors : [];
+    const errorCount = Number(database?.error_count || 0);
+    document.getElementById('target-summary').textContent = `${active} / ${total}`;
+    document.getElementById('error-summary').textContent = `${errorCount}건`;
+    document.getElementById('error-summary').className =
+      `mt-2 text-lg font-extrabold ${errorCount ? 'text-red-400' : 'text-emerald-400'}`;
+    document.getElementById('last-db-check').textContent = `확인 ${formatTime(new Date())}`;
+    renderErrors(errors);
   }
 
   function renderErrors(items) {
@@ -127,26 +152,12 @@
     ).join('');
   }
 
-  async function loadDatabaseStatus() {
-    const { data, error } = await db.from('targets').select('id,title,is_active,last_error,last_checked_at');
-    if (error) throw error;
-    const items = data || [];
-    const active = items.filter((item) => item.is_active).length;
-    const errors = items.filter((item) => item.last_error);
-    document.getElementById('target-summary').textContent = `${active} / ${items.length}`;
-    document.getElementById('error-summary').textContent = `${errors.length}건`;
-    document.getElementById('error-summary').className =
-      `mt-2 text-lg font-extrabold ${errors.length ? 'text-red-400' : 'text-emerald-400'}`;
-    document.getElementById('last-db-check').textContent = `확인 ${formatTime(new Date())}`;
-    renderErrors(errors.sort((a, b) => new Date(b.last_checked_at || 0) - new Date(a.last_checked_at || 0)));
-  }
-
   async function loadAll() {
     const button = document.getElementById('refresh-button');
     button.disabled = true;
     button.classList.add('opacity-60');
     try {
-      const [status] = await Promise.all([invokeAdmin('status'), loadDatabaseStatus()]);
+      const status = await invokeAdmin('status');
       applyStatus(status);
     } catch (error) {
       showNotice('불러오기 실패', error.message || '상태를 확인하지 못했습니다.', true);
@@ -164,7 +175,6 @@
       applyStatus(status);
       const run = kind === 'check' ? status.check : status.backup;
       if (run && new Date(run.created_at).getTime() >= requested && run.status === 'completed') {
-        if (kind === 'check') await loadDatabaseStatus();
         return run;
       }
     }
