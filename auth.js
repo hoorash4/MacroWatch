@@ -145,6 +145,26 @@
       elements.profileModal.classList.add('hidden');
     });
     elements.kakaoConnectButton.addEventListener('click', beginKakaoLogin);
+    document.getElementById('account-delete-button')?.addEventListener('click', () => {
+      document.getElementById('account-delete-modal')?.classList.remove('hidden');
+    });
+    document.getElementById('account-delete-cancel')?.addEventListener('click', () => {
+      document.getElementById('account-delete-modal')?.classList.add('hidden');
+    });
+    document.getElementById('account-delete-confirm')?.addEventListener('click', async () => {
+      const button = document.getElementById('account-delete-confirm');
+      button.disabled = true;
+      button.textContent = '처리 중';
+      try {
+        await invokeKakao('delete_account');
+        await authClient.auth.signOut({ scope: 'local' });
+        window.location.replace('./');
+      } catch (error) {
+        window.alert(error.message || '회원 탈퇴를 처리하지 못했습니다.');
+        button.disabled = false;
+        button.textContent = '탈퇴하기';
+      }
+    });
     document.getElementById('logout-button')?.addEventListener('click', async () => {
       await authClient?.auth.signOut();
       showLogin();
