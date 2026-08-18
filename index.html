@@ -46,8 +46,9 @@
           <p id="auth-description" class="mt-1 text-xs text-slate-500">등록한 전화번호와 비밀번호를 입력하세요.</p>
         </div>
         <div>
-          <label for="auth-phone" class="mb-1.5 block text-xs font-semibold text-slate-400">전화번호</label>
-          <input id="auth-phone" type="tel" inputmode="numeric" autocomplete="username" required placeholder="예: 01012345678" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+          <label for="auth-phone" class="mb-1.5 block text-xs font-semibold text-slate-400">전화번호 (숫자만)</label>
+          <input id="auth-phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="11" autocomplete="username" required placeholder="예: 01012345678" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+          <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">전화번호는 MacroWatch 로그인 아이디로 사용됩니다.</p>
         </div>
         <div>
           <label for="auth-password" class="mb-1.5 block text-xs font-semibold text-slate-400">비밀번호</label>
@@ -56,6 +57,16 @@
         <div id="auth-confirm-wrap" class="hidden">
           <label for="auth-password-confirm" class="mb-1.5 block text-xs font-semibold text-slate-400">비밀번호 확인</label>
           <input id="auth-password-confirm" type="password" autocomplete="new-password" minlength="6" placeholder="비밀번호 다시 입력" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+        </div>
+        <div id="auth-kakao-wrap" class="hidden rounded-xl border border-yellow-500/25 bg-yellow-500/5 p-3.5">
+          <label class="flex cursor-pointer items-start gap-3">
+            <input id="auth-kakao-opt-in" type="checkbox" class="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-950 text-yellow-400 focus:ring-yellow-400">
+            <span>
+              <span class="block text-sm font-bold text-slate-200">가입 후 카카오톡 알림 연결</span>
+              <span class="mt-1 block text-[11px] leading-relaxed text-slate-400">체크하면 회원가입 직후 카카오 계정 연결 화면으로 이동합니다. 연결을 완료해야 지표 알림을 받을 수 있습니다.</span>
+            </span>
+          </label>
+          <p class="mt-2 border-t border-yellow-500/15 pt-2 text-[11px] leading-relaxed text-slate-500">지금 체크하지 않아도 가입 후 개인 설정에서 언제든 카카오톡을 연동할 수 있습니다.</p>
         </div>
         <p id="auth-message" role="alert" class="min-h-5 text-center text-xs text-red-400"></p>
         <button id="auth-submit" type="submit" class="flex w-full items-center justify-center rounded-lg bg-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:cursor-wait">
@@ -87,6 +98,9 @@
         <div id="db-status" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-400 border border-slate-700/60 flex items-center gap-2 shadow-inner">
           <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span> DB 연결 확인 중...
         </div>
+        <button id="profile-button" type="button" aria-label="개인 설정" title="개인 설정" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 transition hover:border-yellow-500 hover:text-yellow-400">
+          <i class="fa-solid fa-user text-xs"></i>
+        </button>
         <a href="admin.html" aria-label="관리자 페이지" title="관리자 페이지" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 transition hover:border-blue-500 hover:text-blue-400">
           <i class="fa-solid fa-gear text-xs"></i>
         </a>
@@ -251,6 +265,32 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- 개인 설정 모달 -->
+  <div id="profile-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <section class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-user-gear mr-2 text-blue-400"></i>개인 설정</h2>
+          <p class="mt-1 text-xs text-slate-500">알림 계정 연결 상태를 관리합니다.</p>
+        </div>
+        <button id="profile-close-button" type="button" aria-label="개인 설정 닫기" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-sm font-bold text-slate-200"><i class="fa-solid fa-comment mr-2 text-yellow-400"></i>카카오톡 알림</p>
+            <p id="kakao-connection-status" class="mt-1 text-xs text-slate-500">연결 상태 확인 중</p>
+          </div>
+          <span id="kakao-status-badge" class="shrink-0 rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-400">확인 중</span>
+        </div>
+        <button id="kakao-connect-button" type="button" class="mt-4 flex w-full items-center justify-center rounded-lg bg-yellow-500 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-yellow-400 disabled:cursor-wait disabled:opacity-60">
+          <i class="fa-solid fa-link mr-2"></i><span>카카오톡 연동하기</span>
+        </button>
+        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">카카오 계정 연결을 완료한 경우에만 설정한 지표 알림을 카카오톡으로 받을 수 있습니다.</p>
+      </div>
+    </section>
   </div>
 
   <!-- 편집/수정용 모달 -->
