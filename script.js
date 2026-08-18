@@ -159,11 +159,11 @@ async function fetchTargets() {
       return;
     }
 
-    const condConfig = {
-      'changed': { label: '단순 값 변경 시', icon: 'fa-rotate' },
-      'gte': { label: '목표값 상향 돌파 시', icon: 'fa-arrow-trend-up' },
-      'lte': { label: '목표값 하향 돌파 시', icon: 'fa-arrow-trend-down' },
-      'eq': { label: '목표값 일치 시', icon: 'fa-equals' }
+const condTextMap = {
+      'changed': '단순 값 변경 시',
+      'gte': '목표값 상향 돌파',
+      'lte': '목표값 하향 돌파',
+      'cross': '상/하향 돌파 모두'
     };
 
     listContainer.innerHTML = data.map((item) => {
