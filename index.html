@@ -6,6 +6,7 @@
   <title>MacroWatch - 맞춤형 경제지표 수치 변동 알리미</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase CDN 라이브러리 복구 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
@@ -195,7 +196,6 @@
           </select>
         </div>
 
-        <!-- 수정 모달 내 필드들 -->
         <div id="edit-field-selector" class="space-y-3">
           <input type="url" id="edit-url" placeholder="URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
           <input type="text" id="edit-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono">
