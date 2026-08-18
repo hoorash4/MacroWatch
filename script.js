@@ -131,7 +131,7 @@ function renderTargets() {
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
-            ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="원본 사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>링크</span></a>` : ''}
+            ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="원본 사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>출처</span></a>` : ''}
           </div>
           <p class="text-xs text-slate-400 mt-0.5 truncate">
             조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
