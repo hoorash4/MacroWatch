@@ -21,6 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleTargetValueInput('input-condition', 'input-target-val');
 });
 
+document.addEventListener('focusin', (event) => {
+  const input = event.target;
+  if (input.matches?.('input[placeholder]')) {
+    input.placeholder = '';
+  }
+});
+
 // DB 연결 상태 확인 (Publishable Key 호환 수정)
 async function checkDbConnection() {
   const statusEl = document.getElementById('db-status');
