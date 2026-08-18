@@ -327,11 +327,11 @@ def condition_met(target: dict[str, Any], previous: Decimal | None, current: Dec
         return False
     threshold = parse_decimal(raw_target_value)
     if condition == "gte":
-        return previous < threshold <= current
+        return previous <= threshold < current
     if condition == "lte":
-        return previous > threshold >= current
+        return previous >= threshold > current
     if condition == "cross":
-        return (previous < threshold <= current) or (previous > threshold >= current)
+        return (previous <= threshold < current) or (previous >= threshold > current)
     return False
 
 
@@ -400,8 +400,8 @@ def send_kakao_message(access_token: str, results: list[CheckResult]) -> None:
         "object_type": "text",
         "text": "\n".join(lines),
         "link": {
-            "web_url": "https://hoorash4.github.io/MacroWatch/",
-            "mobile_web_url": "https://hoorash4.github.io/MacroWatch/",
+            "web_url": "https://hoorash4.github.io/macrowatch/",
+            "mobile_web_url": "https://hoorash4.github.io/macrowatch/",
         },
         "button_title": "대시보드 열기",
     }
