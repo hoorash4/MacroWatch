@@ -331,6 +331,10 @@
 #auth-screen .grid>section:first-child h1{font-size:clamp(2.35rem,5.2vw,5.3rem)!important;line-height:1.28!important}
 #auth-screen .grid>section:first-child>p:not(.mb-6){margin-top:2.25rem!important}
 @media(max-width:1023px){#auth-screen .grid.flex-1{padding-left:clamp(1.5rem,7vw,4rem)!important;padding-right:clamp(1.5rem,7vw,4rem)!important}#auth-screen .grid>section:first-child h1{font-size:clamp(2.2rem,8vw,3.8rem)!important;line-height:1.22!important}}
+</style><style id="signal-detail-accent">
+@keyframes macroPulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+#auth-screen .grid>section:first-child>p:not(.mb-6){position:relative!important;border-left:2px solid #b98a45!important;padding-left:1.15rem!important}
+#auth-screen .grid>section:first-child>p:not(.mb-6):after{content:"";position:absolute;left:-5px;top:.45rem;width:7px;height:7px;border-radius:999px;background:#d1a55d;box-shadow:0 0 0 4px rgba(209,165,93,.14);animation:macroPulse 2.2s ease-in-out infinite}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
