@@ -63,6 +63,15 @@ async function latestRun(workflow: string, token: string) {
   };
 }
 
+async function authenticatedUser(supabaseUrl: string, anonKey: string, jwt: string) {
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: anonKey, Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) return null;
+  const user = await response.json().catch(() => null);
+  return user?.id ? user : null;
+}
+
 function validateTimes(value: unknown) {
   if (!Array.isArray(value) || value.length !== 2) {
     throw new Error("확인 시간 두 개를 입력해 주세요.");
@@ -124,20 +133,21 @@ export default {
 
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
       const githubToken = Deno.env.get("GITHUB_ADMIN_TOKEN")!;
       if (!githubToken) return json({ error: "GitHub 관리자 토큰이 없습니다." }, 500, origin);
 
       const admin = createClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
-      const { data: userData, error: userError } = await admin.auth.getUser(jwt);
-      if (userError || !userData.user) {
+      const user = await authenticatedUser(supabaseUrl, anonKey, jwt);
+      if (!user) {
         return json({ error: "로그인 정보가 유효하지 않습니다." }, 401, origin);
       }
       const { data: account } = await admin
         .from("user_accounts")
         .select("is_admin")
-        .eq("user_id", userData.user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
       if (account?.is_admin !== true) {
         return json({ error: "관리자 권한이 필요합니다." }, 403, origin);
@@ -202,7 +212,7 @@ export default {
           key: "target_check_schedule",
           value: { times, timezone: "Asia/Seoul" },
           updated_at: new Date().toISOString(),
-          updated_by: userData.user.id,
+          updated_by: user.id,
         });
         if (error) throw error;
         return json({ schedule: { times, timezone: "Asia/Seoul" } }, 200, origin);
