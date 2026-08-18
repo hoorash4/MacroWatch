@@ -449,6 +449,11 @@
 #target-list>p.loading-state{display:flex!important;align-items:center;justify-content:center;gap:.6rem;color:#aeb8c8!important}
 #target-list>p.loading-state:before{content:"";width:14px;height:14px;border:2px solid rgba(209,165,93,.28);border-top-color:#d1a55d;border-radius:50%;animation:dashboardSpin .8s linear infinite}
 #target-list>p.loading-state:after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dashboardDots 1.2s steps(1,end) infinite}
+</style><style id="dashboard-auth-frame">
+#app-shell{position:relative!important;min-height:calc(100vh - 3rem)!important;width:100%!important;max-width:1180px!important;margin:0 auto!important;padding:1.5rem!important;border-radius:1.75rem!important;background:#071b42!important;overflow:hidden!important}
+#app-shell:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background-image:radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);background-size:36px 36px;opacity:.5}
+#app-shell>.dashboard-copyright{position:relative!important;z-index:1!important;margin:2rem -1.5rem -1.5rem!important;background:#04132f!important}
+@media(max-width:900px){#app-shell{width:calc(100% - 1rem)!important;min-height:calc(100vh - 2rem)!important;padding:1rem!important;border-radius:1.25rem!important}#app-shell>.dashboard-copyright{margin:1.5rem -1rem -1rem!important}}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
@@ -694,6 +699,8 @@
         <p class="mt-2 text-sm text-slate-500">맞춤형 뉴스 수집과 요약 기능은 추후 제공할 예정입니다.</p>
       </div>
     </div>
+
+    <footer class="dashboard-copyright border-t border-white/10 px-4 py-4 text-center text-[10px] tracking-[.14em] text-slate-400">© 2026 EVOTIVE RESEARCH. All rights reserved.</footer>
 
   </div>
 
