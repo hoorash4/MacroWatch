@@ -209,7 +209,7 @@ async function moveOrder(id, direction) {
       
       <!-- 버튼 영역 (오른쪽 끝으로 밀기) -->
       <div class="flex items-center gap-2 pl-4">
-        <span class="text-xs text-slate-500 mr-2">최근: ${item.last_value || '대기 중'}</span>
+        <span class="text-xs text-slate-500 mr-2">최근: ${item.last_value || '대기 중...'}</span>
         <button onclick="moveOrder(${item.id}, 'up')" class="p-1 hover:text-blue-400 transition">▲</button>
         <button onclick="moveOrder(${item.id}, 'down')" class="p-1 hover:text-blue-400 transition">▼</button>
       </div>
