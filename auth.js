@@ -92,7 +92,6 @@
     elements.authScreen.classList.add('hidden');
     elements.appShell.classList.remove('hidden');
     await updateAdminLink();
-    await window.checkDbConnection?.();
     await window.fetchTargets?.();
   }
 
