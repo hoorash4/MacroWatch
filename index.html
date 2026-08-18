@@ -23,7 +23,10 @@
     </div>
 
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6">
-      <h2 class="text-lg font-bold text-slate-200">새로운 추적 항목 추가</h2>
+<h2 class="text-lg font-bold text-white mb-4 flex items-center">
+  <i class="fa-solid fa-plus-circle mr-2 text-blue-500"></i>
+  새로운 추적 항목 추가
+</h2>
       
       <form id="add-form" onsubmit="handleAddTarget(event)" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -70,7 +73,10 @@
     </div>
 
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-      <h2 class="text-lg font-bold text-slate-200 mb-4">현재 추적 중인 항목 목록</h2>
+     <h2 class="text-lg font-bold text-white mb-4 flex items-center">
+        <i class="fa-solid fa-list-check mr-2 text-blue-500"></i>
+        현재 추적 중인 항목 목록
+      </h2>
       <div id="target-list" class="divide-y divide-slate-800">
         <p class="text-sm text-slate-500 py-4 text-center">불러오는 중...</p>
       </div>
@@ -178,7 +184,7 @@ async function moveOrder(id, direction) {
   fetchTargets(); // 목록 새로고침
 }
     
-// 4. 리스트 목록 불러오기 및 조건 텍스트 매핑 함수
+// 4. 리스트 목록 불러오기 및 렌더링 (아이콘 + 조건 수정 기능 포함)
 async function fetchTargets() {
   const listContainer = document.getElementById('target-list');
   try {
@@ -186,47 +192,74 @@ async function fetchTargets() {
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      listContainer.innerHTML = `<p class="text-sm text-slate-500 py-4 text-center">등록된 추적 항목이 없습니다.</p>`;
+      listContainer.innerHTML = `<p class="text-sm text-slate-500 py-4 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
       return;
     }
 
-    // 조건 코드별 표시 문구 매핑 함수
-    const condTextMap = {
-      'changed': '단순 값 변경 시',
-      'gte': '목표값 상향 돌파',
-      'lte': '목표값 하향돌파'
+    // 조건 문구 및 아이콘 매핑
+    const condConfig = {
+      'changed': { label: '단순 값 변경 시', icon: 'fa-rotate' },
+      'gte': { label: '목표값 상향 돌파', icon: 'fa-arrow-trend-up' },
+      'lte': { label: '목표값 하향 돌파', icon: 'fa-arrow-trend-down' },
+      'eq': { label: '목표값 일치 시', icon: 'fa-equals' }
     };
 
-    listContainer.innerHTML = data.map((item, index) => {
-      const conditionLabel = condTextMap[item.condition_type] || item.condition_type;
+    listContainer.innerHTML = data.map((item) => {
+      const config = condConfig[item.condition_type] || { label: item.condition_type, icon: 'fa-bell' };
       const targetValStr = item.target_value ? ` (${item.target_value})` : '';
       
       return `
         <div class="border-b border-slate-700/60 last:border-b-0">
-          <!-- 기본 뷰 영역 -->
           <div class="py-3 flex justify-between items-center" id="view-${item.id}">
-            <!-- 왼쪽: 항목 이름 및 작은 글씨 조건 설명 -->
-            <div class="flex-1 cursor-pointer pr-4" onclick="toggleEdit(${item.id})">
-              <span class="font-bold text-slate-200 hover:text-blue-400 transition">${item.title}</span>
-              <span class="text-xs text-slate-400 block mt-0.5">조건: ${conditionLabel}${targetValStr}</span>
+            <div class="flex-1 cursor-pointer pr-4 group" onclick="toggleEdit(${item.id})">
+              <div class="flex items-center">
+                <i class="fa-solid fa-chart-line text-blue-500 mr-2 text-xs"></i>
+                <span class="font-bold text-slate-200 group-hover:text-blue-400 transition">${item.title}</span>
+              </div>
+              <div class="text-xs text-slate-400 mt-0.5 ml-5 flex items-center">
+                <i class="fa-solid ${config.icon} mr-1.5 text-[10px] text-blue-400"></i>
+                감지 조건: <span class="text-slate-300 ml-1 font-medium">${config.label}${targetValStr}</span>
+              </div>
             </div>
             
-            <!-- 오른쪽: 최근값 및 간격이 좁혀진 화살표 버튼 -->
             <div class="flex items-center gap-3">
               <span class="text-xs text-slate-400">최근: <strong class="text-slate-200">${item.last_value || '대기 중'}</strong></span>
               <div class="flex items-center gap-0.5 bg-slate-900/80 border border-slate-700 rounded px-1 py-0.5">
-                <button onclick="moveOrder(${item.id}, 'up')" class="px-1.5 py-0.5 text-xs text-slate-400 hover:text-white transition">▲</button>
+                <button onclick="moveOrder(${item.id}, 'up'); event.stopPropagation();" class="px-1.5 py-0.5 text-xs text-slate-400 hover:text-white transition">▲</button>
                 <span class="text-slate-600 text-xs">|</span>
-                <button onclick="moveOrder(${item.id}, 'down')" class="px-1.5 py-0.5 text-xs text-slate-400 hover:text-white transition">▼</button>
+                <button onclick="moveOrder(${item.id}, 'down'); event.stopPropagation();" class="px-1.5 py-0.5 text-xs text-slate-400 hover:text-white transition">▼</button>
               </div>
             </div>
           </div>
 
-          <!-- 수정용 아코디언 영역 (클릭 시 펼쳐짐) -->
-          <div id="edit-${item.id}" class="hidden py-3 bg-slate-900 px-3 rounded-lg my-2 border border-slate-700 space-y-2">
-            <input type="text" id="val-title-${item.id}" value="${item.title}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" placeholder="항목 이름">
-            <input type="text" id="val-url-${item.id}" value="${item.url}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-300" placeholder="웹사이트 URL">
-            <input type="text" id="val-selector-${item.id}" value="${item.css_selector || ''}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-300" placeholder="CSS Selector">
+          <div id="edit-${item.id}" class="hidden py-3 bg-slate-900 px-3 rounded-lg my-2 border border-slate-700 space-y-2.5">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">항목 이름</label>
+              <input type="text" id="val-title-${item.id}" value="${item.title}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">웹사이트 URL</label>
+              <input type="text" id="val-url-${item.id}" value="${item.url}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-300">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">CSS Selector</label>
+              <input type="text" id="val-selector-${item.id}" value="${(item.css_selector || '').replace(/"/g, '&quot;')}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-300">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">감지 조건</label>
+                <select id="val-cond-${item.id}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-300">
+                  <option value="changed" ${item.condition_type === 'changed' ? 'selected' : ''}>단순 값 변경</option>
+                  <option value="gte" ${item.condition_type === 'gte' ? 'selected' : ''}>상향 돌파</option>
+                  <option value="lte" ${item.condition_type === 'lte' ? 'selected' : ''}>하향 돌파</option>
+                  <option value="eq" ${item.condition_type === 'eq' ? 'selected' : ''}>목표값 일치</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">목표값 (숫자)</label>
+                <input type="text" id="val-target-${item.id}" value="${item.target_value || ''}" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" placeholder="예: 4.5">
+              </div>
+            </div>
             <div class="flex justify-end gap-2 pt-1">
               <button onclick="toggleEdit(${item.id})" class="text-xs px-2.5 py-1 bg-slate-800 text-slate-300 rounded">취소</button>
               <button onclick="saveEdit(${item.id})" class="text-xs px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded">저장</button>
@@ -241,6 +274,29 @@ async function fetchTargets() {
   }
 }
 
+
+    // 수정 내용 저장 함수 (조건 및 목표값 포함)
+async function saveEdit(id) {
+  const title = document.getElementById(`val-title-${id}`).value;
+  const url = document.getElementById(`val-url-${id}`).value;
+  const css_selector = document.getElementById(`val-selector-${id}`).value;
+  const condition_type = document.getElementById(`val-cond-${id}`).value;
+  const target_value = document.getElementById(`val-target-${id}`).value;
+
+  const { error } = await supabaseClient
+    .from('targets')
+    .update({ title, url, css_selector, condition_type, target_value: target_value ? parseFloat(target_value) : null })
+    .eq('id', id);
+
+  if (error) {
+    alert('수정 실패: ' + error.message);
+  } else {
+    fetchTargets();
+  }
+}
+
+
+    
     // 수정창 토글 (열기/닫기)
 function toggleEdit(id) {
   document.getElementById(`view-${id}`).classList.toggle('hidden');
