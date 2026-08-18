@@ -12,6 +12,7 @@ let targets = [];
 let currentEditId = null;
 let currentDeleteId = null;
 let draggedItemIndex = null;
+let dropIndicatorIndex = null;
 let expandedTargetId = null;
 
 // 초기화
@@ -134,11 +135,12 @@ function renderTargets() {
   }
 
   listEl.innerHTML = targets.map((item, index) => `
+    <div data-drop-indicator="${index}" class="h-px rounded-full bg-transparent transition-colors duration-150"></div>
     <div class="py-3 border-b border-slate-800/80 last:border-0">
       <div class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
            ondragstart="handleDragStart(event, ${index})"
-           ondragover="handleDragOver(event)"
+           ondragover="handleDragOver(event, ${index})"
            ondrop="handleDrop(event, ${index})"
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -194,7 +196,7 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `).join('');
+  `).join('') + `<div data-drop-indicator="${targets.length}" class="h-px rounded-full bg-transparent transition-colors duration-150"></div>`;
 }
 
 function toggleTargetDetails(id) {
@@ -228,23 +230,58 @@ async function toggleTargetActive(id) {
 }
 
 // 드래그 앤 드롭 핸들러
+function setDropIndicator(index) {
+  if (dropIndicatorIndex === index) return;
+
+  document.querySelectorAll('[data-drop-indicator]').forEach((indicator) => {
+    indicator.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+    indicator.classList.add('bg-transparent');
+  });
+
+  dropIndicatorIndex = index;
+  const activeIndicator = document.querySelector(`[data-drop-indicator="${index}"]`);
+  if (activeIndicator) {
+    activeIndicator.classList.remove('bg-transparent');
+    activeIndicator.classList.add('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+  }
+}
+
+function clearDropIndicator() {
+  document.querySelectorAll('[data-drop-indicator]').forEach((indicator) => {
+    indicator.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+    indicator.classList.add('bg-transparent');
+  });
+  dropIndicatorIndex = null;
+}
+
 function handleDragStart(e, index) {
   draggedItemIndex = index;
+  clearDropIndicator();
   e.dataTransfer.effectAllowed = 'move';
   e.currentTarget.classList.add('opacity-40');
 }
 
-function handleDragOver(e) {
+function handleDragOver(e, targetIndex) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
+
+  const rect = e.currentTarget.getBoundingClientRect();
+  const insertIndex = e.clientY < rect.top + rect.height / 2 ? targetIndex : targetIndex + 1;
+  setDropIndicator(insertIndex);
 }
 
 function handleDrop(e, targetIndex) {
   e.preventDefault();
-  if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+  const insertIndex = dropIndicatorIndex ?? targetIndex;
+  clearDropIndicator();
+
+  if (draggedItemIndex === null) return;
+
+  const destinationIndex = draggedItemIndex < insertIndex ? insertIndex - 1 : insertIndex;
+  if (destinationIndex === draggedItemIndex) return;
 
   const movedItem = targets.splice(draggedItemIndex, 1)[0];
-  targets.splice(targetIndex, 0, movedItem);
+  targets.splice(destinationIndex, 0, movedItem);
 
   targets.forEach((item, idx) => {
     item.display_order = idx;
@@ -256,6 +293,7 @@ function handleDrop(e, targetIndex) {
 
 function handleDragEnd(e) {
   e.currentTarget.classList.remove('opacity-40');
+  clearDropIndicator();
   draggedItemIndex = null;
 }
 
