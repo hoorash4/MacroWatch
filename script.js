@@ -77,7 +77,7 @@ async function handleAddTarget(e) {
   const nextOrder = countError || count === null ? 0 : count;
 
   const { error } = await supabaseClient.from('targets').insert([{ 
-    title, url, css_selector, condition_type, target_value, display_order: nextOrder 
+    title, url, css_selector, condition_type, target_value, display_order: nextOrder, is_active: true 
   }]);
 
   if (error) return alert('등록 실패: ' + error.message);
@@ -161,23 +161,34 @@ async function fetchTargets() {
 
     const condConfig = {
       'changed': { label: '단순 값 변경 시', icon: 'fa-rotate' },
-      'gte': { label: '목표값 상향 돌파', icon: 'fa-arrow-trend-up' },
-      'lte': { label: '목표값 하향 돌파', icon: 'fa-arrow-trend-down' },
+      'gte': { label: '목표값 상향 돌파 시', icon: 'fa-arrow-trend-up' },
+      'lte': { label: '목표값 하향 돌파 시', icon: 'fa-arrow-trend-down' },
       'eq': { label: '목표값 일치 시', icon: 'fa-equals' }
     };
 
     listContainer.innerHTML = data.map((item) => {
       const config = condConfig[item.condition_type] || { label: item.condition_type, icon: 'fa-bell' };
       const targetValStr = item.target_value !== null && item.target_value !== undefined ? ` (${item.target_value})` : '';
-      const safeSelector = (item.css_selector || '').replace(/"/g, '&quot;');
+      
+      const isActive = item.is_active !== false;
+      const bellColorClass = isActive ? "text-amber-500 bg-amber-500/10 border-amber-500/30" : "text-slate-600 bg-slate-950 border-slate-800";
+      const bellIconClass = isActive ? "fa-bell" : "fa-bell-slash";
+      const bellTitle = isActive ? "알림 켜짐 (클릭하여 끄기)" : "알림 꺼짐 (클릭하여 켜기)";
       
       let displayUrl = item.url;
+      let isFred = false;
+      let fredSeriesId = '';
+
       if (item.url && item.url.includes('stlouisfed.org/fred/series/observations')) {
+        isFred = true;
         const match = item.url.match(/series_id=([^&]+)/);
         if (match && match[1]) {
-          displayUrl = `https://fred.stlouisfed.org/series/${match[1]}`;
+          fredSeriesId = match[1];
+          displayUrl = `https://fred.stlouisfed.org/series/${fredSeriesId}`;
         }
       }
+
+      const safeSelector = (item.css_selector || '').replace(/"/g, '&quot;');
 
       return `
         <div class="draggable-item border-b border-slate-800/80 last:border-b-0 py-3 transition-all rounded-lg px-2 cursor-grab active:cursor-grabbing" 
@@ -199,8 +210,8 @@ async function fetchTargets() {
             
             <div class="flex items-center gap-3" onclick="event.stopPropagation()">
               <span class="text-xs text-slate-400">최근: <strong class="text-slate-200">${item.last_value || '대기 중'}</strong></span>
-              <button onclick="toggleAlertBell(${item.id}, this)" class="text-amber-500 hover:text-amber-400 p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 transition" title="알림 켜기/끄기">
-                <i class="fa-solid fa-bell text-xs"></i>
+              <button onclick="toggleAlertBell(${item.id}, this)" class="${bellColorClass} p-1.5 rounded-lg border transition" title="${bellTitle}">
+                <i class="fa-solid ${bellIconClass} text-xs"></i>
               </button>
             </div>
           </div>
@@ -210,22 +221,31 @@ async function fetchTargets() {
               <label class="text-[11px] text-slate-400 block mb-1 font-medium">항목 이름 수정</label>
               <input type="text" id="val-title-${item.id}" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white">
             </div>
+            
+            ${isFred ? `
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1 font-medium">FRED Series ID</label>
+              <input type="text" id="val-fred-id-${item.id}" value="${fredSeriesId}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white font-mono">
+            </div>
+            ` : `
             <div>
               <label class="text-[11px] text-slate-400 block mb-1 font-medium">웹사이트 URL</label>
               <input type="text" id="val-url-${item.id}" value="${item.url}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1 font-medium">CSS Selector</label>
-              <input type="text" id="val-selector-${item.id}" value="${safeSelector}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
+              <input type="text" id="val-selector-${item.id}" value="${safeSelector}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300 font-mono">
             </div>
+            `}
+
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1 font-medium">감지 조건</label>
                 <select id="val-cond-${item.id}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300">
-                  <option value="changed" ${item.condition_type === 'changed' ? 'selected' : ''}>단순 값 변경</option>
-                  <option value="gte" ${item.condition_type === 'gte' ? 'selected' : ''}>상향 돌파</option>
-                  <option value="lte" ${item.condition_type === 'lte' ? 'selected' : ''}>하향 돌파</option>
-                  <option value="eq" ${item.condition_type === 'eq' ? 'selected' : ''}>목표값 일치</option>
+                  <option value="changed" ${item.condition_type === 'changed' ? 'selected' : ''}>단순 값 변경 시</option>
+                  <option value="gte" ${item.condition_type === 'gte' ? 'selected' : ''}>목표값 상향 돌파 시</option>
+                  <option value="lte" ${item.condition_type === 'lte' ? 'selected' : ''}>목표값 하향 돌파 시</option>
+                  <option value="eq" ${item.condition_type === 'eq' ? 'selected' : ''}>목표값 일치 시</option>
                 </select>
               </div>
               <div>
@@ -235,7 +255,7 @@ async function fetchTargets() {
             </div>
             <div class="flex justify-end gap-2 pt-1">
               <button onclick="toggleEdit(${item.id})" class="text-xs px-3 py-1.5 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 transition">취소</button>
-              <button onclick="saveEdit(${item.id})" class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition">저장하기</button>
+              <button onclick="saveEdit(${item.id}, ${isFred})" class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition">저장하기</button>
             </div>
           </div>
         </div>
@@ -270,20 +290,28 @@ function toggleEdit(id) {
   }
 }
 
-function toggleAlertBell(id, btnElement) {
+async function toggleAlertBell(id, btnElement) {
   const icon = btnElement.querySelector('i');
-  // 현재 아이콘이 켜져 있는(fa-bell) 상태인지 확인
   const isOn = icon.classList.contains('fa-bell');
-  
+  const newActiveState = !isOn; 
+
+  const { error } = await supabaseClient
+    .from('targets')
+    .update({ is_active: newActiveState })
+    .eq('id', id);
+
+  if (error) {
+    alert('알림 상태 변경 중 오류가 발생했습니다: ' + error.message);
+    return;
+  }
+
   if (isOn) {
-    // 알림 끄기 상태로 전환 (회색조)
     icon.classList.remove('fa-bell', 'text-amber-500');
     icon.classList.add('fa-bell-slash', 'text-slate-600');
     btnElement.classList.remove('bg-amber-500/10', 'border-amber-500/30');
     btnElement.classList.add('bg-slate-950', 'border-slate-800');
     btnElement.title = "알림 꺼짐 (클릭하여 켜기)";
   } else {
-    // 알림 켜기 상태로 전환 (진득한 주황/호박색)
     icon.classList.remove('fa-bell-slash', 'text-slate-600');
     icon.classList.add('fa-bell', 'text-amber-500');
     btnElement.classList.remove('bg-slate-950', 'border-slate-800');
@@ -292,13 +320,22 @@ function toggleAlertBell(id, btnElement) {
   }
 }
 
-async function saveEdit(id) {
-  const title = document.getElementById(`val-title-${id}`).value;
-  const url = document.getElementById(`val-url-${id}`).value;
-  const css_selector = document.getElementById(`val-selector-${id}`).value;
+async function saveEdit(id, isFred) {
+  const title = document.getElementById(`val-title-${id}`).value.trim();
   const condition_type = document.getElementById(`val-cond-${id}`).value;
-  const target_value_raw = document.getElementById(`val-target-${id}`).value;
+  const target_value_raw = document.getElementById(`val-target-${id}`).value.trim();
   const target_value = target_value_raw !== "" ? parseFloat(target_value_raw) : null;
+
+  let url = '', css_selector = '';
+
+  if (isFred) {
+    const seriesId = document.getElementById(`val-fred-id-${id}`).value.trim().toUpperCase();
+    url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
+    css_selector = 'API:observations[0].value';
+  } else {
+    url = document.getElementById(`val-url-${id}`).value.trim();
+    css_selector = document.getElementById(`val-selector-${id}`).value.trim();
+  }
 
   const { data: currentItem, error: fetchError } = await supabaseClient.from('targets').select('display_order').eq('id', id).single();
   if (fetchError) return alert('기존 순서 정보를 가져오지 못했습니다.');
