@@ -122,6 +122,30 @@
               </button>
             </form>
 
+            <div class="my-6 flex items-center gap-3 text-[10px] font-medium tracking-[.12em] text-slate-600">
+              <span class="h-px flex-1 bg-white/10"></span>
+              <span>OR CONTINUE WITH</span>
+              <span class="h-px flex-1 bg-white/10"></span>
+            </div>
+
+            <form id="password-login-form" autocomplete="off" class="space-y-3">
+              <div>
+                <label for="login-id" class="mb-1.5 flex items-center justify-between text-xs font-medium text-slate-400">아이디 <span class="rounded-full border border-[#d1a55d]/25 bg-[#d1a55d]/10 px-2 py-0.5 text-[9px] font-bold tracking-[.1em] text-[#e2bd7d]">COMING SOON</span></label>
+                <input id="login-id" type="text" autocomplete="username" placeholder="아이디 입력" class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#d1a55d]/70 focus:bg-slate-950">
+              </div>
+              <div>
+                <label for="login-password" class="mb-1.5 block text-xs font-medium text-slate-400">비밀번호</label>
+                <input id="login-password" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#d1a55d]/70 focus:bg-slate-950">
+              </div>
+              <button id="password-login-button" type="submit" class="flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/[.045] py-3 text-sm font-bold text-slate-300 transition hover:border-[#d1a55d]/40 hover:bg-white/[.08] hover:text-white">
+                ID/PW로 로그인
+              </button>
+              <p class="pt-1 text-center text-xs text-slate-500">
+                아직 계정이 없나요?
+                <button id="signup-placeholder-button" type="button" class="ml-1 font-semibold text-[#e2bd7d] transition hover:text-[#f0d59b]">회원가입 <span class="ml-1 text-[9px] tracking-wide">COMING SOON</span></button>
+              </p>
+            </form>
+
             <div class="my-6 h-px bg-white/10"></div>
             <div class="flex items-start gap-3">
               <i class="fa-solid fa-shield-halved mt-0.5 text-xs text-[#d1a55d]"></i>
