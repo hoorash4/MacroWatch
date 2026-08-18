@@ -25,30 +25,24 @@
 
   async function invokeKakao(action, payload = {}, retried = false) {
     const requiresAuth = action !== 'start' && action !== 'exchange';
-    const options = { body: { action, ...payload } };
-    if (requiresAuth) {
-      options.headers = { Authorization: `Bearer ${await getAccessToken()}` };
-    }
-    const { data, error } = await authClient.functions.invoke('kakao-auth', options);
-    if (error) {
-      const status = error.context?.status;
-      if (requiresAuth && status === 401 && !retried) {
-        const refreshed = await authClient.auth.refreshSession();
-        if (!refreshed.error && refreshed.data.session) {
-          return invokeKakao(action, payload, true);
-        }
+    const token = requiresAuth ? await getAccessToken() : AUTH_SUPABASE_KEY;
+    const response = await fetch(`${AUTH_SUPABASE_URL}/functions/v1/kakao-auth`, {
+      method: 'POST',
+      headers: {
+        apikey: AUTH_SUPABASE_KEY,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (requiresAuth && response.status === 401 && !retried) {
+      const refreshed = await authClient.auth.refreshSession();
+      if (!refreshed.error && refreshed.data.session) {
+        return invokeKakao(action, payload, true);
       }
-      let message = data?.error;
-      if (!message && error.context) {
-        try {
-          const details = await error.context.json();
-          message = details?.error;
-        } catch (_) {
-          // 응답 본문을 읽을 수 없으면 SDK 오류 메시지를 사용합니다.
-        }
-      }
-      throw new Error(message || error.message || '카카오 요청에 실패했습니다.');
     }
+    if (!response.ok) throw new Error(data?.error || `카카오 요청에 실패했습니다. (${response.status})`);
     if (data?.error) throw new Error(data.error);
     return data;
   }
