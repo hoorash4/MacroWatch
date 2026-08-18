@@ -49,8 +49,8 @@
         <form id="add-form" onsubmit="handleAddTarget(event)" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-xs text-slate-400 block mb-1">지표 이름 <span class="text-slate-500 font-normal ml-1">(예: 미국 10년물 국채금리)</span></label>
-              <input type="text" id="input-title" required placeholder="지표명을 입력하세요" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <label class="text-xs text-slate-400 block mb-1">지표 이름</label>
+              <input type="text" id="input-title" required placeholder="예: 미국 10년물 국채금리" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">데이터 소스 유형</label>
@@ -78,16 +78,16 @@
           <!-- 연준 FRED API 필드 -->
           <div id="field-fred" class="hidden space-y-3">
             <div>
-              <label class="text-xs text-slate-400 block mb-1">FRED Series ID (예: DGS10)</label>
-              <input type="text" id="input-fred-id" placeholder="DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <label class="text-xs text-slate-400 block mb-1">FRED Series ID</label>
+              <input type="text" id="input-fred-id" placeholder="예: DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
           <!-- 한국은행 ECOS API 필드 -->
           <div id="field-bok" class="hidden space-y-3">
             <div>
-              <label class="text-xs text-slate-400 block mb-1">한국은행 통계표 코드 (예: 722Y001)</label>
-              <input type="text" id="input-bok-code" placeholder="722Y001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <label class="text-xs text-slate-400 block mb-1">한국은행 통계표 코드</label>
+              <input type="text" id="input-bok-code" placeholder="예: 722Y001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
@@ -98,8 +98,8 @@
               <input type="url" id="input-api-url" placeholder="https://api.example.com/data" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
             <div>
-              <label class="text-xs text-slate-400 block mb-1">JSON 추출 경로 (예: data.price)</label>
-              <input type="text" id="input-json-path" placeholder="data.price" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <label class="text-xs text-slate-400 block mb-1">JSON 추출 경로</label>
+              <input type="text" id="input-json-path" placeholder="예: observations[0].value 또는 data.price" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
@@ -183,7 +183,7 @@
       <div class="space-y-3">
         <div>
           <label class="text-xs text-slate-400 block mb-1">지표 이름</label>
-          <input type="text" id="edit-title" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="text" id="edit-title" placeholder="예: 미국 10년물 국채금리" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">데이터 소스 유형</label>
@@ -197,18 +197,18 @@
 
         <!-- 수정 모달 내 필드들 -->
         <div id="edit-field-selector" class="space-y-3">
-          <input type="url" id="edit-url" placeholder="URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="url" id="edit-url" placeholder="https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
           <input type="text" id="edit-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono">
         </div>
         <div id="edit-field-fred" class="hidden space-y-3">
-          <input type="text" id="edit-fred-id" placeholder="FRED Series ID" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="text" id="edit-fred-id" placeholder="예: DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
         <div id="edit-field-bok" class="hidden space-y-3">
-          <input type="text" id="edit-bok-code" placeholder="통계표 코드 (예: 722Y001)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="text" id="edit-bok-code" placeholder="예: 722Y001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
         <div id="edit-field-api" class="hidden space-y-3">
-          <input type="url" id="edit-api-url" placeholder="API URL" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-          <input type="text" id="edit-json-path" placeholder="JSON 경로" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="url" id="edit-api-url" placeholder="https://api.example.com/data" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="text" id="edit-json-path" placeholder="예: observations[0].value" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
 
         <div>
@@ -222,7 +222,7 @@
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">비교 기준 목표값</label>
-          <input type="number" step="any" id="edit-target-val" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input type="number" step="any" id="edit-target-val" placeholder="예: 0.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
         </div>
       </div>
       <div class="flex gap-2 pt-2">
