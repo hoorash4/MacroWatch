@@ -145,7 +145,7 @@ function renderTargets() {
   }
 
   listEl.innerHTML = targets.map((item, index) => `
-    <div data-drop-indicator="${index}" class="h-px rounded-full bg-transparent transition-colors duration-150"></div>
+    <div data-drop-indicator="${index}" class="flex h-3 items-center" ondragover="handleDragOverBoundary(event, ${index})" ondrop="handleDrop(event, ${index})"><div data-drop-line class="h-px w-full rounded-full bg-transparent transition-colors duration-150"></div></div>
     <div class="py-3 border-b border-slate-800/80 last:border-0">
       <div class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
@@ -206,7 +206,7 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `).join('') + `<div data-drop-indicator="${targets.length}" class="h-px rounded-full bg-transparent transition-colors duration-150"></div>`;
+  `).join('') + `<div data-drop-indicator="${targets.length}" class="flex h-3 items-center" ondragover="handleDragOverBoundary(event, ${targets.length})" ondrop="handleDrop(event, ${targets.length})"><div data-drop-line class="h-px w-full rounded-full bg-transparent transition-colors duration-150"></div></div>`;
 }
 
 function toggleTargetDetails(id) {
@@ -243,23 +243,23 @@ async function toggleTargetActive(id) {
 function setDropIndicator(index) {
   if (dropIndicatorIndex === index) return;
 
-  document.querySelectorAll('[data-drop-indicator]').forEach((indicator) => {
-    indicator.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
-    indicator.classList.add('bg-transparent');
+  document.querySelectorAll('[data-drop-line]').forEach((line) => {
+    line.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+    line.classList.add('bg-transparent');
   });
 
   dropIndicatorIndex = index;
-  const activeIndicator = document.querySelector(`[data-drop-indicator="${index}"]`);
-  if (activeIndicator) {
-    activeIndicator.classList.remove('bg-transparent');
-    activeIndicator.classList.add('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+  const activeLine = document.querySelector(`[data-drop-indicator="${index}"] [data-drop-line]`);
+  if (activeLine) {
+    activeLine.classList.remove('bg-transparent');
+    activeLine.classList.add('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
   }
 }
 
 function clearDropIndicator() {
-  document.querySelectorAll('[data-drop-indicator]').forEach((indicator) => {
-    indicator.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
-    indicator.classList.add('bg-transparent');
+  document.querySelectorAll('[data-drop-line]').forEach((line) => {
+    line.classList.remove('bg-white', 'shadow-[0_0_8px_rgba(255,255,255,0.7)]');
+    line.classList.add('bg-transparent');
   });
   dropIndicatorIndex = null;
 }
@@ -277,6 +277,12 @@ function handleDragOver(e, targetIndex) {
 
   const rect = e.currentTarget.getBoundingClientRect();
   const insertIndex = e.clientY < rect.top + rect.height / 2 ? targetIndex : targetIndex + 1;
+  setDropIndicator(insertIndex);
+}
+
+function handleDragOverBoundary(e, insertIndex) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
   setDropIndicator(insertIndex);
 }
 
