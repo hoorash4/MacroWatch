@@ -82,7 +82,7 @@
 <div id="field-selector" class="space-y-4">
   <div>
     <label class="block text-xs font-medium text-slate-400 mb-1">웹사이트 URL</label>
-    <input type="url" id="input-url" placeholder="https://finance.yahoo.com/quote/%5ETXN" 
+    <input type="url" id="input-url" placeholder="https://..." 
            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
   </div>
   <div>
@@ -95,7 +95,7 @@
 <div id="field-fred" class="hidden space-y-4">
   <div>
     <label class="block text-xs font-medium text-slate-400 mb-1">FRED Series ID</label>
-    <input type="text" id="input-fred-id" placeholder="예: DGS10 (미국 10년물 국채 금리), UNRATE (실업률)" 
+    <input type="text" id="input-fred-id" placeholder="예: DGS10, UNRATE" 
            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
   </div>
 </div>
@@ -430,8 +430,9 @@ async function handleAddTarget(e) {
     function escapeHtml(str) {
       return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
     }
+
     
-   // 입력 필드 토글 함수
+// 드롭다운 선택에 따라 입력창을 토글(보이기/숨기기)해주는 함수
 function toggleTypeFields() {
   const type = document.getElementById('input-type').value;
   
@@ -439,7 +440,7 @@ function toggleTypeFields() {
   const fieldFred = document.getElementById('field-fred');
   const fieldApi = document.getElementById('field-api');
 
-  // 모두 숨기기
+  // 일단 다 숨기기
   fieldSelector.classList.add('hidden');
   fieldFred.classList.add('hidden');
   fieldApi.classList.add('hidden');
