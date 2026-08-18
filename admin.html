@@ -9,7 +9,16 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="min-h-screen bg-slate-950 p-4 font-sans text-slate-100 sm:p-6">
-  <main class="mx-auto max-w-4xl space-y-5">
+  <div id="admin-access-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
+    <section class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl">
+      <i class="fa-solid fa-shield-halved text-3xl text-blue-400"></i>
+      <h1 class="mt-4 text-lg font-bold text-white">관리자 권한 확인 중</h1>
+      <p id="admin-access-message" class="mt-2 text-sm text-slate-400">잠시만 기다려 주세요.</p>
+      <a id="admin-access-back" href="./" class="mt-5 hidden w-full items-center justify-center rounded-lg border border-slate-700 bg-slate-800 py-2.5 text-sm font-bold text-slate-200">대시보드로 돌아가기</a>
+    </section>
+  </div>
+
+  <main id="admin-shell" class="mx-auto hidden max-w-4xl space-y-5">
     <header class="flex flex-col gap-4 rounded-2xl border border-slate-700/80 bg-slate-900 p-5 shadow-xl sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-blue-400">Backend control</p>
@@ -202,8 +211,42 @@
       button.classList.remove('opacity-60');
     }
 
+    async function authorizeAdmin() {
+      const accessScreen = document.getElementById('admin-access-screen');
+      const accessMessage = document.getElementById('admin-access-message');
+      const backLink = document.getElementById('admin-access-back');
+      try {
+        if (!db) throw new Error('로그인 기능을 불러오지 못했습니다.');
+        const { data: sessionData } = await db.auth.getSession();
+        const userId = sessionData.session?.user?.id;
+        if (!userId) {
+          window.location.replace('./');
+          return;
+        }
+        const { data, error } = await db
+          .from('user_accounts')
+          .select('is_admin')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (error) throw error;
+        if (data?.is_admin !== true) {
+          accessMessage.textContent = '관리자만 접근할 수 있는 페이지입니다.';
+          backLink.classList.remove('hidden');
+          backLink.classList.add('flex');
+          return;
+        }
+        accessScreen.classList.add('hidden');
+        document.getElementById('admin-shell').classList.remove('hidden');
+        await loadAll();
+      } catch (error) {
+        accessMessage.textContent = error.message || '관리자 권한을 확인하지 못했습니다.';
+        backLink.classList.remove('hidden');
+        backLink.classList.add('flex');
+      }
+    }
+
     document.getElementById('refresh-button').addEventListener('click', loadAll);
-    loadAll();
+    authorizeAdmin();
   </script>
 </body>
 </html>
