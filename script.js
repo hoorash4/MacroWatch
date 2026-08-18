@@ -24,8 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('focusin', (event) => {
   const input = event.target;
-  if (input.matches?.('input[placeholder]')) {
-    input.placeholder = '';
+  if (!input.matches?.('input[placeholder]')) return;
+
+  if (input.dataset.placeholder === undefined) {
+    input.dataset.placeholder = input.placeholder;
+  }
+  input.placeholder = '';
+});
+
+document.addEventListener('focusout', (event) => {
+  const input = event.target;
+  if (input.matches?.('input[placeholder]') && !input.value) {
+    input.placeholder = input.dataset.placeholder ?? '';
   }
 });
 
