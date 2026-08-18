@@ -26,59 +26,112 @@
       -webkit-appearance: none;
       margin: 0;
     }
+    .auth-canvas {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(185, 143, 71, .16), transparent 28rem),
+        radial-gradient(circle at 84% 86%, rgba(45, 103, 168, .16), transparent 30rem),
+        #07111f;
+    }
+    .auth-grid {
+      background-image: linear-gradient(rgba(148, 163, 184, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, .045) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+    }
+    .auth-panel {
+      background: linear-gradient(145deg, rgba(13, 28, 48, .92), rgba(8, 19, 34, .82));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .32);
+    }
+    .evotive-mark { display: grid; gap: 5px; width: 82px; }
+    .evotive-mark span { display: block; height: 4px; border-radius: 999px; background: linear-gradient(90deg, #d1a55d, #f0d59b); }
+    .evotive-mark span:nth-child(1) { width: 42%; margin-left: 29%; }
+    .evotive-mark span:nth-child(2) { width: 66%; margin-left: 17%; }
+    .evotive-mark span:nth-child(3) { width: 88%; margin-left: 6%; }
+    .evotive-mark span:nth-child(4) { width: 100%; }
+    .evotive-mark span:nth-child(5) { width: 88%; margin-left: 6%; }
+    .evotive-mark span:nth-child(6) { width: 66%; margin-left: 17%; }
+    .evotive-mark span:nth-child(7) { width: 42%; margin-left: 29%; }
+    .metric-pulse { box-shadow: 0 0 0 5px rgba(89, 190, 161, .08); }
+
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
-  <main id="auth-screen" class="hidden min-h-[calc(100vh-2rem)] items-center justify-center sm:min-h-[calc(100vh-3rem)]">
-    <section class="w-full max-w-sm rounded-2xl border border-slate-700/80 bg-slate-900 p-6 shadow-2xl shadow-black/30 sm:p-7">
-      <div class="mb-7 text-center">
-        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-600/20 text-2xl text-blue-400 shadow-lg shadow-blue-500/10">
-          <i class="fa-solid fa-satellite-dish"></i>
-        </div>
-        <h1 class="text-3xl font-extrabold tracking-tight text-white">MacroWatch</h1>
-        <p class="mt-2 text-sm text-slate-400">경제지표 변동을 놓치지 마세요.</p>
-      </div>
 
-      <form id="auth-form" autocomplete="off" class="space-y-4">
-        <div class="rounded-xl border border-yellow-500/25 bg-yellow-500/5 p-4">
-          <h2 class="text-base font-bold text-white">카카오로 시작하기</h2>
-          <p class="mt-2 text-xs leading-relaxed text-slate-400">카카오 계정으로 가입과 로그인이 함께 처리됩니다.</p>
-          <p class="mt-2 text-[11px] leading-relaxed text-slate-500">알림을 보내기 위해 카카오 계정 연동이 필요합니다.</p>
-          <p class="mt-1 text-[11px] leading-relaxed text-slate-500">전화번호, 이메일 등 불필요한 개인정보는 수집하지 않습니다.</p>
-        </div>
-        <p id="auth-message" role="alert" class="min-h-5 text-center text-xs text-red-400"></p>
-        <button id="auth-submit" type="submit" class="flex w-full items-center justify-center rounded-lg bg-yellow-400 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-yellow-500/10 transition hover:bg-yellow-300 disabled:cursor-wait disabled:opacity-60">
-          <i id="auth-spinner" class="fa-solid fa-circle-notch mr-2 hidden animate-spin"></i>
-          <i class="fa-solid fa-comment mr-2"></i>
-          <span id="auth-submit-label">카카오로 계속하기</span>
-        </button>
-      </form>
-
-      <div class="my-5 flex items-center gap-3 text-[11px] text-slate-600">
-        <span class="h-px flex-1 bg-slate-800"></span>
-        <span>ID/PW 로그인</span>
-        <span class="h-px flex-1 bg-slate-800"></span>
-      </div>
-
-      <form id="password-login-form" autocomplete="off" class="space-y-3">
+  <main id="auth-screen" class="auth-canvas hidden relative min-h-[calc(100vh-2rem)] overflow-hidden rounded-[1.75rem] border border-white/5 sm:min-h-[calc(100vh-3rem)]">
+    <div class="auth-grid pointer-events-none absolute inset-0 opacity-70"></div>
+    <div class="relative mx-auto grid min-h-[calc(100vh-2rem)] max-w-6xl lg:grid-cols-[1.15fr_.85fr] sm:min-h-[calc(100vh-3rem)]">
+      <section class="relative hidden flex-col justify-between border-r border-white/10 px-10 py-10 lg:flex xl:px-14">
         <div>
-          <label for="login-id" class="mb-1.5 block text-xs font-semibold text-slate-400">아이디</label>
-          <input id="login-id" type="text" autocomplete="username" placeholder="아이디 입력" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+          <div class="flex items-center gap-4">
+            <div class="rounded-2xl border border-[#d1a55d]/30 bg-[#d1a55d]/10 p-3">
+              <div class="evotive-mark" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold tracking-[.26em] text-[#d1a55d]">EVOTIVE RESEARCH</p>
+              <p class="mt-1 text-xs tracking-[.16em] text-slate-400">INDEPENDENT MACRO ADVISOR</p>
+            </div>
+          </div>
+
+          <div class="mt-20 max-w-xl">
+            <p class="text-xs font-bold tracking-[.2em] text-[#d1a55d]">MACROWATCH / PRIVATE ACCESS</p>
+            <h1 class="mt-5 text-5xl font-semibold leading-[1.08] tracking-[-.04em] text-white">Know the shift<br><span class="text-slate-400">before the noise.</span></h1>
+            <p class="mt-6 max-w-md text-base leading-7 text-slate-400">주요 경제지표의 변화를 조용히 추적하고, 필요한 순간에만 알림을 받으세요.</p>
+          </div>
         </div>
-        <div>
-          <label for="login-password" class="mb-1.5 block text-xs font-semibold text-slate-400">비밀번호</label>
-          <input id="login-password" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500">
+
+        <div class="max-w-xl rounded-2xl border border-white/10 bg-slate-950/35 p-5 backdrop-blur-sm">
+          <div class="mb-4 flex items-center justify-between">
+            <p class="text-xs font-bold tracking-[.14em] text-slate-300">MARKET MONITOR</p>
+            <span class="inline-flex items-center gap-2 text-xs text-emerald-300"><span class="metric-pulse h-2 w-2 rounded-full bg-emerald-400"></span> LIVE</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="rounded-xl border border-white/5 bg-white/[.035] p-3">
+              <p class="text-[10px] tracking-wide text-slate-500">US 10Y YIELD</p><p class="mt-2 font-mono text-sm font-bold text-white">4.28%</p><p class="mt-1 text-[10px] text-emerald-300">+0.04%</p>
+            </div>
+            <div class="rounded-xl border border-white/5 bg-white/[.035] p-3">
+              <p class="text-[10px] tracking-wide text-slate-500">USD / KRW</p><p class="mt-2 font-mono text-sm font-bold text-white">1,382.4</p><p class="mt-1 text-[10px] text-[#d1a55d]">MONITORING</p>
+            </div>
+            <div class="rounded-xl border border-white/5 bg-white/[.035] p-3">
+              <p class="text-[10px] tracking-wide text-slate-500">WTI CRUDE</p><p class="mt-2 font-mono text-sm font-bold text-white">$78.62</p><p class="mt-1 text-[10px] text-emerald-300">+1.18%</p>
+            </div>
+          </div>
         </div>
-        <button id="password-login-button" type="submit" class="flex w-full items-center justify-center rounded-lg border border-slate-700 bg-slate-800 py-3 text-sm font-bold text-slate-200 transition hover:border-slate-600 hover:bg-slate-700">
-          로그인
-        </button>
-        <p class="text-center text-xs text-slate-500">
-          아직 계정이 없나요?
-          <button id="signup-placeholder-button" type="button" class="ml-1 font-bold text-blue-400 transition hover:text-blue-300">회원가입</button>
-        </p>
-      </form>
-    </section>
+      </section>
+
+      <section class="flex min-h-full items-center justify-center px-5 py-9 sm:px-10">
+        <div class="w-full max-w-sm">
+          <div class="mb-10 flex items-center justify-between lg:hidden">
+            <div class="flex items-center gap-3">
+              <div class="rounded-xl border border-[#d1a55d]/30 bg-[#d1a55d]/10 p-2"><div class="evotive-mark scale-75 origin-left" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+              <p class="text-[10px] font-bold tracking-[.19em] text-[#d1a55d]">EVOTIVE RESEARCH</p>
+            </div>
+          </div>
+          <div class="auth-panel rounded-3xl border border-white/10 p-7 sm:p-9">
+            <div class="mb-8">
+              <p class="text-[10px] font-bold tracking-[.22em] text-[#d1a55d]">WELCOME TO</p>
+              <h2 class="mt-3 text-3xl font-semibold tracking-[-.035em] text-white">MacroWatch</h2>
+              <p class="mt-3 text-sm leading-6 text-slate-400">나만의 핵심 경제지표를 한 곳에서 추적하세요.</p>
+            </div>
+
+            <form id="auth-form" autocomplete="off">
+              <p id="auth-message" role="alert" class="mb-4 min-h-5 text-sm text-red-300"></p>
+              <button id="auth-submit" type="submit" class="group flex w-full items-center justify-center rounded-xl bg-[#fee500] px-4 py-3.5 text-sm font-bold text-slate-950 shadow-lg shadow-yellow-500/10 transition hover:-translate-y-0.5 hover:bg-[#ffe812] disabled:cursor-wait disabled:opacity-60">
+                <i id="auth-spinner" class="fa-solid fa-circle-notch mr-2 hidden animate-spin"></i>
+                <i class="fa-solid fa-comment mr-2 transition group-hover:scale-110"></i>
+                <span id="auth-submit-label">카카오로 계속하기</span>
+              </button>
+            </form>
+
+            <div class="my-6 h-px bg-white/10"></div>
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-shield-halved mt-0.5 text-xs text-[#d1a55d]"></i>
+              <p class="text-xs leading-5 text-slate-500">카카오 계정으로 안전하게 시작합니다. 전화번호나 이메일 등 불필요한 개인정보는 수집하지 않습니다.</p>
+            </div>
+          </div>
+          <p class="mt-7 text-center text-[10px] font-medium tracking-[.14em] text-slate-600">EVOTIVE RESEARCH · MACROWATCH</p>
+        </div>
+      </section>
+    </div>
   </main>
 
   <div id="app-shell" class="hidden max-w-3xl mx-auto">
