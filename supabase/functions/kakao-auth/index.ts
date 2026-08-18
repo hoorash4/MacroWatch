@@ -63,6 +63,46 @@ async function verifyState(state: string, secret: string) {
   }
 }
 
+async function unlinkKakaoAccount(
+  config: Record<string, unknown>,
+  clientId: string,
+  clientSecret: string,
+) {
+  let accessToken = String(config.access_token || "");
+  const refreshToken = String(config.refresh_token || "");
+  if (!accessToken && !refreshToken) return;
+
+  const unlink = (token: string) => fetch("https://kapi.kakao.com/v1/user/unlink", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  let response = accessToken ? await unlink(accessToken) : null;
+  if ((!response || response.status === 401) && refreshToken) {
+    const tokenBody = new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: clientId,
+      refresh_token: refreshToken,
+    });
+    if (clientSecret) tokenBody.set("client_secret", clientSecret);
+    const refreshResponse = await fetch("https://kauth.kakao.com/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: tokenBody,
+    });
+    const refreshed = await refreshResponse.json();
+    if (!refreshResponse.ok || !refreshed.access_token) {
+      throw new Error("카카오 연결을 해제하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+    accessToken = refreshed.access_token;
+    response = await unlink(accessToken);
+  }
+  if (response && !response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.msg || "카카오 연결을 해제하지 못했습니다.");
+  }
+}
+
 export default {
   async fetch(request: Request) {
     const origin = request.headers.get("Origin");
@@ -223,6 +263,26 @@ export default {
           connected: Boolean(config.connected),
           is_active: channel?.is_active !== false,
         }, 200, origin);
+      }
+
+      if (action === "delete_account") {
+        const { data: channel } = await admin
+          .from("notification_channels")
+          .select("config")
+          .eq("user_id", userData.user.id)
+          .eq("channel", "kakao_self")
+          .maybeSingle();
+        const config = channel?.config && typeof channel.config === "object"
+          ? channel.config as Record<string, unknown>
+          : {};
+        await unlinkKakaoAccount(config, kakaoClientId, kakaoClientSecret);
+
+        await admin.from("device_tokens").delete().eq("user_id", userData.user.id);
+        await admin.from("notification_channels").delete().eq("user_id", userData.user.id);
+        await admin.from("targets").delete().eq("user_id", userData.user.id);
+        const { error: deleteError } = await admin.auth.admin.deleteUser(userData.user.id);
+        if (deleteError) throw deleteError;
+        return json({ deleted: true }, 200, origin);
       }
 
       return json({ error: "지원하지 않는 요청입니다." }, 400, origin);
