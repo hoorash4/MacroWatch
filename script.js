@@ -3,10 +3,6 @@ const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-// FRED & ECOS API 키 설정
-const FRED_API_KEY = '12ce2a29eb8e65de769bb88cc9deb4b0'; 
-const ECOS_API_KEY = 'J3ECOLI9TGA6E8G39H40'; // 한국은행 ECOS API 키
-
 // 상태 관리
 let targets = [];
 let currentEditId = null;
@@ -69,15 +65,6 @@ function switchTab(tabName) {
   }
 }
 
-// 등록 폼 타입 선택 처리
-function toggleTypeFields() {
-  const type = document.getElementById('input-type').value;
-  document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
-  document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
-  document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
-  document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
-}
-
 function toggleTargetValueInput(conditionId, valueId) {
   const conditionEl = document.getElementById(conditionId);
   const valueEl = document.getElementById(valueId);
@@ -91,11 +78,6 @@ function toggleTargetValueInput(conditionId, valueId) {
   } else {
     valueEl.placeholder = valueEl.dataset.defaultPlaceholder || '';
   }
-}
-
-// ECOS API URL 생성 헬퍼 함수
-function buildEcosUrl(bokCode, cycle = 'M', startPeriod = '202601', endPeriod = '202612') {
-  return `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10/${bokCode}/${cycle}/${startPeriod}/${endPeriod}`;
 }
 
 // 추적 목록 조회
@@ -271,35 +253,20 @@ async function handleAddTarget(e) {
   e.preventDefault();
 
   const title = document.getElementById('input-title').value.trim();
-  const type = document.getElementById('input-type').value;
-  const condition = document.getElementById('input-condition').value;
+  const url = document.getElementById('input-url').value.trim();
+  const cssSelector = document.getElementById('input-selector').value.trim();
+  const conditionType = document.getElementById('input-condition').value;
   const targetValStr = document.getElementById('input-target-val').value.trim();
-  const targetVal = condition === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
-
-  let config = {};
-  if (type === 'SELECTOR') {
-    config = { url: document.getElementById('input-url').value.trim(), selector: document.getElementById('input-selector').value.trim() };
-  } else if (type === 'FRED') {
-    const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
-    config = { 
-      fred_id: seriesId, 
-      api_key: FRED_API_KEY,
-      url: `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`
-    };
-  } else if (type === 'BOK') {
-    const bokCode = document.getElementById('input-bok-code').value.trim();
-    config = { bok_code: bokCode, api_key: ECOS_API_KEY, ecos_url: buildEcosUrl(bokCode) };
-  } else if (type === 'API') {
-    config = { api_url: document.getElementById('input-api-url').value.trim(), json_path: document.getElementById('input-json-path').value.trim() };
-  }
+  const targetVal = conditionType === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
 
   const newItem = {
     id: 'local_' + Date.now(),
     title,
-    type,
-    condition,
+    url,
+    css_selector: cssSelector,
+    condition_type: conditionType,
     target_value: targetVal,
-    config,
+    is_active: true,
     display_order: targets.length
   };
 
@@ -309,10 +276,11 @@ async function handleAddTarget(e) {
         .from('targets')
         .insert([{
           title,
-          type,
-          condition,
+          url,
+          css_selector: cssSelector,
+          condition_type: conditionType,
           target_value: targetVal,
-          config,
+          is_active: true,
           display_order: targets.length
         }])
         .select();
@@ -321,21 +289,23 @@ async function handleAddTarget(e) {
         targets.push(data[0]);
         renderTargets();
         document.getElementById('add-form').reset();
-        toggleTypeFields();
+        toggleTargetValueInput('input-condition', 'input-target-val');
         return;
-      } else if (error) {
+      }
+      if (error) {
         alert('등록 실패: ' + error.message);
         return;
       }
     } catch (err) {
       console.error(err);
+      return;
     }
   }
 
   targets.push(newItem);
   renderTargets();
   document.getElementById('add-form').reset();
-  toggleTypeFields();
+  toggleTargetValueInput('input-condition', 'input-target-val');
 }
 
 // 수정 모달 열기
