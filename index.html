@@ -62,6 +62,47 @@
       background-repeat: no-repeat;
       background-size: contain;
     }
+    .auth-brand-panel {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(184, 146, 76, .12), transparent 20rem),
+        linear-gradient(145deg, #ffffff 0%, #f6f5f1 100%);
+    }
+    .auth-brand-panel::after {
+      content: "";
+      position: absolute;
+      right: -9rem;
+      bottom: -12rem;
+      width: 28rem;
+      height: 28rem;
+      border: 1px solid rgba(7, 27, 66, .08);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2rem rgba(7, 27, 66, .02), 0 0 0 4rem rgba(7, 27, 66, .015);
+      pointer-events: none;
+    }
+    .auth-brand-panel > * { position: relative; z-index: 1; }
+    .auth-brand-panel .evotive-source-logo {
+      margin-left: -0.75rem;
+      filter: drop-shadow(0 18px 22px rgba(7, 27, 66, .12));
+    }
+    .auth-brand-panel h1 { letter-spacing: -.045em; }
+    .auth-brand-panel .max-w-xl.rounded-2xl {
+      border-color: rgba(7, 27, 66, .11);
+      background: rgba(255, 255, 255, .68);
+      box-shadow: 0 18px 38px rgba(7, 27, 66, .06);
+      backdrop-filter: blur(8px);
+    }
+    .auth-brand-panel .max-w-xl.rounded-2xl > div:first-child {
+      letter-spacing: .16em;
+    }
+    .auth-panel {
+      background: linear-gradient(150deg, rgba(16, 32, 52, .96), rgba(7, 17, 31, .96));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    @media (max-width: 1023px) {
+      .auth-canvas { border-radius: 1.25rem; }
+    }
 
   </style>
             <!-- Premium Financial Web Fonts -->
