@@ -11,6 +11,7 @@ const ECOS_API_KEY = 'J3ECOLI9TGA6E8G39H40'; // 한국은행 ECOS API 키
 let targets = [];
 let currentEditId = null;
 let draggedItemIndex = null;
+let expandedTargetId = null;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -115,46 +116,71 @@ function renderTargets() {
   if (!listEl) return;
 
   if (targets.length === 0) {
-    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
+    listEl.innerHTML = \`<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>\`;
     return;
   }
 
-  listEl.innerHTML = targets.map((item, index) => `
-    <div class="py-3 flex items-center justify-between gap-3 group border-b border-slate-800/80 last:border-0 hover:bg-slate-800/30 px-2 rounded-lg transition"
-         draggable="true"
-         ondragstart="handleDragStart(event, ${index})"
-         ondragover="handleDragOver(event)"
-         ondrop="handleDrop(event, ${index})"
-         ondragend="handleDragEnd(event)">
-      <div class="flex items-center gap-3 min-w-0">
-        <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
-        <div class="min-w-0">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
-            ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>출처</span></a>` : ''}
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5 truncate">
-            조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
-            ${item.target_value !== null && item.target_value !== undefined ? `| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3 shrink-0">
-        <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
-          <button onclick="openEditModal('${item.id}')" class="p-2 text-slate-400 hover:text-blue-400 transition" title="수정">
-            <i class="fa-solid fa-pen-to-square"></i>
+  listEl.innerHTML = targets.map((item, index) => \`
+    <div class="py-3 border-b border-slate-800/80 last:border-0">
+      <div class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
+           draggable="true"
+           ondragstart="handleDragStart(event, ${index})"
+           ondragover="handleDragOver(event)"
+           ondrop="handleDrop(event, ${index})"
+           ondragend="handleDragEnd(event)">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
+          <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 py-3 text-left">
+            <span class="flex items-center gap-2">
+              <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
+              <i class="fa-solid ${String(item.id) === expandedTargetId ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px] text-slate-500"></i>
+            </span>
+            <span class="block text-xs text-slate-400 mt-0.5 truncate">
+              조건: <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
+              ${item.target_value !== null && item.target_value !== undefined ? \`| 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>\` : ''}
+            </span>
           </button>
-          <button onclick="handleDeleteTarget('${item.id}')" class="p-2 text-slate-400 hover:text-red-400 transition" title="삭제">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
+          ${item.url ? \`<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-500/30 bg-blue-500/10 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20 hover:text-blue-100 transition whitespace-nowrap" title="사이트 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>출처</span></a>\` : ''}
         </div>
-        <div class="text-right">
+        <div class="shrink-0 text-right">
           <span class="block text-[10px] text-slate-500">현재값</span>
           <span class="block text-sm font-bold text-blue-400 font-mono">${item.last_value ?? '—'}</span>
         </div>
       </div>
+      ${String(item.id) === expandedTargetId ? \`
+        <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 text-xs">
+            <div class="sm:col-span-2">
+              <dt class="text-slate-500">대상 URL</dt>
+              <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(getOriginalUrl(item) || '—')}</dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="text-slate-500">추출 설정</dt>
+              <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(item.css_selector || '—')}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">알림 조건</dt>
+              <dd class="mt-1 text-slate-200">${getConditionText(item.condition_type)}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">목표값</dt>
+              <dd class="mt-1 font-mono text-blue-400">${item.target_value ?? '—'}</dd>
+            </div>
+          </dl>
+          <div class="mt-4 flex justify-end gap-2">
+            <button onclick="openEditModal('${item.id}')" class="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"><i class="fa-solid fa-pen-to-square mr-1"></i>수정</button>
+            <button onclick="handleDeleteTarget('${item.id}')" class="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition"><i class="fa-solid fa-trash-can mr-1"></i>삭제</button>
+          </div>
+        </div>
+      \` : ''}
     </div>
-  `).join('');
+  \`).join('');
+}
+
+function toggleTargetDetails(id) {
+  const targetId = String(id);
+  expandedTargetId = expandedTargetId === targetId ? null : targetId;
+  renderTargets();
 }
 
 // 드래그 앤 드롭 핸들러
@@ -275,28 +301,15 @@ async function handleAddTarget(e) {
 
 // 수정 모달 열기
 function openEditModal(id) {
-  const item = targets.find(t => t.id === id);
+  const item = targets.find(t => String(t.id) === String(id));
   if (!item) return;
 
   currentEditId = id;
-  document.getElementById('edit-title').value = item.title;
-  document.getElementById('edit-type').value = item.type;
-  document.getElementById('edit-condition').value = item.condition;
+  document.getElementById('edit-title').value = item.title || '';
+  document.getElementById('edit-url').value = item.url || '';
+  document.getElementById('edit-selector').value = item.css_selector || '';
+  document.getElementById('edit-condition').value = item.condition_type || 'changed';
   document.getElementById('edit-target-val').value = item.target_value ?? '';
-
-  toggleEditTypeFields();
-
-  if (item.type === 'SELECTOR') {
-    document.getElementById('edit-url').value = item.config?.url || '';
-    document.getElementById('edit-selector').value = item.config?.selector || '';
-  } else if (item.type === 'FRED') {
-    document.getElementById('edit-fred-id').value = item.config?.fred_id || '';
-  } else if (item.type === 'BOK') {
-    document.getElementById('edit-bok-code').value = item.config?.bok_code || '';
-  } else if (item.type === 'API') {
-    document.getElementById('edit-api-url').value = item.config?.api_url || '';
-    document.getElementById('edit-json-path').value = item.config?.json_path || '';
-  }
 
   document.getElementById('edit-modal').classList.remove('hidden');
 }
@@ -312,29 +325,18 @@ async function saveEditTarget() {
   if (!currentEditId) return;
 
   const title = document.getElementById('edit-title').value.trim();
-  const type = document.getElementById('edit-type').value;
-  const condition = document.getElementById('edit-condition').value;
+  const url = document.getElementById('edit-url').value.trim();
+  const cssSelector = document.getElementById('edit-selector').value.trim();
+  const conditionType = document.getElementById('edit-condition').value;
   const targetValStr = document.getElementById('edit-target-val').value.trim();
   const targetVal = targetValStr !== '' ? parseFloat(targetValStr) : null;
-
-  let config = {};
-  if (type === 'SELECTOR') {
-    config = { url: document.getElementById('edit-url').value.trim(), selector: document.getElementById('edit-selector').value.trim() };
-  } else if (type === 'FRED') {
-    const seriesId = document.getElementById('edit-fred-id').value.trim().toUpperCase();
-    config = { 
-      fred_id: seriesId, 
-      api_key: FRED_API_KEY,
-      url: `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`
-    };
-  } else if (type === 'BOK') {
-    const bokCode = document.getElementById('edit-bok-code').value.trim();
-    config = { bok_code: bokCode, api_key: ECOS_API_KEY, ecos_url: buildEcosUrl(bokCode) };
-  } else if (type === 'API') {
-    config = { api_url: document.getElementById('edit-api-url').value.trim(), json_path: document.getElementById('edit-json-path').value.trim() };
-  }
-
-  const updatedData = { title, type, condition, target_value: targetVal, config };
+  const updatedData = {
+    title,
+    url,
+    css_selector: cssSelector,
+    condition_type: conditionType,
+    target_value: targetVal
+  };
 
   if (supabaseClient && !currentEditId.toString().startsWith('local_')) {
     try {
@@ -342,10 +344,11 @@ async function saveEditTarget() {
       if (error) throw error;
     } catch (err) {
       console.error(err);
+      return;
     }
   }
 
-  const index = targets.findIndex(t => t.id === currentEditId);
+  const index = targets.findIndex(t => String(t.id) === String(currentEditId));
   if (index !== -1) {
     targets[index] = { ...targets[index], ...updatedData };
   }
