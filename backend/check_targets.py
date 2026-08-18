@@ -16,7 +16,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
 
-HTTP_TIMEOUT = 25
+HTTP_TIMEOUT = 15
 KST = timezone(timedelta(hours=9))
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -231,20 +231,44 @@ def fetch_static_html(url: str, selector: str, config: dict[str, Any]) -> Decima
     return parse_decimal(element.get(attribute) if attribute else element.get_text(" ", strip=True))
 
 
-def fetch_rendered_html(url: str, selector: str, config: dict[str, Any]) -> Decimal:
-    timeout_ms = min(max(int(config.get("timeout_ms", 20000)), 3000), 45000)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(
+class BrowserCollector:
+    def __init__(self) -> None:
+        self.playwright = None
+        self.browser = None
+        self.context = None
+
+    def __enter__(self) -> "BrowserCollector":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        if self.context:
+            self.context.close()
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+
+    def _ensure_context(self) -> None:
+        if self.context:
+            return
+        self.playwright = sync_playwright().start()
+        # GitHub's Ubuntu runner already includes Chrome, so no browser download is needed.
+        self.browser = self.playwright.chromium.launch(
+            channel="chrome",
             headless=True,
             args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
         )
-        context = browser.new_context(
+        self.context = self.browser.new_context(
             user_agent=USER_AGENT,
             locale="ko-KR",
             timezone_id="Asia/Seoul",
             viewport={"width": 1440, "height": 1000},
         )
-        page = context.new_page()
+
+    def fetch(self, url: str, selector: str, config: dict[str, Any]) -> Decimal:
+        self._ensure_context()
+        timeout_ms = min(max(int(config.get("timeout_ms", 12000)), 3000), 15000)
+        page = self.context.new_page()
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             page.locator(selector).first.wait_for(state="attached", timeout=timeout_ms)
@@ -256,11 +280,12 @@ def fetch_rendered_html(url: str, selector: str, config: dict[str, Any]) -> Deci
             title = page.title()[:100]
             raise CollectionError(f"브라우저 렌더링 후에도 값을 찾지 못했습니다: {title}") from exc
         finally:
-            context.close()
-            browser.close()
+            page.close()
 
 
-def fetch_web(target: dict[str, Any], config: dict[str, Any]) -> Decimal:
+def fetch_web(
+    target: dict[str, Any], config: dict[str, Any], browser: BrowserCollector
+) -> Decimal:
     url = str(target.get("url", "")).strip()
     selector = str(config.get("selector") or target.get("css_selector") or "").strip()
     if not url or not selector:
@@ -269,14 +294,14 @@ def fetch_web(target: dict[str, Any], config: dict[str, Any]) -> Decimal:
         return fetch_static_html(url, selector, config)
     except Exception as static_error:
         try:
-            return fetch_rendered_html(url, selector, config)
+            return browser.fetch(url, selector, config)
         except Exception as rendered_error:
             raise CollectionError(
                 f"일반 요청 실패: {static_error}; 브라우저 요청 실패: {rendered_error}"
             ) from rendered_error
 
 
-def collect_value(target: dict[str, Any]) -> Decimal:
+def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
     source_type = str(target.get("source_type") or "web").lower()
     config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
     if source_type == "fred":
@@ -286,7 +311,7 @@ def collect_value(target: dict[str, Any]) -> Decimal:
     if source_type == "json_api":
         return fetch_json_api(target, config)
     if source_type == "web":
-        return fetch_web(target, config)
+        return fetch_web(target, config, browser)
     raise CollectionError(f"아직 지원하지 않는 source_type입니다: {source_type}")
 
 
@@ -419,48 +444,49 @@ def main() -> int:
     alerts: list[CheckResult] = []
     failures = 0
 
-    for target in targets:
-        target_id = target["id"]
-        try:
-            previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
-            current = collect_value(target)
-            result = CheckResult(target, previous, current, condition_met(target, previous, current))
+    with BrowserCollector() as browser:
+        for target in targets:
+            target_id = target["id"]
+            try:
+                previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
+                current = collect_value(target, browser)
+                result = CheckResult(target, previous, current, condition_met(target, previous, current))
 
-            db.request(
-                "POST",
-                "history",
-                body={
-                    "target_id": target_id,
-                    "recorded_value": format_number(current),
-                    "recorded_at": now_iso,
-                },
-                prefer="return=minimal",
-            )
-            db.request(
-                "PATCH",
-                "targets",
-                params={"id": f"eq.{target_id}"},
-                body={
-                    "last_value": format_number(current),
-                    "last_checked_at": now_iso,
-                    "last_error": None,
-                },
-                prefer="return=minimal",
-            )
-            if result.should_alert:
-                alerts.append(result)
-            print(f"OK {target_id}: {target.get('title')} = {format_number(current)}")
-        except Exception as exc:
-            failures += 1
-            message = str(exc)[:1000]
-            print(f"ERROR {target_id}: {target.get('title')}: {message}", file=sys.stderr)
-            db.request(
-                "PATCH",
-                "targets",
-                params={"id": f"eq.{target_id}"},
-                body={"last_checked_at": now_iso, "last_error": message},
-                prefer="return=minimal",
-            )
+                db.request(
+                    "POST",
+                    "history",
+                    body={
+                        "target_id": target_id,
+                        "recorded_value": format_number(current),
+                        "recorded_at": now_iso,
+                    },
+                    prefer="return=minimal",
+                )
+                db.request(
+                    "PATCH",
+                    "targets",
+                    params={"id": f"eq.{target_id}"},
+                    body={
+                        "last_value": format_number(current),
+                        "last_checked_at": now_iso,
+                        "last_error": None,
+                    },
+                    prefer="return=minimal",
+                )
+                if result.should_alert:
+                    alerts.append(result)
+                print(f"OK {target_id}: {target.get('title')} = {format_number(current)}")
+            except Exception as exc:
+                failures += 1
+                message = str(exc)[:1000]
+                print(f"ERROR {target_id}: {target.get('title')}: {message}", file=sys.stderr)
+                db.request(
+                    "PATCH",
+                    "targets",
+                    params={"id": f"eq.{target_id}"},
+                    body={"last_checked_at": now_iso, "last_error": message},
+                    prefer="return=minimal",
+                )
 
     if alerts:
         access_token = refresh_kakao_access_token()
@@ -479,7 +505,9 @@ def main() -> int:
                 failures += 1
 
     print(f"Finished: {len(targets)} target(s), {len(alerts)} alert(s), {failures} failure(s).")
-    return 1 if failures else 0
+    # A source failure is recorded on the target and must not block the other targets
+    # or mark the twice-daily collection job itself as broken.
+    return 0
 
 
 if __name__ == "__main__":
