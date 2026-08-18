@@ -427,6 +427,21 @@
 #tab-content-tracker button[type="submit"]:hover{background:#12366f!important}
 #tab-content-news>div{background:#f7f5f0!important;border-color:#d9d4ca!important}
 @media(max-width:900px){#tab-content-tracker{grid-template-columns:1fr}#tab-content-tracker>div:first-child,#tab-content-tracker>div:last-child{grid-column:1;grid-row:auto}#tab-content-tracker>div:first-child{order:2}#tab-content-tracker>div:last-child{order:1}}
+</style><style id="dashboard-fixed-canvas">
+#app-shell{width:calc(100% - 2rem)!important;max-width:1180px!important;margin:0 auto!important;padding:1.5rem!important;background:#071b42!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:1.75rem!important;box-shadow:0 24px 70px rgba(0,0,0,.3)!important}
+#app-shell:before{content:"";position:absolute;pointer-events:none;inset:0;border-radius:inherit;background-image:radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);background-size:36px 36px;opacity:.5}
+#app-shell>*{position:relative;z-index:1}
+#app-shell>.bg-slate-900:first-child{background:#f7f5f0!important}
+#app-shell>.bg-slate-900:first-child h1{color:#071b42!important}
+#app-shell>.bg-slate-900:first-child p{color:#64748b!important}
+#app-shell>.flex.border-b{border-color:rgba(255,255,255,.16)!important}
+#app-shell>.flex.border-b button{color:#aeb8c8!important}
+#app-shell>.flex.border-b button.text-blue-400{color:#f7f5f0!important;border-color:#d1a55d!important}
+#app-shell .text-white{color:#f7f5f0!important}
+#app-shell .text-slate-400{color:#aeb8c8!important}
+#app-shell .text-slate-500{color:#8794a8!important}
+#app-shell .bg-slate-900:not(:first-child){background:#0d2a55!important;border-color:rgba(255,255,255,.12)!important}
+@media(max-width:640px){#app-shell{width:calc(100% - 1rem)!important;padding:1rem!important;border-radius:1.25rem!important}}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
