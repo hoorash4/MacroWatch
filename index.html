@@ -249,7 +249,7 @@
           'eq': { label: '목표값 일치 시', icon: 'fa-equals' }
         };
 
-        listContainer.innerHTML = data.map((item) => {
+listContainer.innerHTML = data.map((item) => {
           const config = condConfig[item.condition_type] || { label: item.condition_type, icon: 'fa-bell' };
           const targetValStr = item.target_value !== null && item.target_value !== undefined ? ` (${item.target_value})` : '';
           const safeSelector = (item.css_selector || '').replace(/"/g, '&quot;');
@@ -262,8 +262,12 @@
                 <div class="flex-1 pr-4 group">
                   <div class="flex items-center">
                     <i class="fa-solid fa-grip-vertical text-slate-600 mr-2.5 text-xs hover:text-slate-400" title="마우스로 끌어서 순서 변경"></i>
-                    <i class="fa-solid fa-chart-line text-blue-500 mr-2 text-sm"></i>
-                    <span class="font-bold text-slate-200 group-hover:text-blue-400 transition">${item.title}</span>
+                   <!-- <i class="fa-solid fa-chart-line text-blue-500 mr-2 text-sm"></i> -->
+                    <span class="font-bold text-slate-200 group-hover:text-blue-400 transition mr-2">${item.title}</span>
+                    
+                    <a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-slate-500 hover:text-blue-400 bg-slate-800/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700 transition" title="원본 페이지로 이동">
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> 원본
+                    </a>
                   </div>
                   <div class="text-xs text-slate-400 mt-1 ml-9 flex items-center">
                     <i class="fa-solid ${config.icon} mr-1.5 text-[10px] text-blue-400"></i>
