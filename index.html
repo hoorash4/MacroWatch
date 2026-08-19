@@ -513,6 +513,11 @@
 #target-list>div[data-target-container] [data-target-row]{color:#071b42!important}
 #target-list+.track-tabs{display:flex!important;min-height:42px!important;margin:0 -1.25rem -1.25rem!important;padding:.65rem .75rem 0!important;background:#eeece6!important;border-top:1px solid #cfc8bb!important}
 @media(max-width:900px){#target-list+.track-tabs{margin:0 -1rem -1rem!important}}
+</style><style id="subtle-divider-and-fixed-tabs">
+#target-list>div[data-target-container]{border-color:rgba(100,116,139,.12)!important}
+#target-list>div[data-target-container][style*="box-shadow"]{border-color:rgba(209,165,93,.45)!important}
+#track-tabs{display:flex!important;min-height:42px!important;align-items:flex-end!important;gap:.25rem!important;margin:1rem -1.25rem -1.25rem!important;padding:.65rem .75rem 0!important;background:#eeece6!important;border-top:1px solid #d9d4ca!important}
+@media(max-width:900px){#track-tabs{margin:1rem -1rem -1rem!important}}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
@@ -740,6 +745,7 @@
         <div id="target-list" class="divide-y divide-slate-800/80">
           <p class="loading-state text-sm text-slate-500 py-4 text-center">목록을 불러오는 중...</p>
         </div>
+          <div id="track-tabs" class="track-tabs"></div>
       </div>
 
     </div>
