@@ -542,14 +542,14 @@
     height: 30px;
     min-width: 84px;
     padding: 0 .75rem;
-    margin-left: -3px;
+    margin-left: -10px;
     background: #ece8df;
     color: #64748b;
     border: 1px solid #d0cbc1;
     border-top: 0;
     border-radius: 0 0 .55rem .55rem;
     font: 700 .64rem/1 Pretendard, sans-serif;
-    transform: translateY(2px) scale(.97);
+    transform: scale(.94);
     transform-origin: top center;
     cursor: pointer;
     transition: transform .15s ease, background .15s ease, color .15s ease;
@@ -564,12 +564,13 @@
     z-index: 3;
     background: #fff;
     color: #071b42;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
     box-shadow: 0 3px 7px rgba(0,0,0,.12);
 }
 
 /* ADD Track은 비활성 탭과 동일한 아이보리 톤 */
 #tab-content-tracker > .sheet-tabs .sheet-tab-add {
+    z-index: 1;
     background: #ece8df;
     color: #64748b;
 }
