@@ -656,12 +656,17 @@ content: "놓아서 이동";
     max-width: 1100px;
     padding-left: 2rem;
     padding-right: 2rem;
-    column-gap: clamp(2rem, 4vw, 3.5rem);
+
+    /* 창이 줄어들면 글자보다 먼저 제목과 로그인 폼 사이 간격이 줄어듭니다. */
+    column-gap: clamp(1.5rem, 3vw, 4.5rem);
+
     grid-template-columns: minmax(0, 1fr) 430px;
   }
 
+  /* 이 구간에서는 제목 크기를 최대한 유지하고,
+     정말 공간이 부족해질 때만 조금 작아지도록 합니다. */
   #auth-screen .grid > section:first-child h1 {
-    font-size: clamp(2.5rem, 5vw, 3.6rem);
+    font-size: clamp(3.1rem, 4vw, 4.2rem);
   }
 
   /* 중간 화면에서는 두 번째 문구도 공간이 부족하면 자연스럽게 줄바꿈됩니다. */
