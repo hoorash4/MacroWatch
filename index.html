@@ -774,8 +774,9 @@ content: "놓아서 이동";
 
   /*타이틀과 문구 사이 간격 조절.*/
   #auth-screen .auth-main-content > section:first-child > p:not(.mb-6) {
-  margin-top: 1.5rem;
-}
+    margin-top: 1.5rem;
+    font-size: .9rem;
+  }
 
   
   /* 세로형에서는 오른쪽 헤더 문구를 숨기고 로고를 폼 왼쪽 면에 맞춥니다. */
@@ -813,18 +814,19 @@ content: "놓아서 이동";
     font-size: 0;
   }
 
-  #tab-content-tracker > .sheet-tabs .sheet-tab[data-short-label]::after {
-    content: attr(data-short-label);
-    font-size: .64rem;
-    font-weight: 700;
-  }
+
 
   /* 축약 문구를 쓰므로 탭 최소 폭도 조금 줄일 수 있습니다. */
   #tab-content-tracker > .sheet-tabs .sheet-tab {
     min-width: 64px;
   }
 
-
+  #tab-content-tracker > .sheet-tabs .sheet-tab[data-short-label]::after { 
+    content: attr(data-short-label); 
+    font-size: .64rem; 
+    font-weight: 700; 
+  }
+  
   /* 대시보드의 리스트와 신규 등록폼을 한 열로 쌓습니다. */
   #tab-content-tracker {
     grid-template-columns: 1fr;
