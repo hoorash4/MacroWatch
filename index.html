@@ -47,10 +47,13 @@ aspect-ratio: 1 / 1;
 background: #ece9e2;
   border: 0;
   border-radius: 0 !important;
-  min-height: calc(100vh - 2rem) !important;
+  min-height: 0 !important;
+  height: calc(100vh - 2rem);
+  max-height: 900px;
 }.auth-canvas > div {
 max-width: none;
-  min-height: calc(100vh - 2rem);
+  min-height: 0;
+  height: 100%;
   grid-template-columns: minmax(0,1.15fr) minmax(360px,.85fr);
 }.auth-canvas > div > section:last-child {
 background: #e5e1d9;
@@ -65,12 +68,12 @@ content: "MACROWATCH / PRIVATE ACCESS";
   letter-spacing: .2em;
   color: #8e8a82;
 }#auth-screen {
-border-radius: 1.75rem;
-  overflow: hidden;
+  border-radius: 1.75rem !important;
+  overflow: hidden !important;
 }#auth-screen .auth-panel {
 max-width: 430px;
   margin: auto;
-  padding: clamp(2rem,4vw,3.5rem);
+  padding: clamp(1.5rem,2.6vw,2.25rem);
   border: 0;
   background: #f7f5f0;
   box-shadow: 0 24px 64px rgba(0,0,0,.32);
@@ -102,30 +105,36 @@ background: #12366f;
 }#auth-screen .auth-panel .mt-4.flex.items-start {
 margin-top: 1.35rem;
 }#auth-screen .auth-panel > div.mb-8 {
-margin-bottom: .55rem;
+margin-bottom: .35rem;
 }#password-login-button {
 background: #071b42;
   border-color: #071b42;
   color: #fff;
   box-shadow: 0 8px 18px rgba(7,27,66,.18);
-  margin-top: 1.5rem;
+  margin-top: .8rem;
 }#password-login-button:hover {
 background: #12366f;
   border-color: #12366f;
 }#password-login-form > p.pt-1 {
 text-align: center;
-  margin-top: 1.5rem;
+  margin-top: .85rem;
   padding-top: 0;
 }#signup-placeholder-button {
 color: #a67531;
 }#signup-placeholder-button:hover {
 color: #071b42;
+}
+
+/* 로그인 방식 구분선의 위아래 여백을 줄여 전체 카드 높이를 낮춥니다. */
+#auth-screen .auth-panel > .my-6 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }#auth-screen > div > header {
 background: #f7f5f0;
   border-bottom: 1px solid #ddd7cc;
-  min-height: 96px;
-  padding-top: 1.35rem;
-  padding-bottom: 1.35rem;
+  min-height: 76px;
+  padding-top: .9rem;
+  padding-bottom: .9rem;
   overflow: visible;
 }#auth-screen > div > header > div:first-child {
 display: flex;
@@ -174,9 +183,11 @@ display: block;
   color: #8c8a84;
   white-space: nowrap;
 }#auth-screen .grid.flex-1 {
-padding-left: clamp(2.5rem,11vw,11rem);
-  padding-right: clamp(2.5rem,11vw,11rem);
-  column-gap: clamp(2rem,7vw,7rem);
+padding-left: clamp(4rem,13vw,13rem);
+  padding-right: clamp(4rem,13vw,13rem);
+  column-gap: clamp(2rem,6vw,6rem);
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
   background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px);
   background-size: 36px 36px;
 }#auth-screen .grid > section:first-child h1 {
@@ -199,13 +210,16 @@ line-height: 2;
   font-size: .96rem;
   letter-spacing: -.01em;
   margin-top: 3.35rem;
-}#auth-screen .grid > section:first-child > p:not(.mb-6)::before {
+}/* 메인 문구 아래 보조 설명의 세로선입니다.
+   문장이 줄바꿈되더라도 실제 설명문 높이에 맞춰 자동으로 늘어납니다. */
+#auth-screen .grid > section:first-child > p:not(.mb-6)::before {
 content: "";
   position: absolute;
   left: 0;
-  top: .35rem;
+  top: 0;
+  bottom: 0;
   width: 2px;
-  height: 3.3rem;
+  height: auto;
   background: rgba(201,170,114,.62);
 }#auth-screen .grid > section:first-child > p:not(.mb-6) .inline-signal-dot {
 display: inline-block;
@@ -230,6 +244,8 @@ justify-content: center;
   text-align: center;
   background: #04132f;
   border-top-color: rgba(255,255,255,.12);
+  padding-top: .65rem;
+  padding-bottom: .65rem;
 }#auth-screen > div > footer::after {
 content: "© 2026 EVOTIVE RESEARCH. All rights reserved.";
   color: #64748b;
@@ -609,9 +625,15 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 1024px) {
 
-  /* 로그인 화면의 최소 높이를 화면 여백에 맞춰 조정합니다. */
+  /* 작은 노트북/태블릿에서는 내용이 세로로 쌓이므로 높이를 자동으로 늘립니다. */
   .auth-canvas {
     min-height: calc(100vh - 1.5rem) !important;
+    height: auto;
+    max-height: none;
+  }
+
+  .auth-canvas > div {
+    height: auto;
   }
 
   /* 로그인 소개 영역과 로그인 폼을 위아래로 배치합니다. */
@@ -1000,16 +1022,19 @@ content: "놓아서 이동";
 
     <!-- 대시보드 상단: 제목 / 설정 / 로그아웃 -->
     <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl">
+      <!-- 왼쪽: Evotive 로고와 MacroWatch 제목을 하나의 영역으로 묶습니다. -->
       <div class="flex items-center gap-2.5">
-        <div class="dashboard-logo" aria-hidden="true"></div>    
+        <div class="dashboard-logo" aria-hidden="true"></div>
+
         <div>
           <h1 class="text-2xl font-extrabold text-white tracking-tight">
             MacroWatch
-          </h1>    
+          </h1>
+
           <p class="text-xs text-slate-400 mt-0.5">
             경제지표 수치 변동 추적 및 알림 도구.
           </p>
-        </div>   
+        </div>
       </div>
       <div class="flex items-center gap-2">
         <div id="db-status" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-400 border border-slate-700/60 flex items-center gap-2 shadow-inner">
@@ -1159,7 +1184,7 @@ content: "놓아서 이동";
 
             <div class="track-help-tooltip" role="tooltip">
               <p>
-                <strong>같은 Track 안에서</strong><br>
+                <strong>같은 Track 안에서 이동</strong><br>
                 항목을 위아래로 끌어서 원하는 위치로 순서를 바꿀 수 있습니다.
               </p>
               <p>
