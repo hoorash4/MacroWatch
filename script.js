@@ -102,7 +102,7 @@ function toggleTargetValueInput(conditionId, valueId) {
   valueEl.disabled = isValueChange;
   if (isValueChange) {
     valueEl.value = '';
-    valueEl.placeholder = '설정 없이 지표값이 변동하면 알려줍니다.';
+    valueEl.placeholder = '설정값 불필요.';
   } else {
     valueEl.placeholder = valueEl.dataset.defaultPlaceholder || '';
   }
@@ -237,7 +237,7 @@ function showCenteredNotice(titleText, messageText = '') {
 function showAddTrackNotice() {
   showCenteredNotice(
   '서비스 준비 중입니다.',
-  '지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.'
+  '지표 등록이 쌓이면 자동으로 Track 탭이 생성됩니다.'
 );
 }
 
