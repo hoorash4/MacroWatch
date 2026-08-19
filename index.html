@@ -219,11 +219,11 @@ display: block;
    배경과 분리되어 있으므로 이 영역의 최대 폭을 바꿔도 도트 배경은 끊기지 않습니다. */
 #auth-screen .auth-main-content {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1180px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 3rem;
-  padding-right: 3rem;
+  padding-left: 4rem;
+  padding-right: 4rem;
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
 
@@ -231,7 +231,7 @@ display: block;
   justify-content: center;
 
   /* 타이틀과 로그인 폼 사이 간격은 이 값 하나로 관리합니다. */
-  column-gap: clamp(6.5rem, 8vw, 8rem);
+  column-gap: clamp(5.5rem, 6vw, 6.5rem);
 }#auth-screen .grid > section:first-child h1 {
 letter-spacing: -.07em;
   max-width: none;
@@ -249,9 +249,10 @@ display: block;
   white-space: nowrap;
 }
 
-/* 타이틀 내부의 추가 줄바꿈은 좁은 화면에서만 사용합니다. */
+/* 가로형에서는 두 영문 문구를 각각 2줄로 표시합니다.
+   Evolving / Insight, Adaptive / Shift가 기본 형태입니다. */
 #auth-screen .grid > section:first-child h1 .title-break {
-  display: none;
+  display: block;
 }#auth-screen .grid > section:first-child > p:not(.mb-6) {
 line-height: 2;
   position: relative;
@@ -675,12 +676,16 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 1250px) and (min-width: 1031px) {
   #auth-screen .grid > section:first-child h1 {
-    white-space: normal;
     font-size: clamp(4.25rem, 6.4vw, 5.2rem);
   }
 
   #auth-screen .grid > section:first-child h1 span {
     white-space: normal;
+  }
+
+  /* 세로형에서는 각 영문 문구를 다시 한 줄로 표시합니다. */
+  #auth-screen .grid > section:first-child h1 .title-break {
+    display: none;
   }
 }
 
@@ -692,13 +697,9 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 1030px) and (min-width: 901px) {
   #auth-screen .grid > section:first-child h1 {
-    white-space: normal;
     font-size: clamp(3.6rem, 6.2vw, 4.35rem);
   }
 
-  #auth-screen .grid > section:first-child h1 .title-break {
-    display: block;
-  }
 }
 
 
@@ -712,8 +713,11 @@ content: "놓아서 이동";
   #auth-screen .auth-main-content {
     width: 100%;
     max-width: none;
-    padding-left: 4rem;
-    padding-right: 4rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
+
+    /* 이 구간에서도 좌우 안전공간을 먼저 확보합니다.
+       타이틀과 폼은 화면 가장자리 쪽으로 더 밀리지 않습니다. */
 
     /* 이 구간에서는 기본 column-gap을 그대로 사용합니다.
        gap을 다시 지정하지 않아 breakpoint에서 값이 튀지 않습니다. */
