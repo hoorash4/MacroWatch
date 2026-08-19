@@ -420,13 +420,13 @@
 #app-shell>.flex.border-b button.text-blue-400{color:#071b42!important;border-color:#b98a45!important}
 #tab-content-tracker{display:grid!important;grid-template-columns:minmax(0,1fr) 360px;gap:1.25rem;align-items:start}
 #tab-content-tracker>div:first-child{grid-column:2;grid-row:1;background:#f7f5f0!important;border-color:#d9d4ca!important;box-shadow:0 14px 30px rgba(7,27,66,.08)!important}
-#tab-content-tracker>div:last-child{grid-column:1;grid-row:1;background:#f7f5f0!important;border-color:#d9d4ca!important;box-shadow:0 14px 30px rgba(7,27,66,.08)!important}
+#tab-content-tracker>div:nth-child(2){grid-column:1;grid-row:1;background:#f7f5f0!important;border-color:#d9d4ca!important;box-shadow:0 14px 30px rgba(7,27,66,.08)!important}
 #tab-content-tracker h2,#tab-content-tracker label{color:#071b42!important}
 #tab-content-tracker input,#tab-content-tracker select{background:#fff!important;border-color:#d9d4ca!important;color:#071b42!important}
 #tab-content-tracker button[type="submit"]{background:#071b42!important}
 #tab-content-tracker button[type="submit"]:hover{background:#12366f!important}
 #tab-content-news>div{background:#f7f5f0!important;border-color:#d9d4ca!important}
-@media(max-width:900px){#tab-content-tracker{grid-template-columns:1fr}#tab-content-tracker>div:first-child,#tab-content-tracker>div:last-child{grid-column:1;grid-row:auto}#tab-content-tracker>div:first-child{order:2}#tab-content-tracker>div:last-child{order:1}}
+@media(max-width:900px){#tab-content-tracker{grid-template-columns:1fr}#tab-content-tracker>div:first-child,#tab-content-tracker>div:nth-child(2){grid-column:1;grid-row:auto}#tab-content-tracker>div:first-child{order:2}#tab-content-tracker>div:nth-child(2){order:1}}
 </style><style id="dashboard-fixed-canvas">
 #app-shell{width:calc(100% - 2rem)!important;max-width:1180px!important;margin:0 auto!important;padding:1.5rem!important;background:#071b42!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:1.75rem!important;box-shadow:0 24px 70px rgba(0,0,0,.3)!important}
 #app-shell:before{content:"";position:absolute;pointer-events:none;inset:0;border-radius:inherit;background-image:radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);background-size:36px 36px;opacity:.5}
