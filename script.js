@@ -237,7 +237,7 @@ function showCenteredNotice(titleText, messageText = '') {
 function showAddTrackNotice() {
   showCenteredNotice(
   '서비스 준비 중입니다.',
-  '지표 등록이 쌓이면 자동으로 Track 탭이 생성됩니다.'
+  '한 탭에 지표를 8개 초과로 등록하면 자동으로 Track 탭이 생성됩니다.'
 );
 }
 
