@@ -184,15 +184,7 @@ function renderTrackTabs() {
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
 
-    const label = document.createElement('span');
-    label.className = 'sheet-tab-label';
-    label.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
-
-    const dropHint = document.createElement('span');
-    dropHint.className = 'sheet-tab-drop-hint';
-    dropHint.textContent = isActive ? '현재 Track' : '여기로 이동';
-
-    button.append(label, dropHint);
+    button.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
     button.addEventListener('dragenter', (event) => handleTrackDragOver(event, trackNumber));
