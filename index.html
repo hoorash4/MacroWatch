@@ -491,8 +491,7 @@
     background: #0d2a55;
     color: #f7f5f0;
     border: 1px solid rgba(255,255,255,.12);
-    border-bottom: 0;
-    border-radius: 1.25rem 1.25rem 0 0;
+    border-radius: 1.25rem;
 }
 
 #tab-content-tracker > div:nth-child(2) h2,
@@ -510,7 +509,7 @@
     border-bottom-color: rgba(100,116,139,.12);
 }
 
-/* 시트 탭 바 */
+/* 시트 탭 바 투명하 */
 #tab-content-tracker > .sheet-tabs {
     grid-column: 1;
     grid-row: 2;
@@ -522,12 +521,10 @@
     min-height: 42px;
     margin: 0;
     padding: 0 .75rem;
-    background: #0d2a55;
-    border-top: 0;
-    border-left: 1px solid rgba(255,255,255,.12);
-    border-right: 1px solid rgba(255,255,255,.12);
-    border-bottom: 1px solid rgba(255,255,255,.12);
-    border-radius: 0 0 1.25rem 1.25rem;
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
     box-shadow: none;
     overflow: visible;
 }
@@ -583,7 +580,7 @@
     }
 
     #tab-content-tracker > div:nth-child(2) {
-        border-radius: 1rem 1rem 0 0;
+        border-radius: 1rem;
     }
 
     #tab-content-tracker > .sheet-tabs {
