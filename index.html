@@ -658,6 +658,27 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 768px) {
 
+  /* 768px 이하에서는 Track 탭 문구를 짧게 표시합니다.
+     Track 01 → 탭01
+     + ADD Track → + ADD
+     실제 원래 문구는 그대로 남아 있어서 데스크톱에서는 기존 이름을 사용합니다.
+  */
+  #tab-content-tracker > .sheet-tabs .sheet-tab[data-short-label] {
+    font-size: 0;
+  }
+
+  #tab-content-tracker > .sheet-tabs .sheet-tab[data-short-label]::after {
+    content: attr(data-short-label);
+    font-size: .64rem;
+    font-weight: 700;
+  }
+
+  /* 축약 문구를 쓰므로 탭 최소 폭도 조금 줄일 수 있습니다. */
+  #tab-content-tracker > .sheet-tabs .sheet-tab {
+    min-width: 64px;
+  }
+
+
   /* 대시보드의 리스트와 신규 등록폼을 한 열로 쌓습니다. */
   #tab-content-tracker {
     grid-template-columns: 1fr;
@@ -729,6 +750,22 @@ content: "놓아서 이동";
    대시보드 전체 폭과 카드 안쪽 여백을 본격적으로 줄입니다.
    ========================================================= */
 @media (max-width: 640px) {
+
+  /* 모바일에서는 리스트 제목과 Drag & Drop 안내를 위아래로 배치합니다.
+     긴 안내 문구가 화면의 최소 폭을 강제로 넓히지 않도록 합니다.
+  */
+  .target-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .55rem;
+  }
+
+  /* Drag & Drop 안내는 내용만큼만 차지하고 화면 폭을 넘지 않게 합니다. */
+  .track-help {
+    width: auto;
+    max-width: 100%;
+  }
+
 
   /* 로그인 헤더 좌우 여백을 줄입니다. */
   #auth-screen > div > header {
@@ -905,7 +942,7 @@ content: "놓아서 이동";
             <div class="mb-8">
               <p class="text-[10px] font-bold tracking-[.22em] text-[#d1a55d]">WELCOME TO</p>
               <h2 class="mt-3 text-3xl font-semibold tracking-[-.035em] text-white">MacroWatch</h2>
-              <p class="mt-3 text-sm leading-6 text-slate-400">나만의 경제지표를 한 곳에서 추적하고,<br>편리하게 카카오톡으로 알림을 받으세요.</p>
+              <p class="mt-3 text-sm leading-6 text-slate-400">나만의 경제지표를 한 곳에서 추적하고, 편리하게 카카오톡으로 알림을 받으세요.</p>
             </div>
 
             <form id="auth-form" autocomplete="off">
@@ -1096,9 +1133,9 @@ content: "놓아서 이동";
 
       <!-- 왼쪽: 현재 추적 중인 지표 목록 -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-        <div class="flex justify-between items-center mb-4">
+        <div class="target-list-header flex justify-between items-center mb-4">
             <h2 class="text-lg font-bold text-white flex items-center">
-            <i class="fa-solid fa-list-check mr-2 text-blue-500"></i> 현재 추적 중인 항목
+            <i class="fa-solid fa-list-check mr-2 text-blue-500"></i> 추적 중인 항목
           </h2>
           <!--
             Drag & Drop 사용 안내
@@ -1141,8 +1178,8 @@ content: "놓아서 이동";
           role="tablist"
           aria-label="Track tabs"
         >
-            <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true">Track 01</button>
-            <button type="button" class="sheet-tab sheet-tab-add" role="tab" aria-selected="false">+ ADD Track</button>
+            <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true" data-short-label="탭01">Track 01</button>
+            <button type="button" class="sheet-tab sheet-tab-add" role="tab" aria-selected="false" data-short-label="+ ADD">+ ADD Track</button>
           </div>
 
     </div>
