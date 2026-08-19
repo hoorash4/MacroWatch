@@ -893,11 +893,25 @@
   color: #071b42 !important;
 }
 
-#tab-content-tracker > div:first-child select,
+#tab-content-tracker > div:first-child select {
+  color: #071b42 !important;
+  background-color: #fff !important;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* 오른쪽 화살표 공간 확보 */
+  padding-right: 2.5rem !important;
+}
+
 #tab-content-tracker > div:first-child select option {
   color: #071b42 !important;
   background: #fff !important;
-}  
+
+  /* 펼친 목록에서는 전체 문구 표시 */
+  white-space: normal;
+} 
 
 #tab-content-tracker button[type="submit"] {
   background: #071b42 !important;
