@@ -189,23 +189,42 @@ function renderTrackTabs() {
   tabsEl.appendChild(addButton);
 }
 
-function showAddTrackNotice() {
+function showCenteredNotice(titleText, messageText = '') {
   const modal = document.getElementById('service-preparing-modal');
   const title = document.getElementById('service-preparing-title');
   const message = modal?.querySelector('p');
 
   if (!modal || !title || !message) {
-    window.alert('서비스 준비 중입니다. 지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.');
+    window.alert(messageText ? `${titleText}\n${messageText}` : titleText);
     return;
   }
 
-  title.textContent = '서비스 준비 중입니다.';
-  message.textContent = '지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.';
+  title.textContent = titleText;
+  message.textContent = messageText;
+  message.classList.toggle('hidden', !messageText);
   modal.classList.remove('hidden');
+}
+
+function showAddTrackNotice() {
+  showCenteredNotice(
+    '서비스 준비 중입니다.',
+    '지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.'
+  );
 }
 
 function closeServicePreparingModal() {
   document.getElementById('service-preparing-modal')?.classList.add('hidden');
+}
+
+function finishTargetRegistration() {
+  activeTrack = getTrackCount();
+  renderTargets();
+
+  document.getElementById('add-form').reset();
+  toggleTypeFields();
+  toggleTargetValueInput('input-condition', 'input-target-val');
+
+  showCenteredNotice('등록 되었습니다.');
 }
 
 // 추적 항목 한 개의 HTML 생성
@@ -599,10 +618,7 @@ async function handleAddTarget(e) {
 
       if (!error && data) {
         targets.push(data[0]);
-        renderTargets();
-        document.getElementById('add-form').reset();
-        toggleTypeFields();
-        toggleTargetValueInput('input-condition', 'input-target-val');
+        finishTargetRegistration();
         return;
       }
       if (error) {
@@ -616,10 +632,7 @@ async function handleAddTarget(e) {
   }
 
   targets.push(newItem);
-  renderTargets();
-  document.getElementById('add-form').reset();
-  toggleTypeFields();
-  toggleTargetValueInput('input-condition', 'input-target-val');
+  finishTargetRegistration();
 }
 
 // 수정 모달 열기
