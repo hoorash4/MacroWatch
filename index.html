@@ -512,12 +512,14 @@
     grid-column: 1 !important;
     grid-row: 2 !important;
     justify-self: stretch !important;
-    display: block !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
     width: 100% !important;
     height: 42px !important;
     min-height: 42px !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 10px !important;
     background: #0d2a55 !important;
     background-image: none !important;
     border-top: 0 !important;
@@ -526,6 +528,36 @@
     border-bottom: 1px solid rgba(255,255,255,.12) !important;
     border-radius: 0 0 1.25rem 1.25rem !important;
     box-shadow: none !important;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab {
+    height: 30px;
+    min-width: 92px;
+    padding: 0 14px;
+    border: 1px solid #cfc8bb;
+    border-top: 0;
+    border-radius: 0 0 .55rem .55rem;
+    background: #e8e4db;
+    color: #526071;
+    font: 600 .68rem/1 Pretendard, sans-serif;
+    letter-spacing: .02em;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
+    background: #ffffff;
+    color: #071b42;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab-add {
+    background: #e8e4db;
+    color: #8a6a34;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab:not(.is-active):hover {
+    background: #f1eee7;
+    color: #071b42;
 }
 
 #target-list > div[data-target-container] {
@@ -786,7 +818,10 @@
         </div>
           
       </div>
-          <div class="sheet-tabs" aria-hidden="true"></div>
+          <div class="sheet-tabs" role="tablist" aria-label="Track sheets">
+            <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true">Track 01</button>
+            <button type="button" class="sheet-tab sheet-tab-add" aria-label="Add track">+ ADD Track</button>
+          </div>
 
     </div>
 
