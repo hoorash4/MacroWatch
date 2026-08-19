@@ -1200,16 +1200,12 @@
 #tab-content-tracker > div:first-child {
     grid-column: 2;
     grid-row: 1;
-    align-self: start;
 }
 
 #tab-content-tracker > div:nth-child(2) {
     grid-column: 1;
     grid-row: 1;
-    align-self: start;
-    margin-top: 0;
     margin-bottom: 0;
-
     background: #0d2a55;
     color: #f7f5f0;
     border: 1px solid rgba(255,255,255,.12);
@@ -1234,92 +1230,6 @@
 #target-list > div[data-target-container] {
     border-top-color: rgba(100,116,139,.12);
     border-bottom-color: rgba(100,116,139,.12);
-}
-
-/* 드래그 사용법 안내 */
-.track-help {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: .38rem;
-    padding: .34rem .58rem;
-    border: 1px solid rgba(209,165,93,.28);
-    border-radius: 999px;
-    background: rgba(255,255,255,.045);
-    color: #aeb8c8;
-    font-size: .68rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.track-help-grip,
-.track-help-button {
-    color: #d1a55d;
-}
-
-.track-help-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1rem;
-    height: 1rem;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: help;
-}
-
-.track-help-tooltip {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 9px);
-    z-index: 30;
-    width: 255px;
-    padding: .85rem .95rem;
-    border: 1px solid rgba(209,165,93,.26);
-    border-radius: .8rem;
-    background: #071b42;
-    color: #d8dee8;
-    box-shadow: 0 12px 28px rgba(0,0,0,.26);
-    font-size: .69rem;
-    font-weight: 400;
-    line-height: 1.55;
-    white-space: normal;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-4px);
-    transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
-    pointer-events: none;
-}
-
-.track-help-tooltip::before {
-    content: "";
-    position: absolute;
-    top: -5px;
-    right: 12px;
-    width: 9px;
-    height: 9px;
-    background: #071b42;
-    border-left: 1px solid rgba(209,165,93,.26);
-    border-top: 1px solid rgba(209,165,93,.26);
-    transform: rotate(45deg);
-}
-
-.track-help-tooltip p + p {
-    margin-top: .7rem;
-}
-
-.track-help-tooltip strong {
-    color: #f2d49c;
-    font-weight: 700;
-}
-
-.track-help:hover .track-help-tooltip,
-.track-help:focus-within .track-help-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    pointer-events: auto;
 }
 
 /* 시트 탭 바 투명하 */
@@ -1385,24 +1295,14 @@
     color: #64748b;
 }
 
-
-
-
-  
-
-/* 드래그 중 Track 탭 안내 */
-.sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
-    border-color: rgba(209,165,93,.75);
-    box-shadow: 0 3px 10px rgba(209,165,93,.18);
-}
-
-.sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add)::before {
-    content: "여기로 이동";
+/* 드래그 중 실제 Track 탭 드롭 안내 */
+#tab-content-tracker > .sheet-tabs .sheet-tab-drop-hint {
     position: absolute;
     left: 50%;
     bottom: calc(100% + 7px);
     transform: translateX(-50%);
 
+    display: none;
     padding: .22rem .42rem;
     border-radius: .35rem;
 
@@ -1414,14 +1314,25 @@
     white-space: nowrap;
 
     box-shadow: 0 5px 12px rgba(0,0,0,.22);
+
+    /* 안내 문구 자체는 드롭 영역으로 잡지 않음 */
+    pointer-events: none;
 }
 
-.sheet-tabs.is-dragging .sheet-tab.is-active::before {
-    content: "현재 Track";
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
+    border-color: rgba(209,165,93,.75);
+}
+
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) .sheet-tab-drop-hint {
+    display: block;
+}
+
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-active .sheet-tab-drop-hint {
     color: #aeb8c8;
 }
 
-.sheet-tabs.is-dragging .sheet-tab.is-drag-over {
+/* '여기로 이동' 문구 또는 실제 탭 영역에 들어오면 즉시 강조 */
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over {
     z-index: 5;
     background: #f2d49c;
     color: #071b42;
@@ -1429,18 +1340,23 @@
     box-shadow: 0 4px 12px rgba(0,0,0,.24);
 }
 
-.sheet-tabs.is-dragging .sheet-tab.is-drag-over::before {
-    content: "놓아서 이동";
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint {
     background: #d1a55d;
     color: #071b42;
 }
 
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint::after {
+    content: "놓아서 이동";
+}
 
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint {
+    font-size: 0;
+}
 
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint::after {
+    font-size: .56rem;
+}
 
-
-
-  
 @media (max-width: 900px) {
     #tab-content-tracker > div:first-child,
     #tab-content-tracker > div:nth-child(2) {
@@ -1688,24 +1604,9 @@
             <h2 class="text-lg font-bold text-white flex items-center">
             <i class="fa-solid fa-list-check mr-2 text-blue-500"></i> 현재 추적 중인 항목
           </h2>
-          <div class="track-help">
-            <i class="fa-solid fa-grip-vertical track-help-grip"></i>
-            <span>드래그로 순서 변경</span>
-            <button type="button" class="track-help-button" aria-label="드래그 사용법">
-              <i class="fa-regular fa-circle-question"></i>
-            </button>
-
-            <div class="track-help-tooltip" role="tooltip">
-              <p>
-                <strong>목록 안에서 이동</strong><br>
-                항목을 드래그해 순서를 바꿀 수 있습니다.
-              </p>
-              <p>
-                <strong>다른 Track으로 이동</strong><br>
-                항목을 Track 탭 위에 놓으면 해당 Track으로 이동합니다.
-              </p>
-            </div>
-          </div>
+          <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+            <i class="fa-solid fa-arrows-up-down text-[10px] mr-1"></i> 순서 변경 가능
+          </span>
         </div>
         <div id="target-list" class="divide-y divide-slate-800/80">
           <p class="loading-state text-sm text-slate-500 py-4 text-center">목록을 불러오는 중...</p>
@@ -1843,6 +1744,6 @@
   </div>
 
   <script src="auth.js?v=11"></script>
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>
