@@ -426,7 +426,7 @@
 #tab-content-tracker button[type="submit"]{background:#071b42!important}
 #tab-content-tracker button[type="submit"]:hover{background:#12366f!important}
 #tab-content-news>div{background:#f7f5f0!important;border-color:#d9d4ca!important}
-@media(max-width:900px){#tab-content-tracker{grid-template-columns:1fr}#tab-content-tracker>div:first-child,#tab-content-tracker>div:nth-child(2){grid-column:1;grid-row:auto}#tab-content-tracker>div:first-child{order:2}#tab-content-tracker>div:nth-child(2){order:1}}
+@media(max-width:900px){#tab-content-tracker{grid-template-columns:1fr}#tab-content-tracker>div:first-child,#tab-content-tracker>div:nth-child(2){grid-column:1;grid-row:auto}#tab-content-tracker>div:first-child{order:2}#tab-content-tracker>div:last-child{order:1}}
 </style><style id="dashboard-fixed-canvas">
 #app-shell{width:calc(100% - 2rem)!important;max-width:1180px!important;margin:0 auto!important;padding:1.5rem!important;background:#071b42!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:1.75rem!important;box-shadow:0 24px 70px rgba(0,0,0,.3)!important}
 #app-shell:before{content:"";position:absolute;pointer-events:none;inset:0;border-radius:inherit;background-image:radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);background-size:36px 36px;opacity:.5}
@@ -474,117 +474,127 @@
 #tab-content-tracker>div:first-child button[type="submit"]{color:#f7f5f0!important;background:#071b42!important}
 #tab-content-tracker>div:first-child button[type="submit"]:hover{color:#fff!important;background:#12366f!important}
 </style><style id="sheet-tabs-final">
-/* 추적 목록과 하단 sheet-tabs 영역을 하나의 카드처럼 연결 */
+/* 리스트와 하단 시트 탭 영역을 하나의 카드처럼 연결 */
 #tab-content-tracker {
-    row-gap: 0 !important;
-    background-color: #071b42 !important;
-    background-image: radial-gradient(rgba(247,245,240,.1) 1px, transparent 1px) !important;
-    background-size: 36px 36px !important;
+    row-gap: 0;
 }
 
 #tab-content-tracker > div:first-child {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
+    grid-column: 2;
+    grid-row: 1;
 }
 
 #tab-content-tracker > div:nth-child(2) {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    margin-bottom: 0 !important;
-    background: #0d2a55 !important;
-    color: #f7f5f0 !important;
-    border: 1px solid rgba(255,255,255,.12) !important;
-    border-bottom: 0 !important;
-    border-radius: 1.25rem 1.25rem 0 0 !important;
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 0;
+    background: #0d2a55;
+    color: #f7f5f0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-bottom: 0;
+    border-radius: 1.25rem 1.25rem 0 0;
 }
 
 #tab-content-tracker > div:nth-child(2) h2,
 #tab-content-tracker > div:nth-child(2) .text-white {
-    color: #f7f5f0 !important;
+    color: #f7f5f0;
 }
 
 #tab-content-tracker > div:nth-child(2) .text-slate-400,
 #tab-content-tracker > div:nth-child(2) .text-slate-500 {
-    color: #aeb8c8 !important;
-}
-
-#tab-content-tracker > .sheet-tabs {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
-    justify-self: stretch !important;
-    display: flex !important;
-    align-items: flex-start !important;
-    gap: 4px !important;
-    width: 100% !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    margin: 0 !important;
-    padding: 0 10px !important;
-    background: #0d2a55 !important;
-    background-image: none !important;
-    border-top: 0 !important;
-    border-left: 1px solid rgba(255,255,255,.12) !important;
-    border-right: 1px solid rgba(255,255,255,.12) !important;
-    border-bottom: 1px solid rgba(255,255,255,.12) !important;
-    border-radius: 0 0 1.25rem 1.25rem !important;
-    box-shadow: none !important;
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab {
-    height: 30px;
-    min-width: 92px;
-    padding: 0 14px;
-    border: 1px solid #cfc8bb;
-    border-top: 0;
-    border-radius: 0 0 .55rem .55rem;
-    background: #e8e4db;
-    color: #526071;
-    font: 600 .68rem/1 Pretendard, sans-serif;
-    letter-spacing: .02em;
-    cursor: pointer;
-    transition: background .15s ease, color .15s ease;
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
-    background: #ffffff;
-    color: #071b42;
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab-add {
-    background: #e8e4db;
-    color: #8a6a34;
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab:not(.is-active):hover {
-    background: #f1eee7;
-    color: #071b42;
+    color: #aeb8c8;
 }
 
 #target-list > div[data-target-container] {
-    box-shadow: none !important;
-    border-top-color: rgba(148,163,184,.12) !important;
-    border-bottom-color: rgba(148,163,184,.12) !important;
+    border-top-color: rgba(100,116,139,.12);
+    border-bottom-color: rgba(100,116,139,.12);
 }
 
-#target-list > div[data-target-container]:first-child {
-    border-top-color: transparent !important;
+/* 시트 탭 바 */
+#tab-content-tracker > .sheet-tabs {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    margin: 0;
+    padding: 0 .75rem;
+    background: #0d2a55;
+    border-top: 0;
+    border-left: 1px solid rgba(255,255,255,.12);
+    border-right: 1px solid rgba(255,255,255,.12);
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    border-radius: 0 0 1.25rem 1.25rem;
+    box-shadow: none;
+    overflow: visible;
+}
+
+/* 기본 탭: 비활성은 살짝 작고 뒤쪽 레이어처럼 */
+#tab-content-tracker > .sheet-tabs .sheet-tab {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    min-width: 84px;
+    padding: 0 .75rem;
+    margin-left: -3px;
+    background: #ece8df;
+    color: #64748b;
+    border: 1px solid #d0cbc1;
+    border-top: 0;
+    border-radius: 0 0 .55rem .55rem;
+    font: 700 .64rem/1 Pretendard, sans-serif;
+    transform: translateY(2px) scale(.97);
+    transform-origin: top center;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease, color .15s ease;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab:first-child {
+    margin-left: 0;
+}
+
+/* 활성 탭: 흰색, 앞 레이어 */
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
+    z-index: 3;
+    background: #fff;
+    color: #071b42;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 3px 7px rgba(0,0,0,.12);
+}
+
+/* ADD Track은 비활성 탭과 동일한 아이보리 톤 */
+#tab-content-tracker > .sheet-tabs .sheet-tab-add {
+    background: #ece8df;
+    color: #64748b;
 }
 
 @media (max-width: 900px) {
     #tab-content-tracker > div:first-child,
     #tab-content-tracker > div:nth-child(2) {
-        grid-column: 1 !important;
-        grid-row: auto !important;
+        grid-column: 1;
+        grid-row: auto;
     }
 
     #tab-content-tracker > div:nth-child(2) {
-        border-radius: 1rem 1rem 0 0 !important;
+        border-radius: 1rem 1rem 0 0;
     }
 
     #tab-content-tracker > .sheet-tabs {
-        grid-column: 1 !important;
-        grid-row: auto !important;
-        border-radius: 0 0 1rem 1rem !important;
+        grid-column: 1;
+        grid-row: auto;
+        border-radius: 0 0 1rem 1rem;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    #tab-content-tracker > .sheet-tabs .sheet-tab {
+        min-width: 78px;
     }
 }
 </style>
@@ -818,9 +828,9 @@
         </div>
           
       </div>
-          <div class="sheet-tabs" role="tablist" aria-label="Track sheets">
+          <div class="sheet-tabs" role="tablist" aria-label="Track tabs">
             <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true">Track 01</button>
-            <button type="button" class="sheet-tab sheet-tab-add" aria-label="Add track">+ ADD Track</button>
+            <button type="button" class="sheet-tab sheet-tab-add" role="tab" aria-selected="false">+ ADD Track</button>
           </div>
 
     </div>
