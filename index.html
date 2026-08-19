@@ -49,6 +49,7 @@ background: #ece9e2;
   border-radius: 0 !important;
   min-height: 0 !important;
   height: calc(100vh - 2rem);
+  height: calc(100dvh - 2rem);
   max-height: 900px;
 }.auth-canvas > div {
 max-width: none;
@@ -67,9 +68,16 @@ content: "MACROWATCH / PRIVATE ACCESS";
   font: 600 .62rem/1 Pretendard,sans-serif;
   letter-spacing: .2em;
   color: #8e8a82;
-}#auth-screen {
+}/* 로그인 화면 전체 바깥 모서리를 둥글게 유지합니다. */
+#auth-screen {
   border-radius: 1.75rem !important;
   overflow: hidden !important;
+}
+
+/* 로그인 내부 배경도 같은 라운딩을 사용해 모서리를 덮지 않게 합니다. */
+#auth-screen > div {
+  border-radius: inherit;
+  overflow: hidden;
 }#auth-screen .auth-panel {
 max-width: 430px;
   margin: auto;
@@ -183,9 +191,9 @@ display: block;
   color: #8c8a84;
   white-space: nowrap;
 }#auth-screen .grid.flex-1 {
-padding-left: clamp(4rem,13vw,13rem);
-  padding-right: clamp(4rem,13vw,13rem);
-  column-gap: clamp(2rem,6vw,6rem);
+padding-left: clamp(4.5rem, 14vw, 14rem);
+  padding-right: clamp(4.5rem, 14vw, 14rem);
+  column-gap: clamp(2.5rem, 7vw, 7rem);
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
   background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px);
@@ -211,9 +219,9 @@ line-height: 2;
   letter-spacing: -.01em;
   margin-top: 3.35rem;
 }/* 메인 문구 아래 보조 설명의 세로선입니다.
-   문장이 줄바꿈되더라도 실제 설명문 높이에 맞춰 자동으로 늘어납니다. */
+   문장이 1줄, 2줄, 3줄로 바뀌어도 실제 설명문 높이를 그대로 따라갑니다. */
 #auth-screen .grid > section:first-child > p:not(.mb-6)::before {
-content: "";
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -929,7 +937,7 @@ content: "놓아서 이동";
 
 </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
+<body data-build="responsive-6" class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
   <!-- ===== 로그인 화면 시작 ===== -->
 
