@@ -16,7 +16,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
 
-HTTP_TIMEOUT = 15
+HTTP_TIMEOUT = 30
 KST = timezone(timedelta(hours=9))
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
