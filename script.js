@@ -128,6 +128,13 @@ async function fetchTargets() {
   renderTargets();
 }
 
+function renderTrackTabs(listEl, pageCount = 1) {
+  const pager = document.createElement('div');
+  pager.className = 'flex items-center justify-center gap-1 border-t border-slate-800/80 px-2 pt-4';
+  pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + 'Track ' + String(n).padStart(2, '0') + '</button>'; }).join('') + '<button type="button" onclick="showTrackAddNotice()" class="h-9 min-w-[108px] rounded-md border border-dashed border-[#d1a55d]/60 px-2 text-xs font-semibold text-[#d1a55d]">ADD Track</button>';
+  listEl.appendChild(pager);
+}
+
 // 추적 목록 렌더링
 function renderTargets() {
   const listEl = document.getElementById('target-list');
@@ -135,11 +142,13 @@ function renderTargets() {
 
   if (targetLoadError) {
     listEl.innerHTML = `<p class="text-sm text-amber-300 py-6 text-center"><i class="fa-solid fa-triangle-exclamation mr-2"></i>연결 오류가 발생했습니다.<br><span class="text-xs text-slate-400">로그아웃 후 다시 시도해 주세요.</span></p>`;
+    renderTrackTabs(listEl, 1);
     return;
   }
 
   if (targets.length === 0) {
     listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
+    renderTrackTabs(listEl, 1);
     return;
   }
 
