@@ -247,6 +247,11 @@ display: block;
 }#auth-screen .grid > section:first-child h1 span {
 display: block;
   white-space: nowrap;
+}
+
+/* 타이틀 내부의 추가 줄바꿈은 좁은 화면에서만 사용합니다. */
+#auth-screen .grid > section:first-child h1 .title-break {
+  display: none;
 }#auth-screen .grid > section:first-child > p:not(.mb-6) {
 line-height: 2;
   position: relative;
@@ -664,6 +669,40 @@ content: "놓아서 이동";
 
 
 /* =========================================================
+   1250px ~ 1031px
+   타이틀과 로그인 폼이 너무 가까워지기 전에
+   먼저 타이틀 크기를 부드럽게 줄입니다.
+   ========================================================= */
+@media (max-width: 1250px) and (min-width: 1031px) {
+  #auth-screen .grid > section:first-child h1 {
+    white-space: normal;
+    font-size: clamp(4.25rem, 6.4vw, 5.2rem);
+  }
+
+  #auth-screen .grid > section:first-child h1 span {
+    white-space: normal;
+  }
+}
+
+
+/* =========================================================
+   1030px ~ 901px
+   더 좁아지면 두 문구를 동시에 2줄로 바꿉니다.
+   Evolving / Insight, Adaptive / Shift가 같은 시점에 전환됩니다.
+   ========================================================= */
+@media (max-width: 1030px) and (min-width: 901px) {
+  #auth-screen .grid > section:first-child h1 {
+    white-space: normal;
+    font-size: clamp(3.6rem, 6.2vw, 4.35rem);
+  }
+
+  #auth-screen .grid > section:first-child h1 .title-break {
+    display: block;
+  }
+}
+
+
+/* =========================================================
    1080px ~ 901px
    이 구간에 들어온 뒤부터 타이틀 글자만 천천히 줄입니다.
    gap은 더 줄이지 않고 2.5rem을 유지해서 너무 붙지 않게 합니다.
@@ -1055,7 +1094,10 @@ content: "놓아서 이동";
 
   #auth-screen header > div:first-child {
     margin-left: 0;
-    transform: none;
+
+    /* 로고 이미지 내부의 투명 여백을 보정해
+       실제 보이는 로고가 로그인 폼 왼쪽 면과 맞도록 합니다. */
+    transform: translateX(-8px);
   }
 }
 
@@ -1087,7 +1129,8 @@ content: "놓아서 이동";
       <section class="max-w-2xl">
         
        <h1 class="max-w-xl font-pretendard text-4xl font-semibold leading-[1.08] tracking-[-.055em] sm:text-6xl">
-          Evolving Insight<br><span class="text-[#d1a55d]">Adaptive Shift</span>
+          Evolving<span class="title-break"></span> Insight<br>
+          <span class="text-[#d1a55d]">Adaptive<span class="title-break"></span> Shift</span>
         </h1>
         <p class="mt-7 max-w-md text-sm leading-7 text-slate-300">
           EVOTIVE RESEARCH가 제공하는 MacroWatch는 관심 지표의
