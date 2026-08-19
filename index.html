@@ -224,16 +224,8 @@
       background-size: 40px 40px;
     }
   </style>
-
-  
 <!-- ===== Consolidated application styles: accumulated overrides removed ===== -->
-
-  
 <style id="app-theme-clean">
-/* =========================================================
-   LOGIN / AUTH — BASE
-   ========================================================= */
-
 .auth-canvas {
   background: #ece9e2 !important;
   border: 0 !important;
@@ -241,26 +233,25 @@
   min-height: calc(100vh - 2rem) !important;
 }
 
-.auth-canvas > div {
+.auth-canvas>div {
   max-width: none !important;
   min-height: calc(100vh - 2rem) !important;
-  grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr) !important;
+  grid-template-columns: minmax(0,1.15fr) minmax(360px,.85fr) !important;
 }
 
-.auth-brand-panel,
-.left-gold-dots {
+.auth-brand-panel,.left-gold-dots {
   background: #f7f5f0 !important;
   border: 0 !important;
   border-right: 1px solid #d9d4ca !important;
   border-radius: 0 !important;
-  padding: clamp(2rem, 5vw, 5.5rem) !important;
+  padding: clamp(2rem,5vw,5.5rem) !important;
 }
 
-.left-gold-dots > div:first-child > div:first-child {
+.left-gold-dots>div:first-child>div:first-child {
   align-items: flex-start !important;
 }
 
-.left-gold-dots > div:first-child > div:first-child > div:first-child {
+.left-gold-dots>div:first-child>div:first-child>div:first-child {
   flex-direction: column !important;
   align-items: flex-start !important;
   gap: 1.25rem !important;
@@ -276,7 +267,7 @@
 }
 
 .brand-lockup .brand-name {
-  font-size: clamp(1.7rem, 3vw, 2.7rem) !important;
+  font-size: clamp(1.7rem,3vw,2.7rem) !important;
   letter-spacing: .045em !important;
   line-height: 1 !important;
 }
@@ -287,23 +278,23 @@
   margin-top: .55rem !important;
 }
 
-.left-gold-dots > div:first-child > div:first-child > span {
+.left-gold-dots>div:first-child>div:first-child>span {
   display: none !important;
 }
 
 .left-gold-dots .mt-12 {
-  margin-top: clamp(4rem, 10vh, 8rem) !important;
+  margin-top: clamp(4rem,10vh,8rem) !important;
   max-width: 620px !important;
 }
 
-.left-gold-dots .mt-12 > div:first-child {
+.left-gold-dots .mt-12>div:first-child {
   border: 0 !important;
   background: transparent !important;
   padding: 0 !important;
 }
 
 .left-gold-dots h1 {
-  font-size: clamp(2.6rem, 5vw, 5.2rem) !important;
+  font-size: clamp(2.6rem,5vw,5.2rem) !important;
   line-height: 1.08 !important;
   letter-spacing: -.065em !important;
 }
@@ -313,7 +304,7 @@
   color: #071b42 !important;
 }
 
-.left-gold-dots h1::after {
+.left-gold-dots h1:after {
   content: "";
   display: block;
   width: 72px;
@@ -329,7 +320,7 @@
   color: #5f6875 !important;
 }
 
-.left-gold-dots > div:last-child {
+.left-gold-dots>div:last-child {
   max-width: 620px !important;
   border: 0 !important;
   border-top: 1px solid #d9d4ca !important;
@@ -339,319 +330,47 @@
   padding: 1.25rem 0 0 !important;
 }
 
-.left-gold-dots > div:last-child .grid > div {
+.left-gold-dots>div:last-child .grid>div {
   background: #eeece6 !important;
   border: 0 !important;
   border-radius: 0 !important;
 }
 
-.auth-canvas > div > section:last-child {
+.auth-canvas>div>section:last-child {
   background: #e5e1d9 !important;
   position: relative !important;
-  padding: clamp(2rem, 6vw, 7rem) !important;
+  padding: clamp(2rem,6vw,7rem) !important;
 }
 
-.auth-canvas > div > section:last-child::before {
+.auth-canvas>div>section:last-child:before {
   content: "MACROWATCH / PRIVATE ACCESS";
   position: absolute;
-  top: clamp(2rem, 5vw, 5.5rem);
-  right: clamp(2rem, 6vw, 7rem);
-  font: 600 .62rem/1 Pretendard, sans-serif;
+  top: clamp(2rem,5vw,5.5rem);
+  right: clamp(2rem,6vw,7rem);
+  font: 600 .62rem/1 Pretendard,sans-serif;
   letter-spacing: .2em;
   color: #8e8a82;
 }
 
-#auth-screen {
-  border-radius: 1.75rem !important;
-  overflow: hidden !important;
-}
-
-#auth-screen .auth-panel {
-  width: 100%;
+.auth-panel {
   max-width: 430px !important;
-  margin: 0 auto;
-  padding: clamp(2rem, 4vw, 3.5rem) !important;
-  border: 0 !important;
-  border-radius: 1.25rem !important;
-  background: #f7f5f0 !important;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, .32) !important;
-  color: #071b42 !important;
+  border-radius: 2px !important;
+  padding: clamp(2rem,4vw,3.5rem) !important;
+  border: 1px solid #d8d2c7 !important;
+  box-shadow: 18px 18px 0 #d5d0c6 !important;
 }
 
-#auth-screen .auth-panel::before,
-#auth-screen .auth-panel::after {
-  display: none !important;
-}
-
-#auth-screen .auth-panel h2 {
+.auth-panel h2 {
   font-size: 1.8rem !important;
   letter-spacing: -.04em !important;
 }
 
-#auth-screen .auth-panel .text-white {
-  color: #071b42 !important;
-}
-
-#auth-screen .auth-panel .text-slate-400,
-#auth-screen .auth-panel .text-slate-500 {
-  color: #64748b !important;
-}
-
-#auth-screen .auth-panel input,
-#auth-screen .auth-panel select {
-  background: #fff !important;
-  border-color: #d8d2c7 !important;
-  color: #071b42 !important;
-}
-
-#auth-screen .auth-panel input::placeholder {
-  color: #94a3b8 !important;
-}
-
-#auth-screen .auth-panel button.bg-blue-600 {
-  background: #071b42 !important;
-}
-
-#auth-screen .auth-panel button.bg-blue-600:hover {
-  background: #12366f !important;
-}
-
-#auth-screen .auth-panel .mt-4.flex.items-start {
-  margin-top: 1.35rem !important;
-}
-
-#auth-screen .auth-panel > div.mb-8 {
-  margin-bottom: .55rem !important;
-}
-
-#password-login-button {
-  background: #071b42 !important;
-  border-color: #071b42 !important;
-  color: #fff !important;
-  box-shadow: 0 8px 18px rgba(7, 27, 66, .18) !important;
-  margin-top: 1.5rem !important;
-}
-
-#password-login-button:hover {
-  background: #12366f !important;
-  border-color: #12366f !important;
-}
-
-#password-login-form > p.pt-1 {
-  text-align: center !important;
-  margin-top: 1.5rem !important;
-  padding-top: 0 !important;
-}
-
-#signup-placeholder-button {
-  color: #a67531 !important;
-}
-
-#signup-placeholder-button:hover {
-  color: #071b42 !important;
-}
-
-
-/* =========================================================
-   LOGIN / AUTH — HEADER
-   ========================================================= */
-
-#auth-screen > div > header {
-  background: #f7f5f0 !important;
-  border-bottom: 1px solid #ddd7cc !important;
-  min-height: 96px !important;
-  padding-top: 1.35rem !important;
-  padding-bottom: 1.35rem !important;
-  overflow: visible !important;
-}
-
-#auth-screen > div > header > div:first-child {
-  display: flex !important;
-  align-items: center !important;
-  flex: 0 1 auto !important;
-  width: auto !important;
-  max-width: 100% !important;
-  flex-shrink: 1 !important;
-  overflow: visible !important;
-  min-width: max-content !important;
-  gap: .22rem !important;
-  transform: translateX(8px) !important;
-}
-
-#auth-screen > div > header > div:first-child > div:last-child {
-  flex-shrink: 1 !important;
-  min-width: max-content !important;
-  overflow: visible !important;
-}
-
-#auth-screen > div > header .evotive-source-logo {
-  background-color: #f7f5f0 !important;
-  border-radius: 0 !important;
-  z-index: 1;
-  width: 68px !important;
-  height: 43px !important;
-  flex: none !important;
-  margin-right: -.1rem !important;
-}
-
-#auth-screen > div > header .font-cinzel {
-  color: #071b42 !important;
-  white-space: nowrap !important;
-  overflow: visible !important;
-  font-size: 1.16rem !important;
-  letter-spacing: .03em !important;
-}
-
-#auth-screen > div > header .font-cinzel + p {
-  font-size: .62rem !important;
-  white-space: nowrap !important;
-  font-weight: 400 !important;
-  letter-spacing: .14em !important;
-  margin-top: -.02rem !important;
-  line-height: 1.05 !important;
-}
-
-#auth-screen > div > header .text-\[9px\] {
-  color: #a67531 !important;
-  white-space: nowrap !important;
-  font-size: .46rem !important;
-  letter-spacing: .08em !important;
-}
-
-.header-product-label {
-  display: block !important;
-  font: 500 .63rem/1 Pretendard, sans-serif;
-  letter-spacing: .16em;
-  color: #8c8a84;
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   LOGIN / AUTH — HERO
-   ========================================================= */
-
-#auth-screen .grid.flex-1 {
-  padding-left: clamp(2.5rem, 11vw, 11rem) !important;
-  padding-right: clamp(2.5rem, 11vw, 11rem) !important;
-  column-gap: clamp(2rem, 7vw, 7rem) !important;
-  background-image: radial-gradient(rgba(247, 245, 240, .14) 1px, transparent 1px) !important;
-  background-size: 36px 36px !important;
-}
-
-#auth-screen .grid > section:first-child h1 {
-  letter-spacing: -.07em !important;
-  max-width: none !important;
-  white-space: normal !important;
-  font-size: clamp(2.35rem, 5.2vw, 5.3rem) !important;
-  line-height: 1.28 !important;
-}
-
-#auth-screen .grid > section:first-child h1 br {
-  display: block !important;
-}
-
-#auth-screen .grid > section:first-child h1 span {
-  display: block !important;
-  white-space: nowrap !important;
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6) {
-  line-height: 2 !important;
-  position: relative !important;
-  border-left: 0 !important;
-  padding-left: 1.15rem !important;
-  max-width: 640px !important;
-  width: 100% !important;
-  font-size: .96rem !important;
-  letter-spacing: -.01em !important;
-  margin-top: 3.35rem !important;
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6)::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: .35rem;
-  width: 2px;
-  height: 3.3rem;
-  background: rgba(201, 170, 114, .62);
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6)::after {
-  content: "";
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  animation: macroPulse 2.2s ease-in-out infinite;
-  right: -.25rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #42b883;
-  box-shadow: 0 0 0 4px rgba(66, 184, 131, .14);
-  display: none !important;
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6) .inline-signal-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #42b883;
-  vertical-align: middle;
-  box-shadow: 0 0 0 4px rgba(66, 184, 131, .14);
-  animation: macroPulse 2.2s ease-in-out infinite;
-  position: relative;
-  top: -2px !important;
-}
-
-.mobile-space {
-  display: none;
-}
-
-@keyframes macroPulse {
-  0%, 100% {
-    opacity: .35;
-    transform: scale(.85);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-
-/* =========================================================
-   LOGIN / AUTH — FOOTER
-   ========================================================= */
-
-#auth-screen > div > footer {
-  justify-content: center !important;
-  text-align: center !important;
-  background: #04132f !important;
-  border-top-color: rgba(255, 255, 255, .12) !important;
-}
-
-#auth-screen > div > footer::after {
-  content: "© 2026 EVOTIVE RESEARCH. All rights reserved.";
-  color: #64748b;
-  margin: 0 auto !important;
-}
-
-
-/* =========================================================
-   LOGIN / AUTH — RESPONSIVE
-   Base rules are above. Responsive overrides stay together here.
-   ========================================================= */
-
-@media (max-width: 1023px) {
+@media (max-width:1023px) {
   .auth-canvas {
     min-height: calc(100vh - 1.5rem) !important;
   }
 
-  .auth-canvas > div {
+  .auth-canvas>div {
     display: block !important;
   }
 
@@ -669,98 +388,26 @@
     font-size: 2.7rem !important;
   }
 
-  .left-gold-dots > div:last-child {
+  .left-gold-dots>div:last-child {
     margin-top: 3rem !important;
   }
 
-  .auth-canvas > div > section:last-child {
-    width: 100% !important;
+  .auth-canvas>div>section:last-child {
     padding: 2.5rem 1.5rem 4rem !important;
   }
 
-  .auth-canvas > div > section:last-child::before {
+  .auth-canvas>div>section:last-child:before {
     display: none !important;
   }
 
-  #auth-screen .auth-panel {
-    width: 100% !important;
-    max-width: 430px !important;
-    margin: 0 auto !important;
+  .auth-panel {
+    box-shadow: 10px 10px 0 #d5d0c6 !important;
+    margin: auto !important;
   }
 
-  #auth-screen .grid.flex-1 {
-    padding-left: clamp(1.5rem, 7vw, 4rem) !important;
-    padding-right: clamp(1.5rem, 7vw, 4rem) !important;
-  }
-
-  #auth-screen .grid > section:first-child h1 {
-    font-size: clamp(2.2rem, 8vw, 3.8rem) !important;
-    line-height: 1.22 !important;
-  }
 }
 
-@media (max-width: 700px) {
-  .header-product-label {
-    display: none !important;
-  }
-
-  .mobile-space {
-    display: inline;
-  }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6) br {
-    display: none !important;
-  }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6) {
-    font-size: .9rem !important;
-    margin-top: 2.5rem !important;
-    padding-left: .95rem !important;
-    line-height: 1.9 !important;
-  }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6)::before {
-    top: 0 !important;
-    bottom: 0 !important;
-    height: auto !important;
-  }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6) .inline-signal-dot {
-    top: -2px !important;
-  }
-}
-
-@media (min-width: 701px) {
-  #auth-screen .header-product-label {
-    margin-right: 8px !important;
-  }
-}
-
-@media (max-width: 640px) {
-  #auth-screen > div > header {
-    padding: 1rem 1.25rem !important;
-  }
-
-  /* 로그인 영역 좌우 여백을 줄여 모바일에서 폼 폭 확보 */
-  .auth-canvas > div > section:last-child {
-    width: 100% !important;
-    padding: 1.5rem .5rem 3rem !important;
-  }
-
-  /* 모바일 로그인 폼은 사용 가능한 폭을 거의 전부 사용 */
-  #auth-screen .auth-panel {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 auto !important;
-    padding: 1.75rem 1.25rem !important;
-  }
-
-  #auth-screen > div > footer {
-    font-size: 9px !important;
-  }
-}
-
-@media (max-width: 480px) {
+@media (max-width:480px) {
   .brand-lockup .brand-name {
     font-size: 1.55rem !important;
   }
@@ -777,30 +424,427 @@
     grid-template-columns: 1fr !important;
   }
 
-  #auth-screen > div > header .font-cinzel {
-    font-size: .94rem !important;
-  }
-
-  #auth-screen > div > header .text-\[9px\] {
-    font-size: .4rem !important;
-  }
-
-  #auth-screen > div > header > div:first-child {
-    transform: translateX(4px) !important;
-  }
 }
 
-@media (max-width: 420px) {
-  #auth-screen > div > header {
+#auth-screen .auth-panel:before,#auth-screen .auth-panel:after {
+  display: none !important;
+}
+
+@media (max-width:640px) {
+  #auth-screen>div>header {
+    padding: 1rem 1.25rem !important;
+  }
+
+  #auth-screen>div>header .evotive-source-logo {
+    width: 72px !important;
+    height: 46px !important;
+  }
+
+  #auth-screen>div>header .font-cinzel {
+    font-size: .95rem !important;
+  }
+
+}
+
+#auth-screen .auth-panel .text-white {
+  color: #071b42 !important;
+}
+
+#auth-screen .auth-panel .text-slate-400,#auth-screen .auth-panel .text-slate-500 {
+  color: #64748b !important;
+}
+
+#auth-screen .auth-panel input,#auth-screen .auth-panel select {
+  background: #fff !important;
+  border-color: #d8d2c7 !important;
+  color: #071b42 !important;
+}
+
+#auth-screen .auth-panel input::placeholder {
+  color: #94a3b8 !important;
+}
+
+#auth-screen .auth-panel button.bg-blue-600 {
+  background: #071b42 !important;
+}
+
+#auth-screen .auth-panel button.bg-blue-600:hover {
+  background: #12366f !important;
+}
+
+@media (max-width:640px) {
+  #auth-screen .grid>section:first-child h1 {
+    font-size: 2.85rem !important;
+    line-height: 1.2 !important;
+  }
+
+  #auth-screen>div>footer {
+    font-size: 9px !important;
+  }
+
+}
+
+#password-login-button:hover {
+  background: #12366f !important;
+  border-color: #12366f !important;
+}
+
+#signup-placeholder-button {
+  color: #a67531 !important;
+}
+
+#signup-placeholder-button:hover {
+  color: #071b42 !important;
+}
+
+#auth-screen>div>footer:after {
+  content: "© 2026 EVOTIVE RESEARCH. All rights reserved.";
+  color: #64748b;
+  margin: 0 auto !important;
+}
+
+#auth-screen>div>header {
+  background: #f7f5f0 !important;
+  border-bottom: 1px solid #ddd7cc !important;
+  min-height: 96px !important;
+  padding-top: 1.35rem !important;
+  padding-bottom: 1.35rem !important;
+  overflow: visible !important;
+}
+
+@media (max-width:420px) {
+  #auth-screen>div>header {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
+
+  #auth-screen>div>header .evotive-source-logo {
+    width: 58px !important;
+    height: 37px !important;
+  }
+
+  #auth-screen>div>header .font-cinzel {
+    font-size: .9rem !important;
+  }
+
 }
 
+@media (max-width:480px) {
+  #auth-screen .grid>section:first-child h1 {
+    max-width: 11ch !important;
+  }
 
-/* =========================================================
-   DASHBOARD / TRACKER
-   ========================================================= */
+}
+
+#auth-screen>div>header .text-\[9px\] {
+  color: #a67531 !important;
+  white-space: nowrap !important;
+  font-size: .46rem !important;
+  letter-spacing: .08em !important;
+}
+
+@media (max-width:480px) {
+  #auth-screen>div>header .text-\[9px\] {
+    letter-spacing: .08em !important;
+    font-size: .4rem !important;
+  }
+
+}
+
+#auth-screen .grid>section:first-child h1 br {
+  display: block !important;
+}
+
+#auth-screen .grid>section:first-child h1 span {
+  display: block !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width:700px) {
+  #auth-screen .grid>section:first-child h1 {
+    white-space: normal !important;
+    font-size: clamp(2rem,8vw,3.1rem) !important;
+    line-height: 1.15 !important;
+  }
+
+  #auth-screen .grid>section:first-child h1 span {
+    display: block !important;
+    white-space: nowrap !important;
+  }
+
+}
+
+#auth-screen>div>header>div:first-child>div:last-child {
+  flex-shrink: 1 !important;
+  min-width: max-content !important;
+  overflow: visible !important;
+}
+
+#auth-screen .grid>section:first-child h1 {
+  letter-spacing: -.07em !important;
+  max-width: none !important;
+  white-space: normal !important;
+  font-size: clamp(2.35rem,5.2vw,5.3rem) !important;
+  line-height: 1.28 !important;
+}
+
+@media (max-width:1023px) {
+  #auth-screen .grid.flex-1 {
+    padding-left: clamp(1.5rem,7vw,4rem) !important;
+    padding-right: clamp(1.5rem,7vw,4rem) !important;
+  }
+
+  #auth-screen .grid>section:first-child h1 {
+    font-size: clamp(2.2rem,8vw,3.8rem) !important;
+    line-height: 1.22 !important;
+  }
+
+}
+@keyframes macroPulse {
+  0%,100% {
+    opacity:.35;
+    transform:scale(.85)
+  }
+  50% {
+    opacity:1;
+    transform:scale(1)
+  }
+
+}
+
+#auth-screen>div>header .evotive-source-logo {
+  background-color: #f7f5f0 !important;
+  border-radius: 0 !important;
+  z-index: 1;
+  width: 68px !important;
+  height: 43px !important;
+  flex: none !important;
+  margin-right: -.1rem !important;
+}
+
+@media (max-width:480px) {
+  #auth-screen>div>header .font-cinzel + p {
+    font-size: .5rem !important;
+    letter-spacing: .1em !important;
+  }
+
+}
+
+#auth-screen .grid>section:first-child>p:not(.mb-6):before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .35rem;
+  width: 2px;
+  height: 3.3rem;
+  background: rgba(201,170,114,.62);
+}
+
+#auth-screen .grid>section:first-child>p:not(.mb-6):after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  animation: macroPulse 2.2s ease-in-out infinite;
+  left: auto;
+  right: -.25rem;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  background: #42b883;
+  box-shadow: 0 0 0 4px rgba(66,184,131,.14);
+  display: none !important;
+}
+
+#auth-screen>div>header .font-cinzel {
+  color: #071b42 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  font-size: 1.16rem !important;
+  letter-spacing: .03em !important;
+}
+
+@media (max-width:480px) {
+  #auth-screen>div>header .font-cinzel {
+    font-size: .94rem !important;
+  }
+
+}
+
+#auth-screen>div>header .font-cinzel + p {
+  font-size: .62rem !important;
+  white-space: nowrap !important;
+  font-weight: 400 !important;
+  letter-spacing: .14em !important;
+  margin-top: -.02rem !important;
+  line-height: 1.05 !important;
+}
+
+#auth-screen .auth-panel .mt-4.flex.items-start {
+  margin-top: 1.35rem !important;
+}
+
+#auth-screen .grid>section:first-child>p:not(.mb-6) {
+  line-height: 2 !important;
+  position: relative !important;
+  border-left: 0 !important;
+  padding-left: 1.15rem !important;
+  max-width: 640px !important;
+  width: 100% !important;
+  font-size: .96rem !important;
+  letter-spacing: -.01em !important;
+  margin-top: 3.35rem !important;
+}
+
+#auth-screen .auth-panel>div.mb-8 {
+  margin-bottom: .55rem !important;
+}
+
+===== STYLE: indicator-baseline-fine ===== -->
+#auth-screen .grid>section:first-child>p:not(.mb-6) .inline-signal-dot {
+  top: -2px !important;
+}
+
+#password-login-button {
+  background: #071b42 !important;
+  border-color: #071b42 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(7,27,66,.18) !important;
+  margin-top: 1.5rem !important;
+}
+
+#auth-screen {
+  border-radius: 1.75rem !important;
+  overflow: hidden !important;
+}
+
+#auth-screen .auth-panel {
+  border: 0 !important;
+  background: #f7f5f0 !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.32) !important;
+  color: #071b42 !important;
+  border-radius: 1.25rem !important;
+}
+
+#auth-screen .grid>section:first-child>p:not(.mb-6) .inline-signal-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #42b883;
+  vertical-align: middle;
+  box-shadow: 0 0 0 4px rgba(66,184,131,.14);
+  animation: macroPulse 2.2s ease-in-out infinite;
+  position: relative;
+  top: -2px !important;
+}
+
+#password-login-form>p.pt-1 {
+  text-align: center !important;
+  margin-top: 1.5rem !important;
+  padding-top: 0 !important;
+}
+
+#auth-screen>div>header>div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+  flex-shrink: 1 !important;
+  overflow: visible !important;
+  min-width: max-content !important;
+  gap: .22rem !important;
+  transform: translateX(8px) !important;
+}
+
+@media (max-width:480px) {
+  #auth-screen>div>header>div:first-child {
+    transform: translateX(4px) !important;
+  }
+
+}
+
+@media (max-width:700px) {
+  #auth-screen .grid>section:first-child>p:not(.mb-6) br {
+    display: none !important;
+  }
+
+  #auth-screen .grid>section:first-child>p:not(.mb-6) {
+    font-size: .9rem !important;
+    margin-top: 2.5rem !important;
+    padding-left: .95rem !important;
+    line-height: 1.9 !important;
+  }
+
+  #auth-screen .grid>section:first-child>p:not(.mb-6) .inline-signal-dot {
+    top: -2px !important;
+  }
+
+}
+
+.mobile-space {
+  display: none;
+}
+
+@media (max-width:700px) {
+  .mobile-space {
+    display: inline;
+  }
+
+  #auth-screen .grid>section:first-child>p:not(.mb-6):before {
+    top: 0 !important;
+    bottom: 0 !important;
+    height: auto !important;
+  }
+
+}
+
+@media (max-width:560px) {
+  .header-product-label {
+    font-size: .48rem;
+    letter-spacing: .09em;
+  }
+
+}
+
+#auth-screen>div>footer {
+  justify-content: center !important;
+  text-align: center !important;
+  background: #04132f !important;
+  border-top-color: rgba(255,255,255,.12) !important;
+}
+
+.header-product-label {
+  display: block !important;
+  font: 500 .63rem/1 Pretendard,sans-serif;
+  letter-spacing: .16em;
+  color: #8c8a84;
+  white-space: nowrap;
+}
+
+@media (max-width:700px) {
+  .header-product-label {
+    display: none !important;
+  }
+
+}
+
+@media (min-width:701px) {
+  #auth-screen .header-product-label {
+    margin-right: 8px !important;
+  }
+
+}
+
+#auth-screen .grid.flex-1 {
+  padding-left: clamp(2.5rem,11vw,11rem) !important;
+  padding-right: clamp(2.5rem,11vw,11rem) !important;
+  column-gap: clamp(2rem,7vw,7rem) !important;
+  background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px) !important;
+  background-size: 36px 36px !important;
+}
 
 #app-shell>.bg-slate-900:first-child #db-status span {
   display: none;
@@ -1145,6 +1189,177 @@
   color: #fff !important;
   background: #12366f !important;
 }
+
+</style>
+<style id="sheet-tabs-final">
+/* 리스트와 하단 시트 탭 영역을 하나의 카드처럼 연결 */
+#tab-content-tracker {
+    row-gap: 0;
+}
+
+#tab-content-tracker > div:first-child {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#tab-content-tracker > div:nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 0;
+    background: #0d2a55;
+    color: #f7f5f0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 1.25rem 1.25rem 1.25rem 0;
+}
+
+
+#tab-content-tracker > div:nth-child(2) h2,
+#tab-content-tracker > div:nth-child(2) .text-white {
+    color: #f7f5f0;
+}
+
+#tab-content-tracker > div:nth-child(2) .text-slate-400,
+#tab-content-tracker > div:nth-child(2) .text-slate-500 {
+    color: #aeb8c8;
+}
+
+#target-list {
+    min-height: 45rem;
+}
+  
+#target-list > div[data-target-container] {
+    border-top-color: rgba(100,116,139,.12);
+    border-bottom-color: rgba(100,116,139,.12);
+}
+
+/* 시트 탭 바 투명하 */
+#tab-content-tracker > .sheet-tabs {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    margin: 0;
+    padding: 0rem;
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+}
+
+/* 기본 탭: 비활성은 살짝 작고 뒤쪽 레이어처럼 */
+#tab-content-tracker > .sheet-tabs .sheet-tab {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    min-width: 84px;
+    padding: 0rem;
+    margin-left: -10px;
+    background: #ece8df;
+    color: #64748b;
+    border: 1px solid #d0cbc1;
+    border-top: 0;
+    border-radius: 0 0 .55rem .55rem;
+    font: 700 .64rem/1 Pretendard, sans-serif;
+    transform: scale(.94);
+    transform-origin: top center;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease, color .15s ease;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab:first-child {
+    margin-left: 0;
+}
+
+/* 활성 탭: 흰색, 앞 레이어, 그림자 */
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
+    z-index: 3;
+    background: #fff;
+    color: #071b42;
+    transform: scale(1);
+    box-shadow: 0 3px 7px rgba(0,0,0,.20);
+}
+
+/* ADD Track은 비활성 탭과 동일한 아이보리 톤 */
+#tab-content-tracker > .sheet-tabs .sheet-tab-add {
+    z-index: 1;
+    background: #ece8df;
+    color: #64748b;
+}
+
+/* 드래그 중 Track 탭 안내 */
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
+    border-color: rgba(209,165,93,.75);
+}
+
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add)::before {
+    content: "여기로 이동";
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    transform: translateX(-50%);
+    padding: .22rem .42rem;
+    border-radius: .35rem;
+    background: #071b42;
+    color: #f2d49c;
+    font-size: .56rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 5px 12px rgba(0,0,0,.22);
+    pointer-events: none;
+}
+
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-active::before {
+    content: "현재 Track";
+    color: #aeb8c8;
+}
+
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over {
+    z-index: 5;
+    background: #f2d49c;
+    color: #071b42;
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(0,0,0,.24);
+}
+
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over::before {
+    content: "놓아서 이동";
+    background: #d1a55d;
+    color: #071b42;
+}
+
+@media (max-width: 900px) {
+    #tab-content-tracker > div:first-child,
+    #tab-content-tracker > div:nth-child(2) {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    #tab-content-tracker > div:nth-child(2) {
+        border-radius: 1rem;
+    }
+
+    #tab-content-tracker > .sheet-tabs {
+        grid-column: 1;
+        grid-row: auto;
+        border-radius: 0 0 1rem 1rem;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    #tab-content-tracker > .sheet-tabs .sheet-tab {
+        min-width: 78px;
+    }
+
+}
 </style>
   
 </head>
@@ -1190,7 +1405,7 @@
               </button>
             <div class="mt-4 flex items-start gap-3 text-xs leading-5 text-slate-500">
               <i class="fa-solid fa-shield-halved mt-0.5 text-xs text-[#a67531]"></i>
-              <p>카카오 계정으로 안전하게 시작합니다. 전화번호, 이메일 등 불필요한 개인정보는 수집하지 않습니다.</p>
+              <p>카카오 계정으로 안전하게 시작합니다. 전화번호나 이메일 등 불필요한 개인정보는 수집하지 않습니다.</p>
             </div>
             </form>
 
@@ -1404,7 +1619,7 @@
         <i class="fa-solid fa-hourglass-half"></i>
       </div>
       <h2 id="service-preparing-title" class="mt-4 text-lg font-bold text-white">서비스 준비 중입니다.</h2>
-      <p class="mt-2 text-xs leading-relaxed text-slate-400">ID/PW 로그인과 회원가입은 추후 제공할 예정입니다.</p>
+      <p class="mt-2 text-xs leading-relaxed text-slate-400">ID/PW 로그인과 회원가입 기능은 추후 제공할 예정입니다.</p>
       <button id="service-preparing-close" type="button" class="mt-5 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-bold text-white transition hover:bg-blue-500">확인</button>
     </section>
   </div>
