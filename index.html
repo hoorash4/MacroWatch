@@ -1295,43 +1295,33 @@
     color: #64748b;
 }
 
-/* 드래그 중 실제 Track 탭 드롭 안내 */
-#tab-content-tracker > .sheet-tabs .sheet-tab-drop-hint {
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 7px);
-    transform: translateX(-50%);
-
-    display: none;
-    padding: .22rem .42rem;
-    border-radius: .35rem;
-
-    background: #071b42;
-    color: #f2d49c;
-
-    font-size: .56rem;
-    font-weight: 700;
-    white-space: nowrap;
-
-    box-shadow: 0 5px 12px rgba(0,0,0,.22);
-
-    /* 안내 문구 자체는 드롭 영역으로 잡지 않음 */
-    pointer-events: none;
-}
-
+/* 드래그 중 Track 탭 안내 */
 #tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
     border-color: rgba(209,165,93,.75);
 }
 
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) .sheet-tab-drop-hint {
-    display: block;
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add)::before {
+    content: "여기로 이동";
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    transform: translateX(-50%);
+    padding: .22rem .42rem;
+    border-radius: .35rem;
+    background: #071b42;
+    color: #f2d49c;
+    font-size: .56rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 5px 12px rgba(0,0,0,.22);
+    pointer-events: none;
 }
 
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-active .sheet-tab-drop-hint {
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-active::before {
+    content: "현재 Track";
     color: #aeb8c8;
 }
 
-/* '여기로 이동' 문구 또는 실제 탭 영역에 들어오면 즉시 강조 */
 #tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over {
     z-index: 5;
     background: #f2d49c;
@@ -1340,21 +1330,10 @@
     box-shadow: 0 4px 12px rgba(0,0,0,.24);
 }
 
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint {
+#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over::before {
+    content: "놓아서 이동";
     background: #d1a55d;
     color: #071b42;
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint::after {
-    content: "놓아서 이동";
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint {
-    font-size: 0;
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over .sheet-tab-drop-hint::after {
-    font-size: .56rem;
 }
 
 @media (max-width: 900px) {
@@ -1744,6 +1723,6 @@
   </div>
 
   <script src="auth.js?v=11"></script>
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>
