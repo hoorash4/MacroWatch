@@ -4,264 +4,211 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MacroWatch</title>
+  <!-- 화면 스타일에 사용하는 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 화면 아이콘에 사용하는 Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Supabase client -->
+  <!-- 로그인과 데이터 저장에 사용하는 Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-            <!-- Premium Financial Web Fonts -->
+            <!-- 화면에서 사용하는 웹폰트 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   
-<!-- ===== Consolidated application styles: accumulated overrides removed ===== -->
-
-
-  
-
-<style id="app-theme-clean">
-/* ===== 공통 기본 스타일 =====
+<style id="app-theme-clean">/* ===== 공통 기본 스타일 =====
    숫자 입력창, 폰트, 공통 로고처럼 로그인/대시보드 양쪽에서 쓰는 기본 규칙입니다.
 */
-input:focus::placeholder { color: transparent; }
-
-#input-target-val,
+input:focus::placeholder {
+color: transparent;
+}#input-target-val,
 #edit-target-val {
-  appearance: textfield;
+appearance: textfield;
   -moz-appearance: textfield;
-}
-
-#input-target-val::-webkit-inner-spin-button,
+}#input-target-val::-webkit-inner-spin-button,
 #input-target-val::-webkit-outer-spin-button,
 #edit-target-val::-webkit-inner-spin-button,
 #edit-target-val::-webkit-outer-spin-button {
-  -webkit-appearance: none;
+-webkit-appearance: none;
   margin: 0;
-}
-
-.font-cinzel { font-family: 'Cinzel', Georgia, serif; }
-.font-sans,
+}.font-cinzel {
+font-family: 'Cinzel', Georgia, serif;
+}.font-sans,
 .font-pretendard {
-  font-family: 'Pretendard', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-}
-
-.evotive-source-logo {
-  aspect-ratio: 1 / 1;
+font-family: 'Pretendard', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}.evotive-source-logo {
+aspect-ratio: 1 / 1;
   background: transparent url("./images/logo.png") center / contain no-repeat;
-}
-
-/* ===== 로그인 화면 =====
+}/* ===== 로그인 화면 =====
    로그인 카드, 상단 브랜드 영역, 안내 문구, 로그인 버튼의 기본 디자인입니다.
 */
 .auth-canvas {
-  background: #ece9e2 !important;
-  border: 0 !important;
+background: #ece9e2;
+  border: 0;
   border-radius: 0 !important;
   min-height: calc(100vh - 2rem) !important;
-}
-
-.auth-canvas > div {
-  max-width: none !important;
-  min-height: calc(100vh - 2rem) !important;
-  grid-template-columns: minmax(0,1.15fr) minmax(360px,.85fr) !important;
-}
-
-.auth-canvas > div > section:last-child {
-  background: #e5e1d9 !important;
-  position: relative !important;
-  padding: clamp(2rem,6vw,7rem) !important;
-}
-
-.auth-canvas > div > section:last-child::before {
-  content: "MACROWATCH / PRIVATE ACCESS";
+}.auth-canvas > div {
+max-width: none;
+  min-height: calc(100vh - 2rem);
+  grid-template-columns: minmax(0,1.15fr) minmax(360px,.85fr);
+}.auth-canvas > div > section:last-child {
+background: #e5e1d9;
+  position: relative;
+  padding: clamp(2rem,6vw,7rem);
+}.auth-canvas > div > section:last-child::before {
+content: "MACROWATCH / PRIVATE ACCESS";
   position: absolute;
   top: clamp(2rem,5vw,5.5rem);
   right: clamp(2rem,6vw,7rem);
   font: 600 .62rem/1 Pretendard,sans-serif;
   letter-spacing: .2em;
   color: #8e8a82;
-}
-
-#auth-screen {
-  border-radius: 1.75rem !important;
-  overflow: hidden !important;
-}
-
-#auth-screen .auth-panel {
-  max-width: 430px !important;
-  margin: auto !important;
-  padding: clamp(2rem,4vw,3.5rem) !important;
-  border: 0 !important;
-  background: #f7f5f0 !important;
-  box-shadow: 0 24px 64px rgba(0,0,0,.32) !important;
-  color: #071b42 !important;
-  border-radius: 1.25rem !important;
-}
-
-#auth-screen .auth-panel::before,
-#auth-screen .auth-panel::after { display: none !important; }
-
-#auth-screen .auth-panel h2 {
-  font-size: 1.8rem !important;
-  letter-spacing: -.04em !important;
-}
-
-#auth-screen .auth-panel .text-white { color: #071b42 !important; }
-
-#auth-screen .auth-panel .text-slate-400,
-#auth-screen .auth-panel .text-slate-500 { color: #64748b !important; }
-
-#auth-screen .auth-panel input,
+}#auth-screen {
+border-radius: 1.75rem;
+  overflow: hidden;
+}#auth-screen .auth-panel {
+max-width: 430px;
+  margin: auto;
+  padding: clamp(2rem,4vw,3.5rem);
+  border: 0;
+  background: #f7f5f0;
+  box-shadow: 0 24px 64px rgba(0,0,0,.32);
+  color: #071b42;
+  border-radius: 1.25rem;
+}#auth-screen .auth-panel::before,
+#auth-screen .auth-panel::after,
+.mobile-space {
+display: none;
+}#auth-screen .auth-panel h2 {
+font-size: 1.8rem;
+  letter-spacing: -.04em;
+}#auth-screen .auth-panel .text-white {
+color: #071b42;
+}#auth-screen .auth-panel .text-slate-400,
+#auth-screen .auth-panel .text-slate-500 {
+color: #64748b;
+}#auth-screen .auth-panel input,
 #auth-screen .auth-panel select {
-  background: #fff !important;
-  border-color: #d8d2c7 !important;
-  color: #071b42 !important;
-}
-
-#auth-screen .auth-panel input::placeholder { color: #94a3b8 !important; }
-
-#auth-screen .auth-panel button.bg-blue-600 { background: #071b42 !important; }
-#auth-screen .auth-panel button.bg-blue-600:hover { background: #12366f !important; }
-#auth-screen .auth-panel .mt-4.flex.items-start { margin-top: 1.35rem !important; }
-#auth-screen .auth-panel > div.mb-8 { margin-bottom: .55rem !important; }
-
-#password-login-button {
-  background: #071b42 !important;
-  border-color: #071b42 !important;
-  color: #fff !important;
-  box-shadow: 0 8px 18px rgba(7,27,66,.18) !important;
-  margin-top: 1.5rem !important;
-}
-
-#password-login-button:hover {
-  background: #12366f !important;
-  border-color: #12366f !important;
-}
-
-#password-login-form > p.pt-1 {
-  text-align: center !important;
-  margin-top: 1.5rem !important;
-  padding-top: 0 !important;
-}
-
-#signup-placeholder-button { color: #a67531 !important; }
-#signup-placeholder-button:hover { color: #071b42 !important; }
-
-#auth-screen > div > header {
-  background: #f7f5f0 !important;
-  border-bottom: 1px solid #ddd7cc !important;
-  min-height: 96px !important;
-  padding-top: 1.35rem !important;
-  padding-bottom: 1.35rem !important;
-  overflow: visible !important;
-}
-
-#auth-screen > div > header > div:first-child {
-  display: flex !important;
-  align-items: center !important;
-  flex: 0 1 auto !important;
-  width: auto !important;
-  max-width: 100% !important;
-  min-width: max-content !important;
-  gap: .22rem !important;
-  transform: translateX(8px) !important;
-  overflow: visible !important;
-}
-
-#auth-screen > div > header > div:first-child > div:last-child {
-  flex-shrink: 1 !important;
-  min-width: max-content !important;
-  overflow: visible !important;
-}
-
-#auth-screen > div > header .evotive-source-logo {
-  background-color: #f7f5f0 !important;
-  border-radius: 0 !important;
+background: #fff;
+  border-color: #d8d2c7;
+  color: #071b42;
+}#auth-screen .auth-panel input::placeholder {
+color: #94a3b8;
+}#auth-screen .auth-panel button.bg-blue-600 {
+background: #071b42;
+}#auth-screen .auth-panel button.bg-blue-600:hover {
+background: #12366f;
+}#auth-screen .auth-panel .mt-4.flex.items-start {
+margin-top: 1.35rem;
+}#auth-screen .auth-panel > div.mb-8 {
+margin-bottom: .55rem;
+}#password-login-button {
+background: #071b42;
+  border-color: #071b42;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(7,27,66,.18);
+  margin-top: 1.5rem;
+}#password-login-button:hover {
+background: #12366f;
+  border-color: #12366f;
+}#password-login-form > p.pt-1 {
+text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 0;
+}#signup-placeholder-button {
+color: #a67531;
+}#signup-placeholder-button:hover {
+color: #071b42;
+}#auth-screen > div > header {
+background: #f7f5f0;
+  border-bottom: 1px solid #ddd7cc;
+  min-height: 96px;
+  padding-top: 1.35rem;
+  padding-bottom: 1.35rem;
+  overflow: visible;
+}#auth-screen > div > header > div:first-child {
+display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  min-width: max-content;
+  gap: .22rem;
+  transform: translateX(8px);
+  overflow: visible;
+}#auth-screen > div > header > div:first-child > div:last-child {
+flex-shrink: 1;
+  min-width: max-content;
+  overflow: visible;
+}#auth-screen > div > header .evotive-source-logo {
+background-color: #f7f5f0;
+  border-radius: 0;
   z-index: 1;
-  width: 68px !important;
-  height: 43px !important;
-  flex: none !important;
-  margin-right: -.1rem !important;
-}
-
-#auth-screen > div > header .font-cinzel {
-  color: #071b42 !important;
-  white-space: nowrap !important;
-  overflow: visible !important;
-  font-size: 1.16rem !important;
-  letter-spacing: .03em !important;
-}
-
-#auth-screen > div > header .font-cinzel + p {
-  font-size: .62rem !important;
-  white-space: nowrap !important;
-  font-weight: 400 !important;
-  letter-spacing: .14em !important;
-  margin-top: -.02rem !important;
-  line-height: 1.05 !important;
-}
-
-#auth-screen > div > header .text-\[9px\] {
-  color: #a67531 !important;
-  white-space: nowrap !important;
-  font-size: .46rem !important;
-  letter-spacing: .08em !important;
-}
-
-.header-product-label {
-  display: block !important;
+  width: 68px;
+  height: 43px;
+  flex: none;
+  margin-right: -.1rem;
+}#auth-screen > div > header .font-cinzel {
+color: #071b42;
+  white-space: nowrap;
+  overflow: visible;
+  font-size: 1.16rem;
+  letter-spacing: .03em;
+}#auth-screen > div > header .font-cinzel + p {
+font-size: .62rem;
+  white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: .14em;
+  margin-top: -.02rem;
+  line-height: 1.05;
+}#auth-screen > div > header .text-\[9px\] {
+color: #a67531;
+  white-space: nowrap;
+  font-size: .46rem;
+  letter-spacing: .08em;
+}.header-product-label {
+display: block;
   font: 500 .63rem/1 Pretendard,sans-serif;
   letter-spacing: .16em;
   color: #8c8a84;
   white-space: nowrap;
-}
-
-#auth-screen .grid.flex-1 {
-  padding-left: clamp(2.5rem,11vw,11rem) !important;
-  padding-right: clamp(2.5rem,11vw,11rem) !important;
-  column-gap: clamp(2rem,7vw,7rem) !important;
-  background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px) !important;
-  background-size: 36px 36px !important;
-}
-
-#auth-screen .grid > section:first-child h1 {
-  letter-spacing: -.07em !important;
-  max-width: none !important;
-  white-space: normal !important;
-  font-size: clamp(2.35rem,5.2vw,5.3rem) !important;
-  line-height: 1.28 !important;
-}
-
-#auth-screen .grid > section:first-child h1 br { display: block !important; }
-#auth-screen .grid > section:first-child h1 span {
-  display: block !important;
-  white-space: nowrap !important;
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6) {
-  line-height: 2 !important;
-  position: relative !important;
-  padding-left: 1.15rem !important;
-  max-width: 640px !important;
-  width: 100% !important;
-  font-size: .96rem !important;
-  letter-spacing: -.01em !important;
-  margin-top: 3.35rem !important;
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6)::before {
-  content: "";
+}#auth-screen .grid.flex-1 {
+padding-left: clamp(2.5rem,11vw,11rem);
+  padding-right: clamp(2.5rem,11vw,11rem);
+  column-gap: clamp(2rem,7vw,7rem);
+  background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px);
+  background-size: 36px 36px;
+}#auth-screen .grid > section:first-child h1 {
+letter-spacing: -.07em;
+  max-width: none;
+  white-space: normal;
+  font-size: clamp(2.35rem,5.2vw,5.3rem);
+  line-height: 1.28;
+}#auth-screen .grid > section:first-child h1 br {
+display: block;
+}#auth-screen .grid > section:first-child h1 span {
+display: block;
+  white-space: nowrap;
+}#auth-screen .grid > section:first-child > p:not(.mb-6) {
+line-height: 2;
+  position: relative;
+  padding-left: 1.15rem;
+  max-width: 640px;
+  width: 100%;
+  font-size: .96rem;
+  letter-spacing: -.01em;
+  margin-top: 3.35rem;
+}#auth-screen .grid > section:first-child > p:not(.mb-6)::before {
+content: "";
   position: absolute;
   left: 0;
   top: .35rem;
   width: 2px;
   height: 3.3rem;
   background: rgba(201,170,114,.62);
-}
-
-#auth-screen .grid > section:first-child > p:not(.mb-6) .inline-signal-dot {
-  display: inline-block;
+}#auth-screen .grid > section:first-child > p:not(.mb-6) .inline-signal-dot {
+display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -270,105 +217,86 @@ input:focus::placeholder { color: transparent; }
   box-shadow: 0 0 0 4px rgba(66,184,131,.14);
   animation: macroPulse 2.2s ease-in-out infinite;
   position: relative;
-  top: -2px !important;
+  top: -2px;
 }
 
-.mobile-space { display: none; }
-
-@keyframes macroPulse {
-  0%,100% { opacity:.35; transform:scale(.85); }
-  50% { opacity:1; transform:scale(1); }
+@keyframes macroPulse {0%,100% {
+opacity:.35; transform:scale(.85);
+}50% {
+opacity:1; transform:scale(1);
 }
-
-#auth-screen > div > footer {
-  justify-content: center !important;
-  text-align: center !important;
-  background: #04132f !important;
-  border-top-color: rgba(255,255,255,.12) !important;
-}
-
-#auth-screen > div > footer::after {
-  content: "© 2026 EVOTIVE RESEARCH. All rights reserved.";
+}#auth-screen > div > footer {
+justify-content: center;
+  text-align: center;
+  background: #04132f;
+  border-top-color: rgba(255,255,255,.12);
+}#auth-screen > div > footer::after {
+content: "© 2026 EVOTIVE RESEARCH. All rights reserved.";
   color: #64748b;
-  margin: 0 auto !important;
-}
-
-/* ===== 대시보드 화면 =====
+  margin: 0 auto;
+}/* ===== 대시보드 화면 =====
    로그인 후 보이는 MacroWatch 본 화면의 카드, 입력폼, 추적 리스트 기본 디자인입니다.
 */
 #app-shell {
-  border: 1px solid rgba(255,255,255,.1) !important;
-  box-shadow: 0 24px 70px rgba(0,0,0,.3) !important;
-  position: relative !important;
-  width: 100% !important;
-  max-width: 1180px !important;
-  margin: 0 auto !important;
-  padding: 0 1.5rem !important;
-  border-radius: 1.75rem !important;
-  background: #071b42 !important;
-  overflow: hidden !important;
-  min-height: 0 !important;
-  height: auto !important;
-}
-
-#app-shell > * {
+border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 24px 70px rgba(0,0,0,.3);
   position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  border-radius: 1.75rem;
+  background: #071b42;
+  overflow: hidden;
+  min-height: 0;
+  height: auto;
+}#app-shell > * {
+position: relative;
   z-index: 1;
-}
-
-#app-shell > .bg-slate-900:first-child {
-  border-color: #d9d4ca !important;
-  background: #f7f5f0 !important;
-  margin: 0 -1.5rem !important;
-  border-radius: 1.75rem 1.75rem 0 0 !important;
-  padding: 1.25rem 1.5rem !important;
-  box-shadow: none !important;
-}
-
-#app-shell > .bg-slate-900:first-child h1 { color: #071b42 !important; }
-#app-shell > .bg-slate-900:first-child p { color: #64748b !important; }
-
-#app-shell > .bg-slate-900:first-child button,
+}#app-shell > .bg-slate-900:first-child {
+border-color: #d9d4ca;
+  background: #f7f5f0;
+  margin: 0 -1.5rem;
+  border-radius: 1.75rem 1.75rem 0 0;
+  padding: 1.25rem 1.5rem;
+  box-shadow: none;
+}#app-shell > .bg-slate-900:first-child h1 {
+color: #071b42;
+}#app-shell > .bg-slate-900:first-child p {
+color: #64748b;
+}#app-shell > .bg-slate-900:first-child button,
 #app-shell > .bg-slate-900:first-child a {
-  background: #fff !important;
-  border-color: #d9d4ca !important;
-  color: #64748b !important;
-}
-
-#app-shell > .bg-slate-900:first-child #db-status {
-  display: none !important;
-}
-
-#app-shell .text-white { color: #f7f5f0 !important; }
-#app-shell .text-slate-400 { color: #aeb8c8 !important; }
-#app-shell .text-slate-500 { color: #8794a8 !important; }
-
-#app-shell .bg-slate-900:not(:first-child) {
-  background: #0d2a55 !important;
-  border-color: rgba(255,255,255,.12) !important;
-}
-
-#app-shell > #tab-content-tracker,
+background: #fff;
+  border-color: #d9d4ca;
+  color: #64748b;
+}#app-shell > .bg-slate-900:first-child #db-status {
+display: none;
+}#app-shell .text-white {
+color: #f7f5f0;
+}#app-shell .text-slate-400 {
+color: #aeb8c8;
+}#app-shell .text-slate-500 {
+color: #8794a8;
+}#app-shell .bg-slate-900:not(:first-child) {
+background: #0d2a55;
+  border-color: rgba(255,255,255,.12);
+}#app-shell > #tab-content-tracker,
 #app-shell > #tab-content-news {
-  position: relative !important;
-  z-index: 1 !important;
-  margin-left: -1.5rem !important;
-  margin-right: -1.5rem !important;
-  padding: 1.5rem !important;
-  background-image: radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px) !important;
-  background-size: 36px 36px !important;
-}
-
-#tab-content-tracker {
-  display: grid !important;
+position: relative;
+  z-index: 1;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  padding: 1.5rem;
+  background-image: radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);
+  background-size: 36px 36px;
+}#tab-content-tracker {
+display: grid;
   grid-template-columns: minmax(0,1fr) 360px;
   gap: 1.25rem;
   row-gap: 0;
   align-items: start;
-}
-
-#tab-content-tracker > div:first-child {
-  grid-column: 2;
+}#tab-content-tracker > div:first-child {
+grid-column: 2;
   grid-row: 1;
   align-self: start;
   margin-top: 0;
@@ -376,135 +304,112 @@ input:focus::placeholder { color: transparent; }
   background: #fff;
   border-color: #d9d4ca;
   color: #071b42;
-  box-shadow: 0 14px 30px rgba(7,27,66,.08) !important;
-}
-
-#tab-content-tracker > div:first-child h2,
+  box-shadow: 0 14px 30px rgba(7,27,66,.08);
+}#tab-content-tracker > div:first-child h2,
 #tab-content-tracker > div:first-child label,
 #tab-content-tracker > div:first-child p,
 #tab-content-tracker > div:first-child span {
-  color: #071b42 !important;
-}
-
-#tab-content-tracker > div:first-child input,
+color: #071b42;
+}#tab-content-tracker > div:first-child input,
 #tab-content-tracker > div:first-child select {
-  background: #fff !important;
-  border-color: #d9d4ca !important;
-  color: #071b42 !important;
-  -webkit-text-fill-color: #071b42 !important;
+background: #fff;
+  border-color: #d9d4ca;
+  color: #071b42;
+  -webkit-text-fill-color: #071b42;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: .3rem !important;
-  padding-left: .3rem !important;
-}
-
-#tab-content-tracker > div:first-child input::placeholder {
-  color: #94a3b8 !important;
-  -webkit-text-fill-color: #94a3b8 !important;
+  padding-right: .3rem;
+  padding-left: .3rem;
+}#tab-content-tracker > div:first-child input::placeholder {
+color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
   opacity: 1;
-}
-
-#tab-content-tracker > div:first-child select option {
-  color: #071b42 !important;
-  background: #fff !important;
+}#tab-content-tracker > div:first-child select option {
+color: #071b42;
+  background: #fff;
   white-space: normal;
-}
-
-#tab-content-tracker > div:first-child button[type="submit"] {
-  color: #f7f5f0 !important;
-  background: #071b42 !important;
-}
-
-#tab-content-tracker > div:first-child button[type="submit"]:hover {
-  color: #fff !important;
-  background: #12366f !important;
-}
-
-#tab-content-tracker > div:nth-child(2) {
-  grid-column: 1;
+}#tab-content-tracker > div:first-child button[type="submit"] {
+color: #f7f5f0;
+  background: #071b42;
+}#tab-content-tracker > div:first-child button[type="submit"]:hover {
+color: #fff;
+  background: #12366f;
+}#tab-content-tracker > div:nth-child(2) {
+grid-column: 1;
   grid-row: 1;
   align-self: start;
   margin-top: 0;
   margin-bottom: 0;
 
-  background: #0d2a55 !important;
+  background: #0d2a55;
   color: #f7f5f0;
-  border: 1px solid rgba(255,255,255,.12) !important;
+  border: 1px solid rgba(255,255,255,.12);
   border-radius: 1.25rem 1.25rem 1.25rem 0;
-  box-shadow: 0 14px 30px rgba(7,27,66,.08) !important;
-}
-
-#tab-content-tracker > div:nth-child(2) h2,
-#tab-content-tracker > div:nth-child(2) .text-white { color: #f7f5f0; }
-
-#tab-content-tracker > div:nth-child(2) .text-slate-400,
-#tab-content-tracker > div:nth-child(2) .text-slate-500 { color: #aeb8c8; }
-
-#target-list { min-height: 45rem; }
-
-#target-list > div[data-target-container] {
-  border-top-color: rgba(100,116,139,.12);
+  box-shadow: 0 14px 30px rgba(7,27,66,.08);
+}#tab-content-tracker > div:nth-child(2) h2,
+#tab-content-tracker > div:nth-child(2) .text-white {
+color: #f7f5f0;
+}#tab-content-tracker > div:nth-child(2) .text-slate-400,
+#tab-content-tracker > div:nth-child(2) .text-slate-500 {
+color: #aeb8c8;
+}#target-list {
+min-height: 45rem;
+}#target-list > div[data-target-container] {
+border-top-color: rgba(100,116,139,.12);
   border-bottom-color: rgba(100,116,139,.12);
 }
 
-@keyframes dashboardSpin { to { transform: rotate(360deg); } }
+@keyframes dashboardSpin {to {
+transform: rotate(360deg);
+} }
 
-@keyframes dashboardDots {
-  0%,20% { content:""; }
-  40% { content:"."; }
-  60% { content:".."; }
-  80%,100% { content:"..."; }
+@keyframes dashboardDots {0%,20% {
+content:"";
+}40% {
+content:".";
+}60% {
+content:"..";
+}80%,100% {
+content:"...";
 }
-
-#target-list > p.loading-state {
-  display: flex !important;
+}#target-list > p.loading-state {
+display: flex;
   align-items: center;
   justify-content: center;
   gap: .6rem;
-  color: #aeb8c8 !important;
-}
-
-#target-list > p.loading-state::before {
-  content: "";
+  color: #aeb8c8;
+}#target-list > p.loading-state::before {
+content: "";
   width: 14px;
   height: 14px;
   border: 2px solid rgba(209,165,93,.28);
   border-top-color: #d1a55d;
   border-radius: 50%;
   animation: dashboardSpin .8s linear infinite;
-}
-
-#target-list > p.loading-state::after {
-  content: "";
+}#target-list > p.loading-state::after {
+content: "";
   display: inline-block;
   width: 1.2em;
   text-align: left;
   animation: dashboardDots 1.2s steps(1,end) infinite;
-}
-
-#tab-content-news > div {
-  background: #f7f5f0 !important;
-  border-color: #d9d4ca !important;
-}
-
-#app-shell > .dashboard-copyright {
-  position: relative !important;
-  margin: 2rem -1.5rem 0 !important;
-  background: #04132f !important;
-  z-index: 2 !important;
-  border-radius: 0 0 1.75rem 1.75rem !important;
-  padding-bottom: 1rem !important;
-}
-
-
-/* ===== Drag & Drop 사용 안내 =====
+}#tab-content-news > div {
+background: #f7f5f0;
+  border-color: #d9d4ca;
+}#app-shell > .dashboard-copyright {
+position: relative;
+  margin: 2rem -1.5rem 0;
+  background: #04132f;
+  z-index: 2;
+  border-radius: 0 0 1.75rem 1.75rem;
+  padding-bottom: 1rem;
+}/* ===== Drag & Drop 사용 안내 =====
    리스트 제목 오른쪽에 보이는 "Drag & Drop 순서 변경 ?" 안내입니다.
    데스크톱에서는 마우스를 올리면 열리고,
    클릭/터치 환경에서는 JS가 .is-open 클래스를 붙여 열어 줍니다.
 */
 .track-help {
-  position: relative;
+position: relative;
   display: inline-flex;
   align-items: center;
   gap: .36rem;
@@ -516,16 +421,12 @@ input:focus::placeholder { color: transparent; }
   font-size: .68rem;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.track-help-icon {
-  color: #d1a55d;
+}.track-help-icon {
+color: #d1a55d;
   font-size: .62rem;
-}
-
-/* ? 버튼은 안내창을 열고 닫는 용도입니다. */
+}/* ? 버튼은 안내창을 열고 닫는 용도입니다. */
 .track-help-button {
-  display: inline-flex;
+display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1rem;
@@ -539,11 +440,9 @@ input:focus::placeholder { color: transparent; }
   font-weight: 800;
   line-height: 1;
   cursor: help;
-}
-
-/* 평소에는 숨겨 두었다가 hover / focus / click 때 아래로 펼칩니다. */
+}/* 평소에는 숨겨 두었다가 hover / focus / click 때 아래로 펼칩니다. */
 .track-help-tooltip {
-  position: absolute;
+position: absolute;
   right: 0;
   top: calc(100% + 9px);
   z-index: 30;
@@ -564,11 +463,9 @@ input:focus::placeholder { color: transparent; }
   transform: translateY(-4px);
   transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
   pointer-events: none;
-}
-
-/* 안내창 위쪽의 작은 화살표 꼬리입니다. */
+}/* 안내창 위쪽의 작은 화살표 꼬리입니다. */
 .track-help-tooltip::before {
-  content: "";
+content: "";
   position: absolute;
   top: -5px;
   right: 12px;
@@ -578,32 +475,26 @@ input:focus::placeholder { color: transparent; }
   border-left: 1px solid rgba(209,165,93,.26);
   border-top: 1px solid rgba(209,165,93,.26);
   transform: rotate(45deg);
-}
-
-.track-help-tooltip p + p {
-  margin-top: .7rem;
-}
-
-.track-help-tooltip strong {
-  color: #f2d49c;
+}.track-help-tooltip p + p {
+margin-top: .7rem;
+}.track-help-tooltip strong {
+color: #f2d49c;
   font-weight: 700;
-}
-
-/* 데스크톱 hover, 키보드 focus, 모바일 click 모두 같은 방식으로 안내창을 표시합니다. */
+}/* 데스크톱 hover, 키보드 focus, 모바일 click 모두 같은 방식으로 안내창을 표시합니다. */
 .track-help:hover .track-help-tooltip,
 .track-help:focus-within .track-help-tooltip,
 .track-help.is-open .track-help-tooltip {
-  opacity: 1;
+opacity: 1;
   visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
-}
-
-/* ===== Track 탭 =====
-   Track 01~10 및 + ADD Track 탭의 크기, 겹침, 활성/비활성 상태와 드래그 안내를 담당합니다.
+}/* ===== Track 탭 =====
+   Track 01~10 및 + ADD Track 탭의 크기와 위치를 담당합니다.
+   비활성 탭은 살짝 작고 뒤에 있는 것처럼 보이며, 활성 탭은 흰색과 그림자로 앞으로 보이게 합니다.
+   지표를 드래그하는 동안에는 다른 Track으로 옮길 수 있다는 안내도 여기서 표시합니다.
 */
 #tab-content-tracker > .sheet-tabs {
-  grid-column: 1;
+grid-column: 1;
   grid-row: 2;
   display: flex;
   align-items: flex-start;
@@ -615,10 +506,8 @@ input:focus::placeholder { color: transparent; }
   background: transparent;
   border: 0;
   overflow: visible;
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab {
-  position: relative;
+}#tab-content-tracker > .sheet-tabs .sheet-tab {
+position: relative;
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -637,30 +526,22 @@ input:focus::placeholder { color: transparent; }
   transform-origin: top center;
   cursor: pointer;
   transition: transform .15s ease, background .15s ease, color .15s ease;
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab:first-child { margin-left: 0; }
-
-#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
-  z-index: 3;
+}#tab-content-tracker > .sheet-tabs .sheet-tab:first-child {
+margin-left: 0;
+}#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
+z-index: 3;
   background: #fff;
   color: #071b42;
   transform: scale(1);
   box-shadow: 0 3px 7px rgba(0,0,0,.20);
-}
-
-#tab-content-tracker > .sheet-tabs .sheet-tab-add {
-  z-index: 1;
+}#tab-content-tracker > .sheet-tabs .sheet-tab-add {
+z-index: 1;
   background: #ece8df;
   color: #64748b;
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
-  border-color: rgba(209,165,93,.75);
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add)::before {
-  content: "여기로 이동";
+}#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
+border-color: rgba(209,165,93,.75);
+}#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add)::before {
+content: "여기로 이동";
   position: absolute;
   left: 50%;
   bottom: calc(100% + 7px);
@@ -674,117 +555,44 @@ input:focus::placeholder { color: transparent; }
   white-space: nowrap;
   box-shadow: 0 5px 12px rgba(0,0,0,.22);
   pointer-events: none;
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-active::before {
-  content: "현재 Track";
+}#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-active::before {
+content: "현재 Track";
   color: #aeb8c8;
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over {
-  z-index: 5;
+}#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over {
+z-index: 5;
   background: #f2d49c;
   color: #071b42;
   transform: scale(1);
   box-shadow: 0 4px 12px rgba(0,0,0,.24);
-}
-
-#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over::before {
-  content: "놓아서 이동";
+}#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab.is-drag-over::before {
+content: "놓아서 이동";
   background: #d1a55d;
   color: #071b42;
 }
 
 /* ===== 반응형 화면 =====
-   화면 폭이 줄어들 때 로그인/대시보드/Track 영역의 배치를 변경합니다.
-   데스크톱 기본값은 위에서 정의하고 여기서는 필요한 값만 덮어씁니다.
+   데스크톱 기본 디자인은 위쪽 규칙을 사용합니다.
+   아래에서는 화면 폭이 작아질 때 꼭 필요한 배치와 크기만 바꿉니다.
+   900px은 대시보드 2열→1열 전환, 700px 이하는 로그인 설명 정리,
+   640px 이하는 작은 화면 여백, 480/420px은 아주 좁은 휴대폰 화면을 보정합니다.
 */
+
 @media (max-width:1023px) {
   .auth-canvas { min-height: calc(100vh - 1.5rem) !important; }
-  .auth-canvas > div { display: block !important; }
+  .auth-canvas > div { display: block; }
   .auth-canvas > div > section:last-child {
-    padding: 2.5rem 1.5rem 4rem !important;
+    padding: 2.5rem 1.5rem 4rem;
   }
-  .auth-canvas > div > section:last-child::before { display: none !important; }
+  .auth-canvas > div > section:last-child::before { display: none; }
 
   #auth-screen .grid.flex-1 {
-    padding-left: clamp(1.5rem,7vw,4rem) !important;
-    padding-right: clamp(1.5rem,7vw,4rem) !important;
+    padding-left: clamp(1.5rem,7vw,4rem);
+    padding-right: clamp(1.5rem,7vw,4rem);
   }
 
   #auth-screen .grid > section:first-child h1 {
-    font-size: clamp(2.2rem,8vw,3.8rem) !important;
-    line-height: 1.22 !important;
-  }
-}
-
-@media (max-width:700px) {
-  .header-product-label { display: none !important; }
-  .mobile-space { display: inline; }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6) br { display: none !important; }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6) {
-    font-size: .9rem !important;
-    margin-top: 2.5rem !important;
-    padding-left: .95rem !important;
-    line-height: 1.9 !important;
-  }
-
-  #auth-screen .grid > section:first-child > p:not(.mb-6)::before {
-    top: 0 !important;
-    bottom: 0 !important;
-    height: auto !important;
-  }
-}
-
-@media (min-width:701px) {
-  #auth-screen .header-product-label { margin-right: 8px !important; }
-}
-
-@media (max-width:640px) {
-  #auth-screen > div > header { padding: 1rem 1.25rem !important; }
-  #auth-screen > div > footer { font-size: 9px !important; }
-
-  #app-shell {
-    width: calc(100% - 1rem) !important;
-    padding: 0 1rem !important;
-    border-radius: 1.25rem !important;
-  }
-
-  #app-shell > .bg-slate-900:first-child {
-    margin-left: -1rem !important;
-    margin-right: -1rem !important;
-    border-radius: 1.25rem 1.25rem 0 0 !important;
-    padding: 1rem !important;
-  }
-
-  #app-shell > #tab-content-tracker,
-  #app-shell > #tab-content-news {
-    margin-left: -1rem !important;
-    margin-right: -1rem !important;
-    padding: 1rem !important;
-  }
-
-  #app-shell > .dashboard-copyright {
-    border-radius: 0 0 1.25rem 1.25rem !important;
-  }
-}
-
-@media (max-width:480px) {
-  #auth-screen > div > header .font-cinzel { font-size: .94rem !important; }
-  #auth-screen > div > header .font-cinzel + p {
-    font-size: .5rem !important;
-    letter-spacing: .1em !important;
-  }
-  #auth-screen > div > header .text-\[9px\] { font-size: .4rem !important; }
-  #auth-screen > div > header > div:first-child { transform: translateX(4px) !important; }
-}
-
-@media (max-width:420px) {
-  #auth-screen > div > header {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+    font-size: clamp(2.2rem,8vw,3.8rem);
+    line-height: 1.22;
   }
 }
 
@@ -811,12 +619,89 @@ input:focus::placeholder { color: transparent; }
 
   #tab-content-tracker > .sheet-tabs .sheet-tab { min-width: 78px; }
 }
+
+@media (max-width:700px) {
+  .header-product-label { display: none; }
+  .mobile-space { display: inline; }
+
+  #auth-screen .grid > section:first-child > p:not(.mb-6) br { display: none; }
+
+  #auth-screen .grid > section:first-child > p:not(.mb-6) {
+    font-size: .9rem;
+    margin-top: 2.5rem;
+    padding-left: .95rem;
+    line-height: 1.9;
+  }
+
+  #auth-screen .grid > section:first-child > p:not(.mb-6)::before {
+    top: 0;
+    bottom: 0;
+    height: auto;
+  }
+}
+
+@media (min-width:701px) {
+  #auth-screen .header-product-label { margin-right: 8px; }
+}
+
+@media (max-width:640px) {
+  #auth-screen > div > header { padding: 1rem 1.25rem; }
+  #auth-screen > div > footer { font-size: 9px; }
+
+  #app-shell {
+    width: calc(100% - 1rem);
+    padding: 0 1rem;
+    border-radius: 1.25rem;
+  }
+
+  #app-shell > .bg-slate-900:first-child {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 1.25rem 1.25rem 0 0;
+    padding: 1rem;
+  }
+
+  #app-shell > #tab-content-tracker,
+  #app-shell > #tab-content-news {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 1rem;
+  }
+
+  #app-shell > .dashboard-copyright {
+    border-radius: 0 0 1.25rem 1.25rem;
+  }
+}
+
+/* 일반적인 소형 스마트폰 화면 보정 */
+@media (max-width:480px) {
+  #auth-screen > div > header .font-cinzel { font-size: .94rem; }
+  #auth-screen > div > header .font-cinzel + p {
+    font-size: .5rem;
+    letter-spacing: .1em;
+  }
+  #auth-screen > div > header .text-\[9px\] { font-size: .4rem; }
+  #auth-screen > div > header > div:first-child { transform: translateX(4px); }
+}
+
+/* 420px 이하의 아주 좁은 화면에서 헤더 좌우 여백을 한 번 더 줄입니다. */
+@media (max-width:420px) {
+  #auth-screen > div > header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
+  <!-- ===== 로그인 화면 시작 ===== -->
 
-  <main id="auth-screen" class="auth-canvas hidden min-h-[calc(100vh-2rem)] overflow-hidden rounded-[1.75rem]">
+
+  <main
+    id="auth-screen"
+    class="auth-canvas hidden min-h-[calc(100vh-2rem)] overflow-hidden rounded-[1.75rem]"
+  >
   <div class="relative flex min-h-[calc(100vh-2rem)] flex-col bg-[#071b42] text-white">
     <header class="flex items-center justify-between border-b border-white/10 px-6 py-5 sm:px-10">
       <div class="flex items-center gap-3">
@@ -893,9 +778,13 @@ input:focus::placeholder { color: transparent; }
   </div>
 </main>
 
-  <div id="app-shell" class="hidden max-w-3xl mx-auto">
+  <!-- ===== 로그인 화면 끝 / 대시보드 시작 ===== -->
+  <div
+    id="app-shell"
+    class="hidden max-w-3xl mx-auto"
+  >
 
-    <!-- 상단 타이틀 박스 -->
+    <!-- 대시보드 상단: 제목 / 설정 / 로그아웃 -->
     <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl">
       <div class="flex items-center gap-2.5">
         <div class="p-3 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400 text-xl shadow-lg shadow-blue-500/10">
@@ -925,10 +814,10 @@ input:focus::placeholder { color: transparent; }
     <!-- 탭 메뉴 -->
     
 
-    <!-- 경제지표 추적 탭 컨텐츠 -->
+    <!-- ===== 경제지표 추적 화면 시작 ===== -->
     <div id="tab-content-tracker" class="space-y-6">
       
-      <!-- 등록 폼 -->
+      <!-- 오른쪽: 경제지표 신규 등록 입력폼 -->
       
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
         <h2 class="text-lg font-bold text-white mb-4 flex items-center">
@@ -1027,7 +916,7 @@ input:focus::placeholder { color: transparent; }
       </div>
 
 
-      <!-- 추적 중인 목록 영역 -->
+      <!-- 왼쪽: 현재 추적 중인 지표 목록 -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-bold text-white flex items-center">
@@ -1069,14 +958,18 @@ input:focus::placeholder { color: transparent; }
         </div>
           
       </div>
-          <div class="sheet-tabs" role="tablist" aria-label="Track tabs">
+          <div
+          class="sheet-tabs"
+          role="tablist"
+          aria-label="Track tabs"
+        >
             <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true">Track 01</button>
             <button type="button" class="sheet-tab sheet-tab-add" role="tab" aria-selected="false">+ ADD Track</button>
           </div>
 
     </div>
 
-    <!-- 주요 뉴스 탭 컨텐츠 -->
+    <!-- ===== 경제지표 추적 화면 끝 / 뉴스 준비 영역 ===== -->
     <div id="tab-content-news" class="hidden">
       <div class="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center shadow-xl">
         <i class="fa-solid fa-newspaper text-2xl text-slate-600"></i>
@@ -1089,8 +982,14 @@ input:focus::placeholder { color: transparent; }
 
   </div>
 
-  <!-- 준비 중 안내 모달 -->
-  <div id="service-preparing-modal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="service-preparing-title">
+  <!-- ===== 공용 안내창: 서비스 준비 중 / 등록 완료 ===== -->
+  <div
+    id="service-preparing-modal"
+    class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="service-preparing-title"
+  >
     <section class="w-full max-w-xs rounded-2xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl shadow-black/40">
       <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/10 text-xl text-blue-400">
         <i class="fa-solid fa-hourglass-half"></i>
@@ -1101,8 +1000,11 @@ input:focus::placeholder { color: transparent; }
     </section>
   </div>
 
-  <!-- 개인 설정 모달 -->
-  <div id="profile-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+  <!-- ===== 개인 설정창: 카카오톡 연결 / 회원 탈퇴 ===== -->
+  <div
+    id="profile-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+  >
     <section class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl">
       <div class="flex items-center justify-between">
         <div>
@@ -1129,8 +1031,11 @@ input:focus::placeholder { color: transparent; }
     </section>
   </div>
 
-  <!-- 회원 탈퇴 확인 모달 -->
-  <div id="account-delete-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4">
+  <!-- ===== 회원 탈퇴 최종 확인창 ===== -->
+  <div
+    id="account-delete-modal"
+    class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4"
+  >
     <section class="w-full max-w-sm rounded-2xl border border-red-900/60 bg-slate-900 p-6 text-center shadow-2xl">
       <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400"></i>
       <h2 class="mt-4 text-lg font-bold text-white">카카오 연동을 해제하고 탈퇴할까요?</h2>
@@ -1142,8 +1047,11 @@ input:focus::placeholder { color: transparent; }
     </section>
   </div>
 
-  <!-- 편집/수정용 모달 -->
-  <div id="edit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+  <!-- ===== 추적 지표 수정창 ===== -->
+  <div
+    id="edit-modal"
+    class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
+  >
     <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-lg space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-pen-to-square mr-1 text-blue-500"></i> 추적 항목 수정</h3>
@@ -1184,8 +1092,11 @@ input:focus::placeholder { color: transparent; }
   </div>
 
 
-  <!-- 삭제 확인 모달 -->
-  <div id="delete-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+  <!-- ===== 추적 지표 삭제 확인창 ===== -->
+  <div
+    id="delete-modal"
+    class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
+  >
     <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
       <div class="flex items-center gap-2 text-red-300">
         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -1199,7 +1110,10 @@ input:focus::placeholder { color: transparent; }
     </div>
   </div>
 
+  <!-- 로그인 처리 스크립트 -->
   <script src="auth.js?v=11"></script>
+
+  <!-- 지표 등록 / Track / Drag & Drop 처리 스크립트 -->
   <script src="script.js?v=7"></script>
 </body>
 </html>
