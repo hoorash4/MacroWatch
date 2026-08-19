@@ -13,6 +13,8 @@ let draggedItemIndex = null;
 let dropIndicatorIndex = null;
 let expandedTargetId = null;
 let currentUserId = null;
+const TARGETS_PER_PAGE = 8;
+let targetPage = 1;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -129,7 +131,11 @@ function renderTargets() {
     return;
   }
 
-  listEl.innerHTML = targets.map((item, index) => `
+  const pageCount = Math.max(1, Math.ceil(targets.length / TARGETS_PER_PAGE));
+  targetPage = Math.min(targetPage, pageCount);
+  const pageStart = (targetPage - 1) * TARGETS_PER_PAGE;
+  const visibleTargets = targets.slice(pageStart, pageStart + TARGETS_PER_PAGE);
+  listEl.innerHTML = visibleTargets.map((item, localIndex) => { const index = pageStart + localIndex; return `
     <div data-target-container="${index}" class="py-3 border-b border-slate-800/80 first:border-t" style="${index === 0 ? 'border-top-color: transparent;' : ''}${index === targets.length - 1 ? 'border-bottom-color: transparent;' : ''}" ondragover="handleDragOver(event, ${index})" ondrop="handleDrop(event, ${index})">
       <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
@@ -188,8 +194,10 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `).join('');
+  `; }).join('') + (pageCount > 1 ? `<div class="flex items-center justify-between border-t border-slate-800/80 px-2 pt-4"><button type="button" onclick="changeTargetPage(-1)" class="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40" ${targetPage === 1 ? "disabled" : ""}>이전</button><span class="text-xs text-slate-400">${targetPage} / ${pageCount}</span><button type="button" onclick="changeTargetPage(1)" class="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40" ${targetPage === pageCount ? "disabled" : ""}>다음</button></div>` : "");
 }
+
+function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta); expandedTargetId = null; renderTargets(); }
 
 function toggleTargetDetails(id) {
   const targetId = String(id);
