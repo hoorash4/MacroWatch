@@ -195,6 +195,9 @@ function renderTrackTabs() {
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
 
+    // 데스크톱에서는 'Track 01', 768px 이하에서는 CSS가 '탭01'로 표시합니다.
+    // 실제 버튼 텍스트는 그대로 유지해 접근성과 데스크톱 표시를 보존합니다.
+    button.dataset.shortLabel = `탭${String(trackNumber).padStart(2, '0')}`;
     button.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
@@ -210,6 +213,9 @@ function renderTrackTabs() {
   addButton.type = 'button';
   addButton.className = 'sheet-tab sheet-tab-add';
   addButton.setAttribute('role', 'button');
+
+  // 데스크톱에서는 '+ ADD Track', 768px 이하에서는 CSS가 '+ ADD'로 표시합니다.
+  addButton.dataset.shortLabel = '+ ADD';
   addButton.textContent = '+ ADD Track';
   addButton.addEventListener('click', showAddTrackNotice);
   tabsEl.appendChild(addButton);
