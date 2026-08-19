@@ -866,8 +866,9 @@
 #tab-content-tracker>div:first-child {
   grid-column: 2;
   grid-row: 1;
-  background: #f7f5f0 !important;
-  border-color: #d9d4ca !important;
+    background: #fff;
+    border-color: #d9d4ca;
+    color: #071b42;
   box-shadow: 0 14px 30px rgba(7,27,66,.08) !important;
 }
 
@@ -879,7 +880,10 @@
   box-shadow: 0 14px 30px rgba(7,27,66,.08) !important;
 }
 
-#tab-content-tracker h2,#tab-content-tracker label {
+#tab-content-tracker > div:first-child h2,
+#tab-content-tracker > div:first-child label,
+#tab-content-tracker > div:first-child p,
+#tab-content-tracker > div:first-child span {
   color: #071b42 !important;
 }
 
