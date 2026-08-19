@@ -1,14 +1,3 @@
-function showNotice(message) {
-  const existing = document.getElementById('macro-notice-overlay');
-  if (existing) existing.remove();
-  const overlay = document.createElement('div');
-  overlay.id = 'macro-notice-overlay';
-  overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4';
-  overlay.innerHTML = '<section class="w-full max-w-sm rounded-2xl border border-[#d1a55d]/40 bg-[#f7f5f0] p-6 text-center shadow-2xl"><i class="fa-solid fa-circle-info text-2xl text-[#a67531]"></i><p class="mt-4 whitespace-pre-line text-sm leading-6 text-[#071b42]">' + escapeHtml(message) + '</p><button type="button" class="mt-5 w-full rounded-lg bg-[#071b42] py-2.5 text-sm font-bold text-white">확인</button></section>';
-  overlay.querySelector('button').addEventListener('click', () => overlay.remove());
-  overlay.addEventListener('click', (event) => { if (event.target === overlay) overlay.remove(); });
-  document.body.appendChild(overlay);
-}
 // Supabase 및 API 설정
 const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
@@ -24,9 +13,6 @@ let draggedItemIndex = null;
 let dropIndicatorIndex = null;
 let expandedTargetId = null;
 let currentUserId = null;
-const TARGETS_PER_PAGE = 8;
-const MAX_TARGETS = 80;
-let targetPage = 1;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -128,16 +114,6 @@ async function fetchTargets() {
   renderTargets();
 }
 
-function renderTrackTabs(listEl, pageCount = 1) {
-  const existing = document.getElementById('track-tabs');
-  if (existing) existing.innerHTML = '';
-  const pager = document.createElement('div');
-  pager.className = 'track-tabs flex items-end gap-1 border-t border-slate-300 px-2 pt-3 mt-4';
-  pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + 'Track ' + String(n).padStart(2, '0') + '</button>'; }).join('') + '<button type="button" onclick="showTrackAddNotice()" class="h-9 min-w-[108px] rounded-md border border-dashed border-[#d1a55d]/60 px-2 text-xs font-semibold text-[#d1a55d]">ADD Track</button>';
-  const tabHost = document.getElementById('track-tabs');
-  if (tabHost) tabHost.innerHTML = pager.innerHTML;
-}
-
 // 추적 목록 렌더링
 function renderTargets() {
   const listEl = document.getElementById('target-list');
@@ -145,21 +121,15 @@ function renderTargets() {
 
   if (targetLoadError) {
     listEl.innerHTML = `<p class="text-sm text-amber-300 py-6 text-center"><i class="fa-solid fa-triangle-exclamation mr-2"></i>연결 오류가 발생했습니다.<br><span class="text-xs text-slate-400">로그아웃 후 다시 시도해 주세요.</span></p>`;
-    renderTrackTabs(listEl, 1);
     return;
   }
 
   if (targets.length === 0) {
     listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
-    renderTrackTabs(listEl, 1);
     return;
   }
 
-  const pageCount = Math.max(1, Math.ceil(targets.length / TARGETS_PER_PAGE));
-  targetPage = Math.min(targetPage, pageCount);
-  const pageStart = (targetPage - 1) * TARGETS_PER_PAGE;
-  const visibleTargets = targets.slice(pageStart, pageStart + TARGETS_PER_PAGE);
-  listEl.innerHTML = visibleTargets.map((item, localIndex) => { const index = pageStart + localIndex; return `
+  listEl.innerHTML = targets.map((item, index) => `
     <div data-target-container="${index}" class="py-3 border-b border-slate-800/80 first:border-t" style="${index === 0 ? 'border-top-color: transparent;' : ''}${index === targets.length - 1 ? 'border-bottom-color: transparent;' : ''}" ondragover="handleDragOver(event, ${index})" ondrop="handleDrop(event, ${index})">
       <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
@@ -218,21 +188,8 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `; }).join('');
+  `).join('');
 }
-
-function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta); expandedTargetId = null; renderTargets(); 
-  {
-    const pager = document.createElement('div');
-    pager.className = 'flex items-center justify-center gap-1 border-t border-slate-800/80 px-2 pt-4';
-    pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + 'Track ' + String(n).padStart(2, '0') + '</button>'; }).join('') + '<button type="button" onclick="showTrackAddNotice()" class="h-9 min-w-[108px] rounded-md border border-dashed border-[#d1a55d]/60 px-2 text-xs font-semibold text-[#d1a55d]">ADD Track</button>';
-    listEl.appendChild(pager);
-  }
-}
-
-function showTrackAddNotice() { showNotice('현재는 지원하지 않습니다. 신규 등록을 하면 최대 10개까지 자동으로 트랙이 생성됩니다.'); }
-
-function goToTargetPage(pageNumber) { targetPage = Math.max(1, Math.min(pageNumber, Math.ceil(targets.length / TARGETS_PER_PAGE))); expandedTargetId = null; renderTargets(); }
 
 function toggleTargetDetails(id) {
   const targetId = String(id);
@@ -351,18 +308,13 @@ async function saveOrderToDb() {
   } catch (error) {
     console.error('Target order save error:', error);
     await fetchTargets();
-    showNotice('순서를 저장하지 못해 기존 순서로 되돌렸습니다.');
+    window.alert('순서를 저장하지 못해 기존 순서로 되돌렸습니다.');
   }
 }
 
 // 추적 항목 추가
 async function handleAddTarget(e) {
   e.preventDefault();
-
-  if (targets.length >= MAX_TARGETS) {
-    showNotice('지표는 개인 당 최대 80개 까지만 추적 가능합니다.');
-    return;
-  }
 
   const title = document.getElementById('input-title').value.trim();
   const type = document.getElementById('input-type').value;
@@ -402,7 +354,7 @@ async function handleAddTarget(e) {
 
   const userId = await getCurrentUserId();
   if (!userId) {
-    showNotice('로그인 정보가 없습니다. 다시 로그인해 주세요.');
+    window.alert('로그인 정보가 없습니다. 다시 로그인해 주세요.');
     return;
   }
 
