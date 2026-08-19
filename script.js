@@ -14,6 +14,7 @@ let dropIndicatorIndex = null;
 let expandedTargetId = null;
 let currentUserId = null;
 const TARGETS_PER_PAGE = 8;
+const MAX_TARGETS = 80;
 let targetPage = 1;
 
 // 초기화
@@ -201,7 +202,7 @@ function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta);
   if (pageCount > 1) {
     const pager = document.createElement('div');
     pager.className = 'flex items-center justify-center gap-1 border-t border-slate-800/80 px-2 pt-4';
-    pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-7 min-w-7 rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + n + '</button>'; }).join('');
+    pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + String(n).padStart(2, '0') + '</button>'; }).join('');
     listEl.appendChild(pager);
   }
 }
@@ -332,6 +333,11 @@ async function saveOrderToDb() {
 // 추적 항목 추가
 async function handleAddTarget(e) {
   e.preventDefault();
+
+  if (targets.length >= MAX_TARGETS) {
+    window.alert('지표는 개인 당 최대 80개 까지만 추적 가능합니다.');
+    return;
+  }
 
   const title = document.getElementById('input-title').value.trim();
   const type = document.getElementById('input-type').value;
