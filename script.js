@@ -237,7 +237,7 @@ function showCenteredNotice(titleText, messageText = '') {
 function showAddTrackNotice() {
   showCenteredNotice(
   '서비스 준비 중입니다.',
-  '한 탭에 지표가 8개를 초과하면 자동으로 다음 탭이 생성됩니다.'
+  '한 탭에 지표가 8개를 넘으면 자동으로 다음 탭이 생성됩니다.'
 );
 }
 
