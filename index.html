@@ -47,14 +47,15 @@ aspect-ratio: 1 / 1;
 background: #ece9e2;
   border: 0;
 
-  /* 로그인 화면의 기본 높이를 대시보드와 비슷한 체감 높이로 맞춥니다. */
-  min-height: 56rem !important;
+  /* 로그인 메인 화면의 기본 높이를 충분히 확보합니다.
+     데스크톱에서 너무 납작해 보이지 않도록 60rem을 기준으로 잡습니다. */
+  min-height: 60rem !important;
   height: auto;
 }.auth-canvas > div {
 max-width: none;
 
-  /* 바깥 로그인 화면 높이를 그대로 채웁니다. */
-  min-height: 56rem;
+  /* 바깥 로그인 화면과 같은 높이를 사용해 내부 배경도 끝까지 채웁니다. */
+  min-height: 60rem;
   height: 100%;
   grid-template-columns: minmax(0,1.15fr) minmax(360px,.85fr);
 }.auth-canvas > div > section:last-child {
@@ -198,9 +199,9 @@ display: block;
   color: #8c8a84;
   white-space: nowrap;
 }#auth-screen .grid.flex-1 {
-padding-left: clamp(4.5rem, 14vw, 14rem);
-  padding-right: clamp(4.5rem, 14vw, 14rem);
-  column-gap: clamp(2.5rem, 7vw, 7rem);
+padding-left: clamp(5.5rem, 16vw, 16rem);
+  padding-right: clamp(5.5rem, 16vw, 16rem);
+  column-gap: clamp(1.75rem, 4.5vw, 4.5rem);
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
   background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px);
@@ -642,12 +643,12 @@ content: "놓아서 이동";
 
   /* 작은 노트북/태블릿에서는 내용이 세로로 쌓이므로 높이를 자동으로 늘립니다. */
   .auth-canvas {
-    min-height: calc(100vh - 1.5rem) !important;
+    min-height: 60rem !important;
     height: auto;
   }
 
   .auth-canvas > div {
-    min-height: 0;
+    min-height: 60rem;
     height: auto;
   }
 
@@ -666,16 +667,43 @@ content: "놓아서 이동";
     display: none;
   }
 
-  /* 로그인 메인 영역의 좌우 여백을 화면 폭에 따라 자동 조정합니다. */
+  /* 화면이 작아져 메인 문구가 로그인 폼 위로 올라갈 때
+     두 영역을 같은 폭 안에 넣어 좌우 정렬이 흐트러지지 않게 합니다. */
   #auth-screen .grid.flex-1 {
-    padding-left: clamp(1.5rem, 7vw, 4rem);
-    padding-right: clamp(1.5rem, 7vw, 4rem);
+    width: 100%;
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+    row-gap: 2rem;
   }
 
-  /* 로그인 메인 문구가 너무 크게 보이지 않게 자동 축소합니다. */
+  #auth-screen .grid > section:first-child,
+  #auth-screen .grid > section:last-child {
+    width: 100%;
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* 로그인 폼도 같은 430px 폭을 그대로 사용합니다. */
+  #auth-screen .auth-panel {
+    width: 100%;
+    max-width: 430px;
+  }
+
+  /* 메인 문구가 폼 폭 안에서 자연스럽게 줄어들도록 합니다. */
   #auth-screen .grid > section:first-child h1 {
+    width: 100%;
+    max-width: 430px;
     font-size: clamp(2.2rem, 8vw, 3.8rem);
     line-height: 1.22;
+  }
+
+  /* 작은 화면에서는 제목 문구가 430px 폭을 넘어 강제로 튀어나가지 않게 합니다. */
+  #auth-screen .grid > section:first-child h1 span {
+    white-space: normal;
   }
 
   /* 대시보드 입력폼 폭을 조금 유연하게 줄입니다.
