@@ -666,8 +666,14 @@ content: "놓아서 이동";
     max-width: none;
     padding-left: 4rem;
     padding-right: 4rem;
+
+    /* 타이틀과 로그인 폼 사이의 시각적 간격이 너무 좁아지지 않도록 유지합니다. */
     column-gap: 4rem;
-    grid-template-columns: minmax(0, 1fr) 430px;
+
+    /* 왼쪽 타이틀 영역이 무한히 늘어나거나 찌그러지지 않게 최대 폭을 제한합니다.
+       로그인 폼은 기존 430px 폭을 유지합니다. */
+    grid-template-columns: minmax(0, 460px) 430px;
+    justify-content: center;
   }
 
   /* 1080px 아래에서만 폰트가 부드럽게 줄어듭니다.
@@ -705,6 +711,13 @@ content: "놓아서 이동";
    두 영역은 같은 430px 폭 안에서 정렬됩니다.
    ========================================================= */
 @media (max-width: 900px) {
+
+  /* 세로형에서는 데스크톱용 75rem 최소 높이를 해제합니다.
+     바깥 로그인 프레임이 내용보다 길게 남아 하단에 밝은 여백이 생기는 것을 막습니다. */
+  .auth-canvas {
+    min-height: 0 !important;
+    height: auto;
+  }
 
   .auth-canvas > div {
     min-height: 0;
@@ -992,6 +1005,46 @@ content: "놓아서 이동";
   #app-shell > .dashboard-copyright {
     margin-left: -.5rem;
     margin-right: -.5rem;
+  }
+}
+
+
+/* =========================================================
+   로그인 화면 상단 헤더
+   큰 화면에서 로고와 오른쪽 문구가 지나치게 멀리 벌어지지 않게 하고,
+   화면이 줄어들면 둘도 자연스럽게 가까워지도록 합니다.
+   ========================================================= */
+#auth-screen header {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+/* 1080px ~ 901px에서는 본문과 같은 좌우 여백을 사용합니다. */
+@media (max-width: 1080px) and (min-width: 901px) {
+  #auth-screen header {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+/* 로그인 화면이 세로형으로 바뀌면 오른쪽 안내 문구를 숨깁니다. */
+@media (max-width: 900px) {
+  #auth-screen header > :last-child {
+    display: none;
+  }
+
+  /* 세로형에서도 로고가 본문 폭과 어색하게 떨어지지 않도록 정렬합니다. */
+  #auth-screen header {
+    width: 100%;
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
