@@ -1,3 +1,14 @@
+function showNotice(message) {
+  const existing = document.getElementById('macro-notice-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'macro-notice-overlay';
+  overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4';
+  overlay.innerHTML = '<section class="w-full max-w-sm rounded-2xl border border-[#d1a55d]/40 bg-[#f7f5f0] p-6 text-center shadow-2xl"><i class="fa-solid fa-circle-info text-2xl text-[#a67531]"></i><p class="mt-4 whitespace-pre-line text-sm leading-6 text-[#071b42]">' + escapeHtml(message) + '</p><button type="button" class="mt-5 w-full rounded-lg bg-[#071b42] py-2.5 text-sm font-bold text-white">확인</button></section>';
+  overlay.querySelector('button').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (event) => { if (event.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
 // Supabase 및 API 설정
 const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
@@ -207,7 +218,7 @@ function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta);
   }
 }
 
-function showTrackAddNotice() { window.alert('현재는 지원하지 않습니다. 신규 등록을 하면 최대 10개까지 자동으로 트랙이 생성됩니다.'); }
+function showTrackAddNotice() { showNotice('현재는 지원하지 않습니다. 신규 등록을 하면 최대 10개까지 자동으로 트랙이 생성됩니다.'); }
 
 function goToTargetPage(pageNumber) { targetPage = Math.max(1, Math.min(pageNumber, Math.ceil(targets.length / TARGETS_PER_PAGE))); expandedTargetId = null; renderTargets(); }
 
@@ -328,7 +339,7 @@ async function saveOrderToDb() {
   } catch (error) {
     console.error('Target order save error:', error);
     await fetchTargets();
-    window.alert('순서를 저장하지 못해 기존 순서로 되돌렸습니다.');
+    showNotice('순서를 저장하지 못해 기존 순서로 되돌렸습니다.');
   }
 }
 
@@ -337,7 +348,7 @@ async function handleAddTarget(e) {
   e.preventDefault();
 
   if (targets.length >= MAX_TARGETS) {
-    window.alert('지표는 개인 당 최대 80개 까지만 추적 가능합니다.');
+    showNotice('지표는 개인 당 최대 80개 까지만 추적 가능합니다.');
     return;
   }
 
@@ -379,7 +390,7 @@ async function handleAddTarget(e) {
 
   const userId = await getCurrentUserId();
   if (!userId) {
-    window.alert('로그인 정보가 없습니다. 다시 로그인해 주세요.');
+    showNotice('로그인 정보가 없습니다. 다시 로그인해 주세요.');
     return;
   }
 
