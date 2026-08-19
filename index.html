@@ -786,13 +786,14 @@ content: "놓아서 이동";
 
   #auth-screen header {
     width: 100%;
-    padding-left: max(0.1rem, calc((100% - 430px) / 2));
-    padding-right: max(1rem, calc((100% - 430px) / 2));
+    justify-content: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
-
+  
   #auth-screen header > div:first-child {
-    margin-left: 0;
-   /* transform: translateX(-8px); */
+    margin: 0;
+    transform: none;
   }
 }
 
@@ -969,6 +970,11 @@ content: "놓아서 이동";
   #auth-screen > div > header .font-cinzel + p {
     font-size: .5rem;
     letter-spacing: .1em;
+  }
+
+  #auth-screen header img {
+    width: 24px;
+    height: 24px;
   }
 
   #auth-screen > div > header .text-\[9px\] {
