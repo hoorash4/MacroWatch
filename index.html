@@ -664,6 +664,22 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 1080px) and (min-width: 901px) {
 
+
+    #auth-screen .auth-main-content {
+    width: 100%;
+
+    /* 기본 좌우 여백과 gap은 그대로 물려받습니다. */
+    max-width: 1180px;
+
+    /* 화면이 줄어들면 두 칼럼만 유연하게 줄어듭니다. */
+    grid-template-columns:
+      minmax(300px, 420px)
+      minmax(360px, 430px);
+
+    justify-content: center;
+  }
+
+
   /* 가로형에서는 두 문구를 2줄 형태로 유지한 채 크기만 줄입니다. */
   #auth-screen .auth-main-content > section:first-child h1 {
     font-size: clamp(3.5rem, 7.7vw, 5.2rem);
