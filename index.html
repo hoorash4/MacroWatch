@@ -473,6 +473,12 @@
 </style><style id="dashboard-submit-contrast">
 #tab-content-tracker>div:first-child button[type="submit"]{color:#f7f5f0!important;background:#071b42!important}
 #tab-content-tracker>div:first-child button[type="submit"]:hover{color:#fff!important;background:#12366f!important}
+</style><style id="sheet-tabs-clean">
+.sheet-tabs{display:flex;align-items:flex-end;gap:3px;margin:1rem -1.25rem -1.25rem;padding:.65rem .75rem 0;background:#071b42;background-image:radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);background-size:36px 36px;border-radius:0 0 1.25rem 1.25rem}
+.sheet-tab{height:34px;min-width:102px;padding:0 .85rem;border:1px solid #cfc8bb;border-bottom:0;border-radius:.55rem .55rem 0 0;background:#dcd8cf;color:#64748b;font:600 .72rem/1 Pretendard,sans-serif}
+.sheet-tab.is-active{background:#f7f5f0;color:#071b42}
+.sheet-tab-add{background:transparent;color:#d1a55d;border-style:dashed}
+@media(max-width:900px){.sheet-tabs{margin-left:-1rem;margin-right:-1rem;margin-bottom:-1rem}}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
@@ -700,6 +706,7 @@
         <div id="target-list" class="divide-y divide-slate-800/80">
           <p class="loading-state text-sm text-slate-500 py-4 text-center">목록을 불러오는 중...</p>
         </div>
+          <div class="sheet-tabs" role="tablist"><button type="button" class="sheet-tab is-active" role="tab">Track 01</button><button type="button" class="sheet-tab sheet-tab-add" role="tab" onclick="showNotice('현재는 지원하지 않습니다. 신규 등록을 하면 트랙이 자동으로 생성됩니다.')">ADD Track</button></div>
       </div>
 
     </div>
