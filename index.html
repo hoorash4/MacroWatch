@@ -726,12 +726,11 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 900px) {
 
- /* 세로형에서도 로그인 전체 영역의 높이를 유지합니다. */
-  .auth-canvas,
-  .auth-canvas > div {
-    min-height: 75rem !important;
-    height: auto;
-  }
+.auth-canvas,
+.auth-canvas > div {
+  min-height: 0 !important;
+  height: auto;
+}
 
 /* 도트 배경도 남는 높이를 끝까지 채웁니다. */
   #auth-screen .auth-main {
