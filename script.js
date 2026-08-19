@@ -202,10 +202,12 @@ function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta);
   if (pageCount > 1) {
     const pager = document.createElement('div');
     pager.className = 'flex items-center justify-center gap-1 border-t border-slate-800/80 px-2 pt-4';
-    pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + 'Track ' + String(n).padStart(2, '0') + '</button>'; }).join('');
+    pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + 'Track ' + String(n).padStart(2, '0') + '</button>'; }).join('') + '<button type="button" onclick="showTrackAddNotice()" class="h-9 min-w-[108px] rounded-md border border-dashed border-[#d1a55d]/60 px-2 text-xs font-semibold text-[#d1a55d]">ADD Track</button>';
     listEl.appendChild(pager);
   }
 }
+
+function showTrackAddNotice() { window.alert('현재는 지원하지 않습니다. 신규 등록을 하면 최대 10개까지 자동으로 트랙이 생성됩니다.'); }
 
 function goToTargetPage(pageNumber) { targetPage = Math.max(1, Math.min(pageNumber, Math.ceil(targets.length / TARGETS_PER_PAGE))); expandedTargetId = null; renderTargets(); }
 
