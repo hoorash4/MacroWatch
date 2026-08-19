@@ -726,17 +726,19 @@ content: "놓아서 이동";
    ========================================================= */
 @media (max-width: 900px) {
 
-  /* 세로형에서는 데스크톱용 고정 높이를 해제합니다. */
+ /* 세로형에서도 로그인 전체 영역의 높이를 유지합니다. */
   .auth-canvas,
   .auth-canvas > div {
-    min-height: 0 !important;
+    min-height: 75rem !important;
     height: auto;
   }
 
-  /* 도트 배경은 전체 폭을 유지하고 콘텐츠는 위에서부터 자연스럽게 흐릅니다. */
+/* 도트 배경도 남는 높이를 끝까지 채웁니다. */
   #auth-screen .auth-main {
-    display: block;
+    display: flex;
+    align-items: flex-start;
     width: 100%;
+    min-height: calc(75rem - 76px - 42px);
   }
 
   #auth-screen .auth-main-content {
