@@ -749,7 +749,7 @@ content: "놓아서 이동";
     padding-left: 0;
     padding-right: 0;
     column-gap: 0;
-    row-gap: 2rem;
+    row-gap: 4rem;
   }
 
   #auth-screen .auth-main-content > section,
@@ -772,6 +772,12 @@ content: "놓아서 이동";
     display: inline;
   }
 
+  /*타이틀과 문구 사이 간격 조절.*/
+  #auth-screen .auth-main-content > section:first-child > p:not(.mb-6) {
+  margin-top: 1.5rem;
+}
+
+  
   /* 세로형에서는 오른쪽 헤더 문구를 숨기고 로고를 폼 왼쪽 면에 맞춥니다. */
   .header-product-label {
     display: none;
