@@ -489,6 +489,10 @@
 #tab-content-tracker>div:last-child{margin-top:-3.4rem!important}
 #tab-content-tracker>div:last-child{border-top-left-radius:0!important}
 @media(max-width:900px){#tab-content-tracker>div:last-child{margin-top:0!important}}
+</style><style id="tabs-inside-list-card">
+#app-shell>.flex.border-b{display:none!important}
+#tab-content-tracker>div:last-child{margin-top:0!important;border-top-left-radius:0!important}
+#tab-content-tracker>div:last-child>.flex.border-b{display:flex!important;margin:-1.25rem -1.25rem 1.25rem!important;padding:0 1rem!important;width:auto!important}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
@@ -600,7 +604,13 @@
     </div>
 
     <!-- 탭 메뉴 -->
-    <div class="flex border-b border-slate-800 mb-6">
+    
+
+    <!-- 경제지표 추적 탭 컨텐츠 -->
+    <div id="tab-content-tracker" class="space-y-6">
+      
+      <!-- 등록 폼 -->
+      <div class="flex border-b border-slate-800 mb-6">
       <button onclick="switchTab('tracker')" id="tab-btn-tracker" class="px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2">
         <i class="fa-solid fa-chart-line"></i> 경제지표 추적
       </button>
@@ -608,11 +618,6 @@
         <i class="fa-solid fa-newspaper"></i> 주요 뉴스 (AI 요약)
       </button>
     </div>
-
-    <!-- 경제지표 추적 탭 컨텐츠 -->
-    <div id="tab-content-tracker" class="space-y-6">
-      
-      <!-- 등록 폼 -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
         <h2 class="text-lg font-bold text-white mb-4 flex items-center">
           <i class="fa-solid fa-plus-circle mr-2 text-blue-500"></i> 경제지표 추적 신규 등록
