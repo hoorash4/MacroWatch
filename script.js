@@ -194,10 +194,19 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `; }).join('') + (pageCount > 1 ? `<div class="flex items-center justify-between border-t border-slate-800/80 px-2 pt-4"><button type="button" onclick="changeTargetPage(-1)" class="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40" ${targetPage === 1 ? "disabled" : ""}>이전</button><span class="text-xs text-slate-400">${targetPage} / ${pageCount}</span><button type="button" onclick="changeTargetPage(1)" class="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40" ${targetPage === pageCount ? "disabled" : ""}>다음</button></div>` : "");
+  `; }).join('');
 }
 
-function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta); expandedTargetId = null; renderTargets(); }
+function changeTargetPage(delta) { targetPage = Math.max(1, targetPage + delta); expandedTargetId = null; renderTargets(); 
+  if (pageCount > 1) {
+    const pager = document.createElement('div');
+    pager.className = 'flex items-center justify-center gap-1 border-t border-slate-800/80 px-2 pt-4';
+    pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-7 min-w-7 rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + n + '</button>'; }).join('');
+    listEl.appendChild(pager);
+  }
+}
+
+function goToTargetPage(pageNumber) { targetPage = Math.max(1, Math.min(pageNumber, Math.ceil(targets.length / TARGETS_PER_PAGE))); expandedTargetId = null; renderTargets(); }
 
 function toggleTargetDetails(id) {
   const targetId = String(id);
