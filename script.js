@@ -5,18 +5,28 @@ const supabaseClient = window.macroWatchSupabase
   || (window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null);
 
 // 상태 관리
+const ITEMS_PER_TRACK = 8;
+const MAX_TRACKS = 10;
+const MAX_TARGETS = ITEMS_PER_TRACK * MAX_TRACKS;
+
 let targets = [];
 let targetLoadError = false;
 let currentEditId = null;
 let currentDeleteId = null;
-let draggedItemIndex = null;
-let dropIndicatorIndex = null;
+let draggedItemIndex = null;      // targets 배열의 전역 인덱스
+let dropIndicatorIndex = null;    // targets 배열 기준 삽입 인덱스
 let expandedTargetId = null;
 let currentUserId = null;
+let activeTrack = 1;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
   toggleTargetValueInput('input-condition', 'input-target-val');
+
+  const preparingClose = document.getElementById('service-preparing-close');
+  if (preparingClose) {
+    preparingClose.addEventListener('click', closeServicePreparingModal);
+  }
 });
 
 async function getCurrentUserId() {
@@ -114,26 +124,100 @@ async function fetchTargets() {
   renderTargets();
 }
 
-// 추적 목록 렌더링
-function renderTargets() {
-  const listEl = document.getElementById('target-list');
-  if (!listEl) return;
+// Track 계산 및 탭 렌더링
+function getTrackCount() {
+  return Math.max(1, Math.min(MAX_TRACKS, Math.ceil(targets.length / ITEMS_PER_TRACK)));
+}
 
-  if (targetLoadError) {
-    listEl.innerHTML = `<p class="text-sm text-amber-300 py-6 text-center"><i class="fa-solid fa-triangle-exclamation mr-2"></i>연결 오류가 발생했습니다.<br><span class="text-xs text-slate-400">로그아웃 후 다시 시도해 주세요.</span></p>`;
+function getTrackStartIndex(trackNumber = activeTrack) {
+  return (trackNumber - 1) * ITEMS_PER_TRACK;
+}
+
+function getTrackEndIndex(trackNumber = activeTrack) {
+  return Math.min(getTrackStartIndex(trackNumber) + ITEMS_PER_TRACK, targets.length);
+}
+
+function normalizeActiveTrack() {
+  const trackCount = getTrackCount();
+  if (activeTrack > trackCount) activeTrack = trackCount;
+  if (activeTrack < 1) activeTrack = 1;
+}
+
+function switchTrack(trackNumber) {
+  const trackCount = getTrackCount();
+  if (trackNumber < 1 || trackNumber > trackCount || trackNumber === activeTrack) return;
+
+  activeTrack = trackNumber;
+  expandedTargetId = null;
+  clearDropIndicator();
+  renderTargets();
+}
+
+function renderTrackTabs() {
+  const tabsEl = document.querySelector('#tab-content-tracker > .sheet-tabs');
+  if (!tabsEl) return;
+
+  normalizeActiveTrack();
+  const trackCount = getTrackCount();
+
+  tabsEl.innerHTML = '';
+
+  for (let trackNumber = 1; trackNumber <= trackCount; trackNumber += 1) {
+    const button = document.createElement('button');
+    const isActive = trackNumber === activeTrack;
+
+    button.type = 'button';
+    button.className = `sheet-tab${isActive ? ' is-active' : ''}`;
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-selected', String(isActive));
+    button.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
+
+    button.addEventListener('click', () => switchTrack(trackNumber));
+    button.addEventListener('dragover', (event) => handleTrackDragOver(event, trackNumber));
+    button.addEventListener('dragleave', handleTrackDragLeave);
+    button.addEventListener('drop', (event) => handleDropOnTrack(event, trackNumber));
+
+    tabsEl.appendChild(button);
+  }
+
+  const addButton = document.createElement('button');
+  addButton.type = 'button';
+  addButton.className = 'sheet-tab sheet-tab-add';
+  addButton.setAttribute('role', 'button');
+  addButton.textContent = '+ ADD Track';
+  addButton.addEventListener('click', showAddTrackNotice);
+  tabsEl.appendChild(addButton);
+}
+
+function showAddTrackNotice() {
+  const modal = document.getElementById('service-preparing-modal');
+  const title = document.getElementById('service-preparing-title');
+  const message = modal?.querySelector('p');
+
+  if (!modal || !title || !message) {
+    window.alert('서비스 준비 중입니다. 지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.');
     return;
   }
 
-  if (targets.length === 0) {
-    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
-    return;
-  }
+  title.textContent = '서비스 준비 중입니다.';
+  message.textContent = '지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.';
+  modal.classList.remove('hidden');
+}
 
-  listEl.innerHTML = targets.map((item, index) => `
-    <div data-target-container="${index}" class="py-3 border-b border-slate-800/80 first:border-t" style="${index === 0 ? 'border-top-color: transparent;' : ''}${index === targets.length - 1 ? 'border-bottom-color: transparent;' : ''}" ondragover="handleDragOver(event, ${index})" ondrop="handleDrop(event, ${index})">
+function closeServicePreparingModal() {
+  document.getElementById('service-preparing-modal')?.classList.add('hidden');
+}
+
+// 추적 항목 한 개의 HTML 생성
+function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
+  return `
+    <div data-target-container="${globalIndex}" class="py-3 border-b border-slate-800/80 first:border-t"
+         style="${isFirstVisible ? 'border-top-color: transparent;' : ''}${isLastVisible ? 'border-bottom-color: transparent;' : ''}"
+         ondragover="handleDragOver(event, ${globalIndex})"
+         ondrop="handleDrop(event, ${globalIndex})">
       <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
-           ondragstart="handleDragStart(event, ${index})"
+           ondragstart="handleDragStart(event, ${globalIndex})"
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
@@ -188,7 +272,40 @@ function renderTargets() {
         </div>
       ` : ''}
     </div>
-  `).join('');
+  `;
+}
+
+// 추적 목록 렌더링
+function renderTargets() {
+  const listEl = document.getElementById('target-list');
+  if (!listEl) return;
+
+  normalizeActiveTrack();
+  renderTrackTabs();
+
+  if (targetLoadError) {
+    listEl.innerHTML = `<p class="text-sm text-amber-300 py-6 text-center"><i class="fa-solid fa-triangle-exclamation mr-2"></i>연결 오류가 발생했습니다.<br><span class="text-xs text-slate-400">로그아웃 후 다시 시도해 주세요.</span></p>`;
+    return;
+  }
+
+  if (targets.length === 0) {
+    listEl.innerHTML = `<p class="text-sm text-slate-500 py-6 text-center"><i class="fa-solid fa-circle-info mr-2"></i>등록된 추적 항목이 없습니다.</p>`;
+    return;
+  }
+
+  const startIndex = getTrackStartIndex();
+  const endIndex = getTrackEndIndex();
+  const visibleTargets = targets.slice(startIndex, endIndex);
+
+  listEl.innerHTML = visibleTargets.map((item, localIndex) => {
+    const globalIndex = startIndex + localIndex;
+    return renderTargetItem(
+      item,
+      globalIndex,
+      localIndex === 0,
+      localIndex === visibleTargets.length - 1
+    );
+  }).join('');
 }
 
 function toggleTargetDetails(id) {
@@ -224,16 +341,19 @@ async function toggleTargetActive(id) {
 }
 
 // 드래그 앤 드롭 핸들러
-function setDropIndicator(index) {
-  if (dropIndicatorIndex === index) return;
+function setDropIndicator(globalInsertIndex) {
+  if (dropIndicatorIndex === globalInsertIndex) return;
 
   clearDropIndicator();
-  dropIndicatorIndex = index;
+  dropIndicatorIndex = globalInsertIndex;
 
-  const containers = document.querySelectorAll('[data-target-container]');
-  if (index < containers.length) {
-    containers[index]?.style.setProperty('box-shadow', 'inset 0 1px 0 white');
-  } else {
+  const containers = [...document.querySelectorAll('[data-target-container]')];
+  const startIndex = getTrackStartIndex();
+  const localInsertIndex = globalInsertIndex - startIndex;
+
+  if (localInsertIndex >= 0 && localInsertIndex < containers.length) {
+    containers[localInsertIndex]?.style.setProperty('box-shadow', 'inset 0 1px 0 white');
+  } else if (containers.length > 0) {
     containers[containers.length - 1]?.style.setProperty('box-shadow', 'inset 0 -1px 0 white');
   }
 }
@@ -245,29 +365,46 @@ function clearDropIndicator() {
   dropIndicatorIndex = null;
 }
 
-function handleDragStart(e, index) {
-  draggedItemIndex = index;
+function handleDragStart(e, globalIndex) {
+  draggedItemIndex = globalIndex;
   clearDropIndicator();
   e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', String(globalIndex));
   e.currentTarget.classList.add('opacity-40');
 }
 
-function handleDragOver(e, targetIndex) {
+function handleDragOver(e, targetGlobalIndex) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
   const targetRow = e.currentTarget.querySelector('[data-target-row]') || e.currentTarget;
   const rect = targetRow.getBoundingClientRect();
-  const insertIndex = e.clientY < rect.top + rect.height / 2 ? targetIndex : targetIndex + 1;
+  const insertIndex = e.clientY < rect.top + rect.height / 2
+    ? targetGlobalIndex
+    : targetGlobalIndex + 1;
+
   setDropIndicator(insertIndex);
 }
 
-function handleDrop(e, targetIndex) {
+function handleDrop(e, targetGlobalIndex) {
   e.preventDefault();
-  const insertIndex = dropIndicatorIndex ?? targetIndex;
+  const insertIndex = dropIndicatorIndex ?? targetGlobalIndex;
   clearDropIndicator();
 
   if (draggedItemIndex === null) return;
+
+  // 리스트 내부 드롭은 현재 Track 안에서만 순서를 바꾼다.
+  const trackStart = getTrackStartIndex();
+  const trackEnd = getTrackEndIndex();
+
+  if (
+    draggedItemIndex < trackStart ||
+    draggedItemIndex >= trackEnd ||
+    insertIndex < trackStart ||
+    insertIndex > trackEnd
+  ) {
+    return;
+  }
 
   const destinationIndex = draggedItemIndex < insertIndex ? insertIndex - 1 : insertIndex;
   if (destinationIndex === draggedItemIndex) return;
@@ -275,18 +412,83 @@ function handleDrop(e, targetIndex) {
   const movedItem = targets.splice(draggedItemIndex, 1)[0];
   targets.splice(destinationIndex, 0, movedItem);
 
-  targets.forEach((item, idx) => {
-    item.display_order = idx;
-  });
+  updateDisplayOrder();
+  renderTargets();
+  saveOrderToDb();
+}
 
+function handleTrackDragOver(e, targetTrack) {
+  if (draggedItemIndex === null) return;
+
+  const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
+  if (targetTrack === sourceTrack) return;
+
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('ring-2', 'ring-[#d1a55d]');
+}
+
+function handleTrackDragLeave(e) {
+  e.currentTarget.classList.remove('ring-2', 'ring-[#d1a55d]');
+}
+
+function handleDropOnTrack(e, targetTrack) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('ring-2', 'ring-[#d1a55d]');
+
+  if (draggedItemIndex === null) return;
+
+  const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
+  if (targetTrack === sourceTrack) return;
+
+  const sourceStart = getTrackStartIndex(sourceTrack);
+  const targetStart = getTrackStartIndex(targetTrack);
+  const sourceItems = targets.slice(sourceStart, getTrackEndIndex(sourceTrack));
+  const targetItems = targets.slice(targetStart, getTrackEndIndex(targetTrack));
+
+  const sourceLocalIndex = draggedItemIndex - sourceStart;
+  const [movedItem] = sourceItems.splice(sourceLocalIndex, 1);
+  if (!movedItem || targetItems.length === 0) return;
+
+  if (targetTrack < sourceTrack) {
+    // 이전 Track으로 이동:
+    // 이동 항목 -> 대상 Track 맨 아래
+    // 대상 Track 맨 아래 항목 -> 출발 Track 맨 위
+    const displacedItem = targetItems.pop();
+    targetItems.push(movedItem);
+    sourceItems.unshift(displacedItem);
+  } else {
+    // 다음 Track으로 이동:
+    // 이동 항목 -> 대상 Track 맨 위
+    // 대상 Track 맨 위 항목 -> 출발 Track 맨 아래
+    const displacedItem = targetItems.shift();
+    targetItems.unshift(movedItem);
+    sourceItems.push(displacedItem);
+  }
+
+  const nextTargets = [...targets];
+  nextTargets.splice(sourceStart, sourceItems.length, ...sourceItems);
+  nextTargets.splice(targetStart, targetItems.length, ...targetItems);
+  targets = nextTargets;
+
+  updateDisplayOrder();
   renderTargets();
   saveOrderToDb();
 }
 
 function handleDragEnd(e) {
   e.currentTarget.classList.remove('opacity-40');
+  document.querySelectorAll('.sheet-tab').forEach(tab => {
+    tab.classList.remove('ring-2', 'ring-[#d1a55d]');
+  });
   clearDropIndicator();
   draggedItemIndex = null;
+}
+
+function updateDisplayOrder() {
+  targets.forEach((item, index) => {
+    item.display_order = index;
+  });
 }
 
 // 순서 변경 사항 DB 저장
@@ -315,6 +517,11 @@ async function saveOrderToDb() {
 // 추적 항목 추가
 async function handleAddTarget(e) {
   e.preventDefault();
+
+  if (targets.length >= MAX_TARGETS) {
+    window.alert(`추적 지표는 최대 ${MAX_TARGETS}개까지 등록할 수 있습니다.`);
+    return;
+  }
 
   const title = document.getElementById('input-title').value.trim();
   const type = document.getElementById('input-type').value;
