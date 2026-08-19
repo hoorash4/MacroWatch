@@ -484,6 +484,11 @@
 </style><style id="target-list-min-height">
 #target-list{min-height:520px!important}
 @media(max-width:900px){#target-list{min-height:0!important}}
+</style><style id="tabs-attached-to-list">
+#app-shell>.flex.border-b{margin-bottom:0!important}
+#tab-content-tracker>div:last-child{margin-top:-3.4rem!important}
+#tab-content-tracker>div:last-child{border-top-left-radius:0!important}
+@media(max-width:900px){#tab-content-tracker>div:last-child{margin-top:0!important}}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
@@ -610,7 +615,7 @@
       <!-- 등록 폼 -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
         <h2 class="text-lg font-bold text-white mb-4 flex items-center">
-          <i class="fa-solid fa-plus-circle mr-2 text-blue-500"></i> 새로운 경제지표 추적 등록
+          <i class="fa-solid fa-plus-circle mr-2 text-blue-500"></i> 경제지표 추적 신규 등록
         </h2>
         <form id="add-form" autocomplete="off" onsubmit="handleAddTarget(event)" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
