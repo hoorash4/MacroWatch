@@ -980,10 +980,6 @@ content: "놓아서 이동";
     font-size: .4rem;
   }
 
-  #auth-screen > div > header > div:first-child {
-    transform: translateX(4px);
-  }
-
   /* 작은 폰에서는 대시보드 외곽 여백을 한 번 더 줄입니다. */
   #app-shell {
     width: calc(100% - .5rem);
@@ -1057,10 +1053,18 @@ content: "놓아서 이동";
     display: none;
   }
 
+  /* 세로형에서는 헤더 전체 폭은 유지하되,
+     로고 시작점만 메인 폼의 왼쪽 면과 정확히 맞춥니다.
+     이후 더 작은 화면에서도 별도로 움직이지 않습니다. */
   #auth-screen header {
     width: 100%;
     padding-left: max(1rem, calc((100% - 430px) / 2));
     padding-right: max(1rem, calc((100% - 430px) / 2));
+  }
+
+  #auth-screen header > div:first-child {
+    margin-left: 0;
+    transform: none;
   }
 }
 
