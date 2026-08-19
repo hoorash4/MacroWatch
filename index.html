@@ -205,6 +205,12 @@ display: block;
    실제 콘텐츠 폭과 배경 폭을 분리해 양쪽 빈 영역에도 도트가 이어집니다. */
 #auth-screen .auth-main {
   width: 100%;
+
+  /* 로그인 본문의 남는 높이를 채우고,
+     타이틀과 로그인 폼을 세로 중앙에 배치합니다. */
+  display: flex;
+  align-items: center;
+
   background-image: radial-gradient(rgba(247,245,240,.14) 1px, transparent 1px);
   background-size: 36px 36px;
 }
@@ -225,7 +231,7 @@ display: block;
   justify-content: center;
 
   /* 타이틀과 로그인 폼 사이 간격은 이 값 하나로 관리합니다. */
-  column-gap: clamp(5rem, 7vw, 7rem);
+  column-gap: clamp(6.5rem, 8vw, 8rem);
 }#auth-screen .grid > section:first-child h1 {
 letter-spacing: -.07em;
   max-width: none;
@@ -715,6 +721,11 @@ content: "놓아서 이동";
    두 영역은 같은 430px 폭 안에서 정렬됩니다.
    ========================================================= */
 @media (max-width: 900px) {
+
+  /* 세로형에서는 본문을 내용 높이대로 자연스럽게 배치합니다. */
+  #auth-screen .auth-main {
+    display: block;
+  }
 
   /* 세로형에서는 데스크톱용 75rem 최소 높이를 해제합니다.
      바깥 로그인 프레임이 내용보다 길게 남아 하단에 밝은 여백이 생기는 것을 막습니다. */
