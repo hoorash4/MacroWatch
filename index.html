@@ -202,9 +202,19 @@ display: block;
   color: #8c8a84;
   white-space: nowrap;
 }#auth-screen .grid.flex-1 {
-  padding-left: clamp(5.5rem, 35vw, 60rem);
-  padding-right: clamp(5.5rem, 35vw, 60rem);
-  column-gap: clamp(1.75rem, 4.5vw, 4.5rem);
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+
+  /* 큰 화면에서는 좌우 배치와 제목/폼 사이 간격이 안정적으로 유지됩니다. */
+  padding-left: 3rem;
+  padding-right: 3rem;
+  column-gap: 4.5rem;
+
+  /* 왼쪽 제목 영역은 남은 공간을 쓰고 로그인 폼은 430px을 기준으로 유지합니다. */
+  grid-template-columns: minmax(0, 1fr) 430px;
+
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
   background-image: radial-gradient(rgba(247,245,240,.14) 1px,transparent 1px);
@@ -213,8 +223,8 @@ display: block;
 letter-spacing: -.07em;
   max-width: none;
   white-space: normal;
-  font-size: clamp(2.35rem,5.2vw,5.3rem);
-  line-height: 1.28;
+  font-size: clamp(2.8rem, 4vw, 4.2rem);
+  line-height: 1.24;
 }#auth-screen .grid > section:first-child h1 br {
 display: block;
 }#auth-screen .grid > section:first-child h1 span {
@@ -637,84 +647,88 @@ content: "놓아서 이동";
 
 
 /* =========================================================
+   1200px 이하
+   중간 크기 화면에서는 2열을 유지하되 전체 폭과 간격, 제목 크기를 조금씩 줄입니다.
+   ========================================================= */
+@media (max-width: 1200px) and (min-width: 901px) {
+
+  #auth-screen .grid.flex-1 {
+    max-width: 1100px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    column-gap: clamp(2rem, 4vw, 3.5rem);
+    grid-template-columns: minmax(0, 1fr) 430px;
+  }
+
+  #auth-screen .grid > section:first-child h1 {
+    font-size: clamp(2.5rem, 5vw, 3.6rem);
+  }
+
+  /* 중간 화면에서는 두 번째 문구도 공간이 부족하면 자연스럽게 줄바꿈됩니다. */
+  #auth-screen .grid > section:first-child h1 span {
+    white-space: normal;
+  }
+}
+
+
+/* =========================================================
    1024px 이하
-   작은 노트북과 태블릿 가로 화면을 위한 1차 보정입니다.
-   로그인 화면은 세로 구조로 바꾸지만,
-   대시보드는 아직 2열 구조를 유지해서 넓은 화면을 활용합니다.
+   작은 노트북 / 태블릿 가로 화면입니다.
+   로그인은 아직 2열을 유지하고, 대시보드 입력폼 폭만 유연하게 줄입니다.
    ========================================================= */
 @media (max-width: 1024px) {
 
-  /* 작은 노트북/태블릿에서는 내용이 세로로 쌓이므로 높이를 자동으로 늘립니다. */
-  .auth-canvas {
-    min-height: 60rem !important;
+  #tab-content-tracker {
+    grid-template-columns:
+      minmax(0, 1fr)
+      clamp(320px, 35vw, 360px);
+  }
+}
+
+
+/* =========================================================
+   900px 이하
+   2열 유지가 답답해지는 지점부터 메인 타이틀을 위,
+   로그인 폼을 아래에 놓는 세로 구조로 바꿉니다.
+   두 영역은 같은 430px 폭 안에서 정렬됩니다.
+   ========================================================= */
+@media (max-width: 900px) {
+
+  .auth-canvas > div {
+    min-height: 0;
     height: auto;
   }
 
-  .auth-canvas > div {
-    min-height: 60rem;
-    height: auto;
-  }
-
-  /* 로그인 소개 영역과 로그인 폼을 위아래로 배치합니다. */
-  .auth-canvas > div {
-    display: block;
-  }
-
-  /* 로그인 폼이 세로 배치됐을 때 좌우 여백을 적당히 줄입니다. */
-  .auth-canvas > div > section:last-child {
-    padding: 2.5rem 1.5rem 4rem;
-  }
-
-  /* 넓은 화면용 우측 상단 안내 문구는 숨깁니다. */
-  .auth-canvas > div > section:last-child::before {
-    display: none;
-  }
-
-  /* 화면이 작아져 메인 문구가 로그인 폼 위로 올라갈 때
-     두 영역을 같은 폭 안에 넣어 좌우 정렬이 흐트러지지 않게 합니다. */
   #auth-screen .grid.flex-1 {
+    grid-template-columns: 1fr;
     width: 100%;
     max-width: 430px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 0;
     padding-right: 0;
+    column-gap: 0;
     row-gap: 2rem;
   }
 
   #auth-screen .grid > section:first-child,
-  #auth-screen .grid > section:last-child {
+  #auth-screen .grid > section:last-child,
+  #auth-screen .auth-panel {
     width: 100%;
     max-width: 430px;
     margin-left: auto;
     margin-right: auto;
   }
 
-  /* 로그인 폼도 같은 430px 폭을 그대로 사용합니다. */
-  #auth-screen .auth-panel {
-    width: 100%;
-    max-width: 430px;
-  }
-
-  /* 메인 문구가 폼 폭 안에서 자연스럽게 줄어들도록 합니다. */
   #auth-screen .grid > section:first-child h1 {
     width: 100%;
     max-width: 430px;
-    font-size: clamp(2.2rem, 8vw, 3.8rem);
+    font-size: clamp(2.2rem, 8vw, 3.4rem);
     line-height: 1.22;
   }
 
-  /* 작은 화면에서는 제목 문구가 430px 폭을 넘어 강제로 튀어나가지 않게 합니다. */
   #auth-screen .grid > section:first-child h1 span {
     white-space: normal;
-  }
-
-  /* 대시보드 입력폼 폭을 조금 유연하게 줄입니다.
-     1024px 부근에서도 리스트 영역이 지나치게 좁아지는 것을 막습니다. */
-  #tab-content-tracker {
-    grid-template-columns:
-      minmax(0, 1fr)
-      clamp(320px, 35vw, 360px);
   }
 }
 
@@ -805,11 +819,6 @@ content: "놓아서 이동";
     line-height: 1.9;
   }
 
-  #auth-screen .grid > section:first-child > p:not(.mb-6)::before {
-    top: 0;
-    bottom: 0;
-    height: auto;
-  }
 }
 
 
