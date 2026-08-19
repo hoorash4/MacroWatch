@@ -27,6 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
+
+  document.addEventListener('click', (event) => {
+    const helpButton = event.target.closest('.track-help-button');
+    const help = event.target.closest('.track-help');
+
+    if (helpButton && help) {
+      event.stopPropagation();
+      help.classList.toggle('is-open');
+      return;
+    }
+
+    document.querySelector('.track-help.is-open')?.classList.remove('is-open');
+  });
 });
 
 async function getCurrentUserId() {
@@ -387,6 +400,9 @@ function clearDropIndicator() {
 function handleDragStart(e, globalIndex) {
   draggedItemIndex = globalIndex;
   clearDropIndicator();
+
+  document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
+
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', String(globalIndex));
   e.currentTarget.classList.add('opacity-40');
@@ -444,16 +460,16 @@ function handleTrackDragOver(e, targetTrack) {
 
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('ring-2', 'ring-[#d1a55d]');
+  e.currentTarget.classList.add('is-drag-over');
 }
 
 function handleTrackDragLeave(e) {
-  e.currentTarget.classList.remove('ring-2', 'ring-[#d1a55d]');
+  e.currentTarget.classList.remove('is-drag-over');
 }
 
 function handleDropOnTrack(e, targetTrack) {
   e.preventDefault();
-  e.currentTarget.classList.remove('ring-2', 'ring-[#d1a55d]');
+  e.currentTarget.classList.remove('is-drag-over');
 
   if (draggedItemIndex === null) return;
 
@@ -490,9 +506,12 @@ function handleDropOnTrack(e, targetTrack) {
 
 function handleDragEnd(e) {
   e.currentTarget.classList.remove('opacity-40');
+
+  document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
   document.querySelectorAll('.sheet-tab').forEach(tab => {
-    tab.classList.remove('ring-2', 'ring-[#d1a55d]');
+    tab.classList.remove('is-drag-over');
   });
+
   clearDropIndicator();
   draggedItemIndex = null;
 }
