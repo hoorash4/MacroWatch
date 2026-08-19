@@ -27,19 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
-
-  document.addEventListener('click', (event) => {
-    const helpButton = event.target.closest('.track-help-button');
-    const help = event.target.closest('.track-help');
-
-    if (helpButton && help) {
-      event.stopPropagation();
-      help.classList.toggle('is-open');
-      return;
-    }
-
-    document.querySelector('.track-help.is-open')?.classList.remove('is-open');
-  });
 });
 
 async function getCurrentUserId() {
@@ -64,25 +51,6 @@ function setDbStatus(state) {
   statusEl.innerHTML = `<span class="w-2 h-2 rounded-full ${dot}"></span> ${label}`;
 }
 
-// 탭 전환 함수
-function switchTab(tabName) {
-  const trackerTab = document.getElementById('tab-content-tracker');
-  const newsTab = document.getElementById('tab-content-news');
-  const trackerBtn = document.getElementById('tab-btn-tracker');
-  const newsBtn = document.getElementById('tab-btn-news');
-
-  if (tabName === 'tracker') {
-    trackerTab.classList.remove('hidden');
-    newsTab.classList.add('hidden');
-    trackerBtn.className = "px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2";
-    newsBtn.className = "px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2";
-  } else {
-    trackerTab.classList.add('hidden');
-    newsTab.classList.remove('hidden');
-    newsBtn.className = "px-5 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-500 transition flex items-center gap-2";
-    trackerBtn.className = "px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2";
-  }
-}
 
 function toggleTypeFields() {
   const type = document.getElementById('input-type').value;
