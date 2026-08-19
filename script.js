@@ -1,10 +1,12 @@
-// Supabase 및 API 설정
+// ===== Supabase / API 연결 설정 =====
+// 브라우저에서 Supabase 클라이언트를 만들 때 사용하는 공개 연결 정보입니다.
 const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
 const supabaseClient = window.macroWatchSupabase
   || (window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null);
 
-// 상태 관리
+// ===== 화면과 데이터의 현재 상태 =====
+// Track, 편집, 삭제, 드래그 상태를 여러 함수가 함께 사용하므로 전역 상태로 관리합니다.
 const ITEMS_PER_TRACK = 8;
 const MAX_TRACKS = 10;
 const MAX_TARGETS = ITEMS_PER_TRACK * MAX_TRACKS;
@@ -19,16 +21,46 @@ let expandedTargetId = null;
 let currentUserId = null;
 let activeTrack = 1;
 
-// 초기화
+// ===== 페이지 초기화 =====
+// 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
+// 입력폼 초기 상태, 안내 모달 닫기 버튼, Drag & Drop 도움말을 여기서 연결합니다.
 document.addEventListener('DOMContentLoaded', () => {
+  // 알림 조건이 '변동 감지'인지 확인해서 목표값 입력칸 활성/비활성 상태를 맞춥니다.
   toggleTargetValueInput('input-condition', 'input-target-val');
 
+  // '서비스 준비 중 / 등록 되었습니다' 공용 안내창의 확인 버튼입니다.
   const preparingClose = document.getElementById('service-preparing-close');
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
+
+  // Drag & Drop 도움말의 ? 버튼은 클릭/터치로도 열 수 있게 합니다.
+  // 화면의 다른 곳을 누르면 열린 도움말을 자동으로 닫습니다.
+  document.addEventListener('click', (event) => {
+    const helpButton = event.target.closest('.track-help-button');
+    const helpBox = event.target.closest('.track-help');
+
+    if (helpButton && helpBox) {
+      event.stopPropagation();
+
+      const willOpen = !helpBox.classList.contains('is-open');
+      document.querySelector('.track-help.is-open')?.classList.remove('is-open');
+
+      helpBox.classList.toggle('is-open', willOpen);
+      helpButton.setAttribute('aria-expanded', String(willOpen));
+      return;
+    }
+
+    const openedHelp = document.querySelector('.track-help.is-open');
+    if (openedHelp) {
+      openedHelp.classList.remove('is-open');
+      openedHelp.querySelector('.track-help-button')?.setAttribute('aria-expanded', 'false');
+    }
+  });
 });
 
+// 현재 로그인한 사용자의 ID를 가져옵니다.
+// 이미 한 번 확인한 ID가 있으면 다시 서버에 묻지 않고 저장된 값을 사용합니다.
 async function getCurrentUserId() {
   if (currentUserId) return currentUserId;
   const { data } = await supabaseClient.auth.getSession();
@@ -37,6 +69,8 @@ async function getCurrentUserId() {
 }
 
 // DB 연결 상태 표시
+// DB 연결 상태를 화면 상단 상태 표시 영역에 반영합니다.
+// loading / connected / missing / error 네 상태를 처리합니다.
 function setDbStatus(state) {
   const statusEl = document.getElementById('db-status');
   if (!statusEl) return;
@@ -52,6 +86,8 @@ function setDbStatus(state) {
 }
 
 
+// 사용자가 선택한 데이터 소스 유형에 맞는 입력칸만 보여줍니다.
+// 일반 웹 / FRED / 한국은행 ECOS / JSON API 입력 영역 중 하나만 표시됩니다.
 function toggleTypeFields() {
   const type = document.getElementById('input-type').value;
   document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
@@ -60,6 +96,8 @@ function toggleTypeFields() {
   document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
 }
 
+// 알림 조건에 따라 목표값 입력칸을 켜거나 끕니다.
+// '지표값 변동 감지'는 목표값이 필요 없으므로 입력칸을 비활성화합니다.
 function toggleTargetValueInput(conditionId, valueId) {
   const conditionEl = document.getElementById(conditionId);
   const valueEl = document.getElementById(valueId);
@@ -75,7 +113,9 @@ function toggleTargetValueInput(conditionId, valueId) {
   }
 }
 
-// 추적 목록 조회
+// ===== 추적 지표 목록 불러오기 =====
+// DB에서 현재 사용자의 추적 지표 목록을 불러옵니다.
+// display_order 순서대로 받아 targets 배열에 저장한 뒤 화면을 다시 그립니다.
 async function fetchTargets() {
   if (!supabaseClient) {
     setDbStatus('missing');
@@ -105,25 +145,34 @@ async function fetchTargets() {
   renderTargets();
 }
 
-// Track 계산 및 탭 렌더링
+// ===== Track 계산 / Track 탭 표시 =====
+// 현재 지표 개수로 필요한 Track 개수를 계산합니다.
+// Track 하나당 8개, 최대 Track 10개까지만 허용합니다.
 function getTrackCount() {
   return Math.max(1, Math.min(MAX_TRACKS, Math.ceil(targets.length / ITEMS_PER_TRACK)));
 }
 
+// 특정 Track이 targets 배열에서 시작하는 위치를 계산합니다.
 function getTrackStartIndex(trackNumber = activeTrack) {
   return (trackNumber - 1) * ITEMS_PER_TRACK;
 }
 
+// 특정 Track이 targets 배열에서 끝나는 위치를 계산합니다.
+// 마지막 Track에 8개가 꽉 차지 않아도 실제 데이터 개수까지만 반환합니다.
 function getTrackEndIndex(trackNumber = activeTrack) {
   return Math.min(getTrackStartIndex(trackNumber) + ITEMS_PER_TRACK, targets.length);
 }
 
+// 현재 선택된 Track 번호가 실제 존재하는 범위를 벗어나지 않게 보정합니다.
+// 지표 삭제로 Track 수가 줄었을 때 잘못된 Track 번호가 남는 것을 막습니다.
 function normalizeActiveTrack() {
   const trackCount = getTrackCount();
   if (activeTrack > trackCount) activeTrack = trackCount;
   if (activeTrack < 1) activeTrack = 1;
 }
 
+// 사용자가 Track 탭을 눌렀을 때 해당 Track으로 화면을 전환합니다.
+// 펼쳐 둔 상세정보와 드롭 위치 표시는 초기화합니다.
 function switchTrack(trackNumber) {
   const trackCount = getTrackCount();
   if (trackNumber < 1 || trackNumber > trackCount || trackNumber === activeTrack) return;
@@ -134,6 +183,8 @@ function switchTrack(trackNumber) {
   renderTargets();
 }
 
+// 현재 지표 개수에 맞춰 Track 01~10 탭과 + ADD Track 탭을 새로 그립니다.
+// 활성 Track에는 is-active 클래스를 붙이고, 각 탭에 클릭/드롭 이벤트를 연결합니다.
 function renderTrackTabs() {
   const tabsEl = document.querySelector('#tab-content-tracker > .sheet-tabs');
   if (!tabsEl) return;
@@ -172,6 +223,8 @@ function renderTrackTabs() {
   tabsEl.appendChild(addButton);
 }
 
+// 화면 가운데에 공용 안내 모달을 표시합니다.
+// 등록 완료 알림과 '+ ADD Track' 준비중 안내가 같은 모달을 함께 사용합니다.
 function showCenteredNotice(titleText, messageText = '') {
   const modal = document.getElementById('service-preparing-modal');
   const title = document.getElementById('service-preparing-title');
@@ -188,6 +241,8 @@ function showCenteredNotice(titleText, messageText = '') {
   modal.classList.remove('hidden');
 }
 
+// + ADD Track을 눌렀을 때 보여주는 안내 문구입니다.
+// Track은 사용자가 직접 만드는 것이 아니라 지표 개수에 따라 자동 생성됩니다.
 function showAddTrackNotice() {
   showCenteredNotice(
     '서비스 준비 중입니다.',
@@ -195,10 +250,13 @@ function showAddTrackNotice() {
   );
 }
 
+// 가운데 공용 안내 모달을 닫습니다.
 function closeServicePreparingModal() {
   document.getElementById('service-preparing-modal')?.classList.add('hidden');
 }
 
+// 새 지표 등록이 성공한 뒤 공통으로 처리할 작업입니다.
+// 마지막 Track으로 이동 → 화면 갱신 → 입력폼 초기화 → 등록 완료 안내 순서로 실행합니다.
 function finishTargetRegistration() {
   activeTrack = getTrackCount();
   renderTargets();
@@ -210,7 +268,9 @@ function finishTargetRegistration() {
   showCenteredNotice('등록 되었습니다.');
 }
 
-// 추적 항목 한 개의 HTML 생성
+// ===== 추적 지표 한 줄 만들기 =====
+// 추적 지표 한 개를 화면에 표시할 HTML 문자열로 만듭니다.
+// 제목, 현재값, 알림 상태, 상세정보, 수정/삭제 버튼이 모두 여기에서 만들어집니다.
 function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   return `
     <div data-target-container="${globalIndex}" class="py-3 border-b border-slate-800/80 first:border-t"
@@ -277,7 +337,9 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   `;
 }
 
-// 추적 목록 렌더링
+// ===== 현재 Track의 추적 목록 화면에 표시 =====
+// 현재 활성 Track에 속한 최대 8개의 지표를 목록 영역에 표시합니다.
+// 먼저 Track 탭을 다시 그리고, 오류/빈 목록/정상 목록 상태를 각각 처리합니다.
 function renderTargets() {
   const listEl = document.getElementById('target-list');
   if (!listEl) return;
@@ -310,12 +372,15 @@ function renderTargets() {
   }).join('');
 }
 
+// 지표 제목을 눌렀을 때 상세정보 영역을 펼치거나 접습니다.
 function toggleTargetDetails(id) {
   const targetId = String(id);
   expandedTargetId = expandedTargetId === targetId ? null : targetId;
   renderTargets();
 }
 
+// 종 모양 버튼을 눌렀을 때 해당 지표의 알림 활성/비활성 상태를 바꿉니다.
+// DB 업데이트가 성공한 경우에만 화면 상태도 변경합니다.
 async function toggleTargetActive(id) {
   const index = targets.findIndex(item => String(item.id) === String(id));
   if (index === -1) return;
@@ -342,7 +407,8 @@ async function toggleTargetActive(id) {
   renderTargets();
 }
 
-// 드래그 앤 드롭 핸들러
+// ===== Drag & Drop 순서 변경 =====
+// 같은 Track 안에서 드래그할 때 '여기에 놓인다'는 위치선을 표시합니다.
 function setDropIndicator(globalInsertIndex) {
   if (dropIndicatorIndex === globalInsertIndex) return;
 
@@ -360,6 +426,7 @@ function setDropIndicator(globalInsertIndex) {
   }
 }
 
+// 드래그 위치를 알려주던 선과 내부 저장값을 모두 초기화합니다.
 function clearDropIndicator() {
   document.querySelectorAll('[data-target-container]').forEach(container => {
     container.style.removeProperty('box-shadow');
@@ -367,6 +434,8 @@ function clearDropIndicator() {
   dropIndicatorIndex = null;
 }
 
+// 지표 드래그를 시작할 때 호출됩니다.
+// 어떤 지표를 잡았는지 저장하고 Track 탭에 '여기로 이동' 안내를 켭니다.
 function handleDragStart(e, globalIndex) {
   draggedItemIndex = globalIndex;
   clearDropIndicator();
@@ -378,6 +447,7 @@ function handleDragStart(e, globalIndex) {
   e.currentTarget.classList.add('opacity-40');
 }
 
+// 같은 Track 안에서 지표를 위아래로 움직일 때 들어갈 위치를 계산합니다.
 function handleDragOver(e, targetGlobalIndex) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
@@ -391,6 +461,7 @@ function handleDragOver(e, targetGlobalIndex) {
   setDropIndicator(insertIndex);
 }
 
+// 같은 Track 안에 지표를 놓았을 때 실제 배열 순서를 변경하고 DB에 저장합니다.
 function handleDrop(e, targetGlobalIndex) {
   e.preventDefault();
   const insertIndex = dropIndicatorIndex ?? targetGlobalIndex;
@@ -422,6 +493,8 @@ function handleDrop(e, targetGlobalIndex) {
   saveOrderToDb();
 }
 
+// 지표를 다른 Track 탭 위로 가져갔을 때 해당 탭을 드롭 대상으로 강조합니다.
+// 현재 지표가 이미 속한 Track은 드롭 대상으로 처리하지 않습니다.
 function handleTrackDragOver(e, targetTrack) {
   if (draggedItemIndex === null) return;
 
@@ -433,6 +506,7 @@ function handleTrackDragOver(e, targetTrack) {
   e.currentTarget.classList.add('is-drag-over');
 }
 
+// 드래그 중 마우스가 Track 탭 밖으로 나가면 강조 상태를 해제합니다.
 function handleTrackDragLeave(e) {
   const nextElement = e.relatedTarget;
 
@@ -443,6 +517,8 @@ function handleTrackDragLeave(e) {
   e.currentTarget.classList.remove('is-drag-over');
 }
 
+// 지표를 다른 Track 탭에 놓았을 때 Track 사이 이동을 처리합니다.
+// 중간 Track의 경계 항목들이 하나씩 순차적으로 밀리도록 배열 위치를 바꿉니다.
 function handleDropOnTrack(e, targetTrack) {
   e.preventDefault();
   e.currentTarget.classList.remove('is-drag-over');
@@ -480,6 +556,7 @@ function handleDropOnTrack(e, targetTrack) {
   saveOrderToDb();
 }
 
+// 드래그가 끝나면 반투명 효과, Track 강조, 드롭 위치선을 모두 원래 상태로 돌립니다.
 function handleDragEnd(e) {
   e.currentTarget.classList.remove('opacity-40');
 
@@ -492,13 +569,16 @@ function handleDragEnd(e) {
   draggedItemIndex = null;
 }
 
+// 현재 targets 배열 순서를 display_order 값에 다시 기록합니다.
 function updateDisplayOrder() {
   targets.forEach((item, index) => {
     item.display_order = index;
   });
 }
 
-// 순서 변경 사항 DB 저장
+// ===== 변경된 순서를 DB에 저장 =====
+// 드래그로 바뀐 전체 순서를 DB의 display_order에 저장합니다.
+// 저장 실패 시 서버 목록을 다시 불러와 원래 순서로 복구합니다.
 async function saveOrderToDb() {
   if (!supabaseClient) return;
   const userId = await getCurrentUserId();
@@ -521,7 +601,9 @@ async function saveOrderToDb() {
   }
 }
 
-// 추적 항목 추가
+// ===== 새 추적 지표 등록 =====
+// '추적 항목 등록하기' 버튼의 핵심 등록 함수입니다.
+// 입력값을 읽어 데이터 소스별 설정을 만들고 DB에 새 지표를 저장합니다.
 async function handleAddTarget(e) {
   e.preventDefault();
 
@@ -623,7 +705,8 @@ async function handleAddTarget(e) {
   finishTargetRegistration();
 }
 
-// 수정 모달 열기
+// ===== 지표 수정 =====
+// 선택한 지표의 현재 값을 수정 모달 입력칸에 채우고 모달을 엽니다.
 function openEditModal(id) {
   const item = targets.find(t => String(t.id) === String(id));
   if (!item) return;
@@ -639,13 +722,15 @@ function openEditModal(id) {
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 
-// 수정 모달 닫기
+
+// 수정 모달을 닫고 현재 수정 중인 지표 ID를 초기화합니다.
 function closeEditModal() {
   document.getElementById('edit-modal').classList.add('hidden');
   currentEditId = null;
 }
 
-// 수정사항 저장
+
+// 수정 모달에서 변경한 내용을 DB에 저장하고 목록을 갱신합니다.
 async function saveEditTarget() {
   if (!currentEditId) return;
 
@@ -688,16 +773,19 @@ async function saveEditTarget() {
 }
 
 // 항목 삭제
+// 삭제 버튼을 눌렀을 때 바로 삭제하지 않고 확인 모달을 먼저 엽니다.
 function handleDeleteTarget(id) {
   currentDeleteId = id;
   document.getElementById('delete-modal').classList.remove('hidden');
 }
 
+// 삭제 확인 모달을 닫고 삭제 대상 ID를 초기화합니다.
 function closeDeleteModal() {
   document.getElementById('delete-modal').classList.add('hidden');
   currentDeleteId = null;
 }
 
+// 삭제 확인 후 실제 DB에서 지표를 삭제하고 화면 목록을 갱신합니다.
 async function confirmDeleteTarget() {
   if (!currentDeleteId) return;
 
@@ -751,4 +839,5 @@ function getOriginalUrl(item) {
 
 function escapeHtml(str) {
   return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 }
