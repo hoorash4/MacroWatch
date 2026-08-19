@@ -129,11 +129,13 @@ async function fetchTargets() {
 }
 
 function renderTrackTabs(listEl, pageCount = 1) {
-  listEl.parentElement?.querySelector('.track-tabs')?.remove();
+  const existing = document.getElementById('track-tabs');
+  if (existing) existing.innerHTML = '';
   const pager = document.createElement('div');
   pager.className = 'track-tabs flex items-end gap-1 border-t border-slate-300 px-2 pt-3 mt-4';
   pager.innerHTML = Array.from({length: pageCount}, (_, i) => { const n = i + 1; return '<button type="button" onclick="goToTargetPage(' + n + ')" class="h-9 min-w-[92px] rounded-md border px-2 text-xs font-semibold ' + (targetPage === n ? 'border-[#d1a55d] bg-[#d1a55d]/15 text-[#e2bd7d]' : 'border-slate-700 text-slate-400 hover:text-white') + '">' + 'Track ' + String(n).padStart(2, '0') + '</button>'; }).join('') + '<button type="button" onclick="showTrackAddNotice()" class="h-9 min-w-[108px] rounded-md border border-dashed border-[#d1a55d]/60 px-2 text-xs font-semibold text-[#d1a55d]">ADD Track</button>';
-  listEl.parentElement?.appendChild(pager);
+  const tabHost = document.getElementById('track-tabs');
+  if (tabHost) tabHost.appendChild(pager);
 }
 
 // 추적 목록 렌더링
