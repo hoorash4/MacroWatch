@@ -207,12 +207,13 @@ display: block;
   margin-left: auto;
   margin-right: auto;
 
-  /* 큰 화면에서는 좌우 배치와 제목/폼 사이 간격이 안정적으로 유지됩니다. */
+  /* 큰 화면에서는 바깥 여백과 두 영역 사이 간격을 고정합니다. */
   padding-left: 3rem;
   padding-right: 3rem;
-  column-gap: 3rem;
+  column-gap: 2.5rem;
 
-  /* 왼쪽 제목 영역은 남은 공간을 쓰고 로그인 폼은 430px을 기준으로 유지합니다. */
+  /* 창이 줄어들면 왼쪽 칼럼이 먼저 줄어들면서
+     타이틀과 로그인 폼이 자연스럽게 가까워집니다. */
   grid-template-columns: minmax(0, 1fr) 430px;
 
   padding-top: 1.25rem;
@@ -223,7 +224,10 @@ display: block;
 letter-spacing: -.07em;
   max-width: none;
   white-space: normal;
-  font-size: clamp(3rem, 4.6vw, 5.2rem);
+
+  /* 큰 화면에서는 글자 크기를 고정합니다.
+     창을 줄일 때 글자보다 두 영역 사이 간격이 먼저 줄어들게 합니다. */
+  font-size: 5.2rem;
   line-height: 1.24;
 }#auth-screen .grid > section:first-child h1 br {
 display: block;
@@ -651,64 +655,28 @@ content: "놓아서 이동";
    중간 크기 화면에서는 2열을 유지하되 전체 폭과 간격, 제목 크기를 조금씩 줄입니다.
    ========================================================= */
 /* =========================================================
-   1200px ~ 1051px
-   이 구간에서는 폰트 크기를 유지하고,
-   제목과 로그인 폼 사이 간격만 먼저 줄입니다.
+   1080px ~ 901px
+   이 구간에 들어온 뒤부터 타이틀 글자만 천천히 줄입니다.
+   gap은 더 줄이지 않고 2.5rem을 유지해서 너무 붙지 않게 합니다.
    ========================================================= */
-@media (max-width: 1200px) and (min-width: 1051px) {
+@media (max-width: 1080px) and (min-width: 901px) {
 
   #auth-screen .grid.flex-1 {
-    width: calc(100% - 3rem);
-    max-width: 1180px;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-
-    /* 1200px에서 약 4rem → 1051px에서 약 1rem까지
-       가운데 간격만 먼저 줄어듭니다. */
-    column-gap: clamp(
-      1rem,
-      calc(1rem + (100vw - 1050px) * 0.32),
-      4rem
-    );
-
+    width: 100%;
+    max-width: none;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    column-gap: 2.5rem;
     grid-template-columns: minmax(0, 1fr) 430px;
   }
 
-  /* 이 구간에서는 타이틀 크기를 고정해 먼저 작아지지 않게 합니다. */
+  /* 1080px 아래에서만 폰트가 부드럽게 줄어듭니다.
+     breakpoint 경계에서 갑자기 커지거나 작아지지 않게 최대값을 기본값과 맞춥니다. */
   #auth-screen .grid > section:first-child h1 {
-    font-size: 4.7rem;
+    font-size: clamp(3.5rem, 7.7vw, 5.2rem);
   }
 
-  #auth-screen .grid > section:first-child h1 span {
-    white-space: normal;
-  }
-}
-
-
-/* =========================================================
-   1050px ~ 901px
-   가운데 간격이 충분히 줄어든 뒤부터
-   그 다음 단계로 타이틀 크기를 줄입니다.
-   ========================================================= */
-@media (max-width: 1050px) and (min-width: 901px) {
-
-  #auth-screen .grid.flex-1 {
-    width: calc(100% - 3rem);
-    max-width: 1180px;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-
-    /* 이미 충분히 가까워진 상태를 유지합니다. */
-    column-gap: 1rem;
-
-    grid-template-columns: minmax(0, 1fr) 430px;
-  }
-
-  /* 여기서부터 폰트가 줄어듭니다. */
-  #auth-screen .grid > section:first-child h1 {
-    font-size: clamp(3.2rem, 6.8vw, 4.7rem);
-  }
-
+  /* 공간이 부족하면 두 번째 문구도 자연스럽게 줄바꿈됩니다. */
   #auth-screen .grid > section:first-child h1 span {
     white-space: normal;
   }
