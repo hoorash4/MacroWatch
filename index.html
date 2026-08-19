@@ -21,7 +21,9 @@
   
 
 <style id="app-theme-clean">
-/* ===== Base ===== */
+/* ===== 공통 기본 스타일 =====
+   숫자 입력창, 폰트, 공통 로고처럼 로그인/대시보드 양쪽에서 쓰는 기본 규칙입니다.
+*/
 input:focus::placeholder { color: transparent; }
 
 #input-target-val,
@@ -49,7 +51,9 @@ input:focus::placeholder { color: transparent; }
   background: transparent url("./images/logo.png") center / contain no-repeat;
 }
 
-/* ===== Login ===== */
+/* ===== 로그인 화면 =====
+   로그인 카드, 상단 브랜드 영역, 안내 문구, 로그인 버튼의 기본 디자인입니다.
+*/
 .auth-canvas {
   background: #ece9e2 !important;
   border: 0 !important;
@@ -289,7 +293,9 @@ input:focus::placeholder { color: transparent; }
   margin: 0 auto !important;
 }
 
-/* ===== Dashboard ===== */
+/* ===== 대시보드 화면 =====
+   로그인 후 보이는 MacroWatch 본 화면의 카드, 입력폼, 추적 리스트 기본 디자인입니다.
+*/
 #app-shell {
   border: 1px solid rgba(255,255,255,.1) !important;
   box-shadow: 0 24px 70px rgba(0,0,0,.3) !important;
@@ -485,7 +491,111 @@ input:focus::placeholder { color: transparent; }
   padding-bottom: 1rem !important;
 }
 
-/* ===== Track tabs ===== */
+
+/* ===== Drag & Drop 사용 안내 =====
+   리스트 제목 오른쪽에 보이는 "Drag & Drop 순서 변경 ?" 안내입니다.
+   데스크톱에서는 마우스를 올리면 열리고,
+   클릭/터치 환경에서는 JS가 .is-open 클래스를 붙여 열어 줍니다.
+*/
+.track-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .36rem;
+  padding: .34rem .58rem;
+  border: 1px solid rgba(209,165,93,.28);
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  color: #aeb8c8;
+  font-size: .68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.track-help-icon {
+  color: #d1a55d;
+  font-size: .62rem;
+}
+
+/* ? 버튼은 안내창을 열고 닫는 용도입니다. */
+.track-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #d1a55d;
+  color: #071b42;
+  font-size: .62rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+/* 평소에는 숨겨 두었다가 hover / focus / click 때 아래로 펼칩니다. */
+.track-help-tooltip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 9px);
+  z-index: 30;
+  width: 270px;
+  padding: .85rem .95rem;
+  border: 1px solid rgba(209,165,93,.26);
+  border-radius: .8rem;
+  background: #071b42;
+  color: #d8dee8;
+  box-shadow: 0 12px 28px rgba(0,0,0,.26);
+  font-size: .69rem;
+  font-weight: 400;
+  line-height: 1.55;
+  white-space: normal;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+  pointer-events: none;
+}
+
+/* 안내창 위쪽의 작은 화살표 꼬리입니다. */
+.track-help-tooltip::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: 12px;
+  width: 9px;
+  height: 9px;
+  background: #071b42;
+  border-left: 1px solid rgba(209,165,93,.26);
+  border-top: 1px solid rgba(209,165,93,.26);
+  transform: rotate(45deg);
+}
+
+.track-help-tooltip p + p {
+  margin-top: .7rem;
+}
+
+.track-help-tooltip strong {
+  color: #f2d49c;
+  font-weight: 700;
+}
+
+/* 데스크톱 hover, 키보드 focus, 모바일 click 모두 같은 방식으로 안내창을 표시합니다. */
+.track-help:hover .track-help-tooltip,
+.track-help:focus-within .track-help-tooltip,
+.track-help.is-open .track-help-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* ===== Track 탭 =====
+   Track 01~10 및 + ADD Track 탭의 크기, 겹침, 활성/비활성 상태와 드래그 안내를 담당합니다.
+*/
 #tab-content-tracker > .sheet-tabs {
   grid-column: 1;
   grid-row: 2;
@@ -579,7 +689,10 @@ input:focus::placeholder { color: transparent; }
   color: #071b42;
 }
 
-/* ===== Responsive ===== */
+/* ===== 반응형 화면 =====
+   화면 폭이 줄어들 때 로그인/대시보드/Track 영역의 배치를 변경합니다.
+   데스크톱 기본값은 위에서 정의하고 여기서는 필요한 값만 덮어씁니다.
+*/
 @media (max-width:1023px) {
   .auth-canvas { min-height: calc(100vh - 1.5rem) !important; }
   .auth-canvas > div { display: block !important; }
@@ -914,9 +1027,36 @@ input:focus::placeholder { color: transparent; }
             <h2 class="text-lg font-bold text-white flex items-center">
             <i class="fa-solid fa-list-check mr-2 text-blue-500"></i> 현재 추적 중인 항목
           </h2>
-          <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
-            <i class="fa-solid fa-arrows-up-down text-[10px] mr-1"></i> 순서 변경 가능
-          </span>
+          <!--
+            Drag & Drop 사용 안내
+            - 평소에는 짧은 안내 문구만 보여줍니다.
+            - ? 버튼에 마우스를 올리거나 클릭하면 자세한 사용법이 아래로 펼쳐집니다.
+            - 실제 순서 변경 기능 자체는 script.js의 드래그 관련 함수가 담당합니다.
+          -->
+          <div class="track-help">
+            <i class="fa-solid fa-arrows-up-down track-help-icon" aria-hidden="true"></i>
+            <span>Drag &amp; Drop 순서 변경</span>
+
+            <button
+              type="button"
+              class="track-help-button"
+              aria-label="Drag & Drop 사용법 보기"
+              aria-expanded="false"
+            >
+              ?
+            </button>
+
+            <div class="track-help-tooltip" role="tooltip">
+              <p>
+                <strong>같은 Track 안에서</strong><br>
+                항목을 위아래로 끌어서 순서를 바꿀 수 있습니다.
+              </p>
+              <p>
+                <strong>다른 Track으로 이동</strong><br>
+                항목을 원하는 Track 탭 위에 놓으면 해당 Track으로 이동합니다.
+              </p>
+            </div>
+          </div>
         </div>
         <div id="target-list" class="divide-y divide-slate-800/80">
           <p class="loading-state text-sm text-slate-500 py-4 text-center">목록을 불러오는 중...</p>
