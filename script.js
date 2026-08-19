@@ -460,35 +460,28 @@ function handleDropOnTrack(e, targetTrack) {
   const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
   if (targetTrack === sourceTrack) return;
 
-  const sourceStart = getTrackStartIndex(sourceTrack);
-  const targetStart = getTrackStartIndex(targetTrack);
-  const sourceItems = targets.slice(sourceStart, getTrackEndIndex(sourceTrack));
-  const targetItems = targets.slice(targetStart, getTrackEndIndex(targetTrack));
+  // 원래 위치에서 항목을 먼저 제거한다.
+  // 배열이 당겨지면서 중간 Track의 경계 항목들이 자연스럽게 한 칸씩 이동한다.
+  const [movedItem] = targets.splice(draggedItemIndex, 1);
+  if (!movedItem) return;
 
-  const sourceLocalIndex = draggedItemIndex - sourceStart;
-  const [movedItem] = sourceItems.splice(sourceLocalIndex, 1);
-  if (!movedItem || targetItems.length === 0) return;
+  let insertIndex;
 
   if (targetTrack < sourceTrack) {
-    // 이전 Track으로 이동:
-    // 이동 항목 -> 대상 Track 맨 아래
-    // 대상 Track 맨 아래 항목 -> 출발 Track 맨 위
-    const displacedItem = targetItems.pop();
-    targetItems.push(movedItem);
-    sourceItems.unshift(displacedItem);
+    // 앞쪽 Track으로 이동:
+    // 이동 항목은 대상 Track의 맨 아래에 들어간다.
+    // 대상 Track의 기존 맨 아래 항목은 다음 Track 맨 위로 밀리고,
+    // 이 과정이 출발 Track까지 순차적으로 이어진다.
+    insertIndex = targetTrack * ITEMS_PER_TRACK - 1;
   } else {
-    // 다음 Track으로 이동:
-    // 이동 항목 -> 대상 Track 맨 위
-    // 대상 Track 맨 위 항목 -> 출발 Track 맨 아래
-    const displacedItem = targetItems.shift();
-    targetItems.unshift(movedItem);
-    sourceItems.push(displacedItem);
+    // 뒤쪽 Track으로 이동:
+    // 이동 항목은 대상 Track의 맨 위에 들어간다.
+    // 대상 Track의 기존 맨 위 항목은 이전 Track 맨 아래로 밀리고,
+    // 이 과정이 출발 Track까지 역방향으로 순차적으로 이어진다.
+    insertIndex = (targetTrack - 1) * ITEMS_PER_TRACK;
   }
 
-  const nextTargets = [...targets];
-  nextTargets.splice(sourceStart, sourceItems.length, ...sourceItems);
-  nextTargets.splice(targetStart, targetItems.length, ...targetItems);
-  targets = nextTargets;
+  targets.splice(insertIndex, 0, movedItem);
 
   updateDisplayOrder();
   renderTargets();
