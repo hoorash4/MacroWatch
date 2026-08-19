@@ -484,6 +484,10 @@
 .sheet-tab{border:1px solid #cfc8bb!important;border-top:0!important;border-radius:0 0 .55rem .55rem!important;background:rgba(220,216,207,.9)!important;color:#64748b!important}
 .sheet-tab.is-active{background:#f7f5f0!important;color:#071b42!important}
 .sheet-tab-add{background:transparent!important;color:#d1a55d!important;border-style:dashed!important}
+</style><style id="sheet-tabs-sibling-zone">
+.sheet-tabs{margin:0!important;background:transparent!important;background-image:none!important;border-radius:0!important;padding:.65rem .75rem 0!important}
+#tab-content-tracker>.sheet-tabs{background-image:radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px)!important;background-size:36px 36px!important}
+.sheet-tab{border:1px solid #cfc8bb!important;border-top:0!important;border-radius:0 0 .55rem .55rem!important}
 </style></head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
 
@@ -711,8 +715,9 @@
         <div id="target-list" class="divide-y divide-slate-800/80">
           <p class="loading-state text-sm text-slate-500 py-4 text-center">목록을 불러오는 중...</p>
         </div>
-          <div class="sheet-tabs" role="tablist"><button type="button" class="sheet-tab is-active" role="tab">Track 01</button><button type="button" class="sheet-tab sheet-tab-add" role="tab" onclick="showNotice('현재는 지원하지 않습니다. 신규 등록을 하면 트랙이 자동으로 생성됩니다.')">ADD Track</button></div>
+          
       </div>
+      <div class="sheet-tabs" role="tablist"><button type="button" class="sheet-tab is-active" role="tab">Track 01</button><button type="button" class="sheet-tab sheet-tab-add" role="tab" onclick="showNotice('현재는 지원하지 않습니다. 신규 등록을 하면 트랙이 자동으로 생성됩니다.')">ADD Track</button></div>
 
     </div>
 
