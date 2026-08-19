@@ -1381,6 +1381,62 @@
     color: #64748b;
 }
 
+
+
+
+  
+
+/* 드래그 중 Track 탭 안내 */
+.sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
+    border-color: rgba(209,165,93,.75);
+    box-shadow: 0 3px 10px rgba(209,165,93,.18);
+}
+
+.sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add)::before {
+    content: "여기로 이동";
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    transform: translateX(-50%);
+
+    padding: .22rem .42rem;
+    border-radius: .35rem;
+
+    background: #071b42;
+    color: #f2d49c;
+
+    font-size: .56rem;
+    font-weight: 700;
+    white-space: nowrap;
+
+    box-shadow: 0 5px 12px rgba(0,0,0,.22);
+}
+
+.sheet-tabs.is-dragging .sheet-tab.is-active::before {
+    content: "현재 Track";
+    color: #aeb8c8;
+}
+
+.sheet-tabs.is-dragging .sheet-tab.is-drag-over {
+    z-index: 5;
+    background: #f2d49c;
+    color: #071b42;
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(0,0,0,.24);
+}
+
+.sheet-tabs.is-dragging .sheet-tab.is-drag-over::before {
+    content: "놓아서 이동";
+    background: #d1a55d;
+    color: #071b42;
+}
+
+
+
+
+
+
+  
 @media (max-width: 900px) {
     #tab-content-tracker > div:first-child,
     #tab-content-tracker > div:nth-child(2) {
@@ -1783,6 +1839,6 @@
   </div>
 
   <script src="auth.js?v=11"></script>
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>
