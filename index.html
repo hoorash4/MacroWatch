@@ -650,7 +650,12 @@ content: "놓아서 이동";
    1200px 이하
    중간 크기 화면에서는 2열을 유지하되 전체 폭과 간격, 제목 크기를 조금씩 줄입니다.
    ========================================================= */
-@media (max-width: 1200px) and (min-width: 901px) {
+/* =========================================================
+   1200px ~ 1051px
+   이 구간에서는 폰트 크기를 유지하고,
+   제목과 로그인 폼 사이 간격만 먼저 줄입니다.
+   ========================================================= */
+@media (max-width: 1200px) and (min-width: 1051px) {
 
   #auth-screen .grid.flex-1 {
     width: calc(100% - 3rem);
@@ -658,24 +663,52 @@ content: "놓아서 이동";
     padding-left: 1.5rem;
     padding-right: 1.5rem;
 
-    /* 창이 줄어들수록 제목과 로그인 폼 사이 간격이 실제로 줄어듭니다.
-       1200px 부근에서는 넉넉하고, 900px에 가까워질수록 빠르게 좁아집니다. */
+    /* 1200px에서 약 4rem → 1051px에서 약 1rem까지
+       가운데 간격만 먼저 줄어듭니다. */
     column-gap: clamp(
       1rem,
-      calc(1rem + (100vw - 900px) * 0.16),
+      calc(1rem + (100vw - 1050px) * 0.32),
       4rem
     );
 
     grid-template-columns: minmax(0, 1fr) 430px;
   }
 
-  /* 제목은 이 구간에서도 최대한 큰 크기를 유지하고,
-     공간이 부족할 때만 천천히 작아집니다. */
+  /* 이 구간에서는 타이틀 크기를 고정해 먼저 작아지지 않게 합니다. */
   #auth-screen .grid > section:first-child h1 {
-    font-size: clamp(3.2rem, 4.5vw, 4.7rem);
+    font-size: 4.7rem;
   }
 
-  /* 공간이 부족해지면 두 번째 문구도 자연스럽게 줄바꿈됩니다. */
+  #auth-screen .grid > section:first-child h1 span {
+    white-space: normal;
+  }
+}
+
+
+/* =========================================================
+   1050px ~ 901px
+   가운데 간격이 충분히 줄어든 뒤부터
+   그 다음 단계로 타이틀 크기를 줄입니다.
+   ========================================================= */
+@media (max-width: 1050px) and (min-width: 901px) {
+
+  #auth-screen .grid.flex-1 {
+    width: calc(100% - 3rem);
+    max-width: 1180px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+
+    /* 이미 충분히 가까워진 상태를 유지합니다. */
+    column-gap: 1rem;
+
+    grid-template-columns: minmax(0, 1fr) 430px;
+  }
+
+  /* 여기서부터 폰트가 줄어듭니다. */
+  #auth-screen .grid > section:first-child h1 {
+    font-size: clamp(3.2rem, 6.8vw, 4.7rem);
+  }
+
   #auth-screen .grid > section:first-child h1 span {
     white-space: normal;
   }
