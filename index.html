@@ -227,7 +227,7 @@ display: block;
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
 
-  grid-template-columns: 420px 430px;
+  grid-template-columns: minmax(420px, 520px) 430px;
   justify-content: center;
 
   /* 타이틀과 로그인 폼 사이 간격은 이 값 하나로 관리합니다. */
@@ -235,10 +235,11 @@ display: block;
 }#auth-screen .grid > section:first-child h1 {
 letter-spacing: -.07em;
   max-width: none;
-  white-space: normal;
 
-  /* 큰 화면에서는 글자 크기를 고정합니다.
-     창을 줄일 때 글자보다 두 영역 사이 간격이 먼저 줄어들게 합니다. */
+  /* 큰 화면에서는 Evolving Insight를 한 줄로 유지합니다. */
+  white-space: nowrap;
+
+  /* 큰 화면에서는 글자 크기를 고정합니다. */
   font-size: 5.2rem;
   line-height: 1.24;
 }#auth-screen .grid > section:first-child h1 br {
@@ -689,6 +690,7 @@ content: "놓아서 이동";
   /* 1080px 아래에서만 폰트가 부드럽게 줄어듭니다.
      breakpoint 경계에서 갑자기 커지거나 작아지지 않게 최대값을 기본값과 맞춥니다. */
   #auth-screen .grid > section:first-child h1 {
+    white-space: normal;
     font-size: clamp(3.5rem, 7.7vw, 5.2rem);
   }
 
@@ -767,6 +769,7 @@ content: "놓아서 이동";
   #auth-screen .grid > section:first-child h1 {
     width: 100%;
     max-width: 430px;
+    white-space: normal;
     font-size: clamp(2.2rem, 8vw, 3.4rem);
     line-height: 1.22;
   }
@@ -889,11 +892,6 @@ content: "놓아서 이동";
   }
 
 
-  /* 로그인 헤더 좌우 여백을 줄입니다. */
-  #auth-screen > div > header {
-    padding: 1rem 1.25rem;
-  }
-
   #auth-screen > div > footer {
     font-size: 9px;
   }
@@ -960,12 +958,6 @@ content: "놓아서 이동";
    구조는 그대로 유지하고 여백과 글자 크기만 마지막으로 미세 조정합니다.
    ========================================================= */
 @media (max-width: 480px) {
-
-  /* 로그인 상단 브랜드명이 한 줄에서 안정적으로 보이도록 줄입니다. */
-  #auth-screen > div > header {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
 
   #auth-screen > div > header .font-cinzel {
     font-size: .94rem;
@@ -1053,9 +1045,8 @@ content: "놓아서 이동";
     display: none;
   }
 
-  /* 세로형에서는 헤더 전체 폭은 유지하되,
-     로고 시작점만 메인 폼의 왼쪽 면과 정확히 맞춥니다.
-     이후 더 작은 화면에서도 별도로 움직이지 않습니다. */
+  /* 세로형에서는 로고 시작점을 430px 로그인 폼의 왼쪽 면과 맞춥니다.
+     640px / 480px에서도 이 위치를 다시 덮어쓰지 않습니다. */
   #auth-screen header {
     width: 100%;
     padding-left: max(1rem, calc((100% - 430px) / 2));
