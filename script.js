@@ -183,9 +183,19 @@ function renderTrackTabs() {
     button.className = `sheet-tab${isActive ? ' is-active' : ''}`;
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
-    button.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
+
+    const label = document.createElement('span');
+    label.className = 'sheet-tab-label';
+    label.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
+
+    const dropHint = document.createElement('span');
+    dropHint.className = 'sheet-tab-drop-hint';
+    dropHint.textContent = isActive ? '현재 Track' : '여기로 이동';
+
+    button.append(label, dropHint);
 
     button.addEventListener('click', () => switchTrack(trackNumber));
+    button.addEventListener('dragenter', (event) => handleTrackDragOver(event, trackNumber));
     button.addEventListener('dragover', (event) => handleTrackDragOver(event, trackNumber));
     button.addEventListener('dragleave', handleTrackDragLeave);
     button.addEventListener('drop', (event) => handleDropOnTrack(event, trackNumber));
@@ -464,6 +474,12 @@ function handleTrackDragOver(e, targetTrack) {
 }
 
 function handleTrackDragLeave(e) {
+  const nextElement = e.relatedTarget;
+
+  if (nextElement && e.currentTarget.contains(nextElement)) {
+    return;
+  }
+
   e.currentTarget.classList.remove('is-drag-over');
 }
 
