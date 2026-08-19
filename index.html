@@ -667,12 +667,16 @@ content: "놓아서 이동";
     padding-left: 4rem;
     padding-right: 4rem;
 
-    /* 타이틀과 로그인 폼 사이의 시각적 간격이 너무 좁아지지 않도록 유지합니다. */
-    column-gap: 4rem;
+    /* 타이틀과 로그인 폼 사이가 너무 가까워지지 않도록
+       최소 시각 간격을 5rem으로 넉넉하게 유지합니다. */
+    column-gap: 5rem;
 
-    /* 왼쪽 타이틀 영역이 무한히 늘어나거나 찌그러지지 않게 최대 폭을 제한합니다.
-       로그인 폼은 기존 430px 폭을 유지합니다. */
-    grid-template-columns: minmax(0, 460px) 430px;
+    /* 화면이 줄어들면 gap을 줄이는 대신
+       타이틀 영역과 로그인 폼 영역이 함께 조금씩 좁아집니다. */
+    grid-template-columns:
+      minmax(300px, 420px)
+      minmax(360px, 430px);
+
     justify-content: center;
   }
 
@@ -1016,14 +1020,15 @@ content: "놓아서 이동";
    ========================================================= */
 #auth-screen header {
   width: 100%;
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 3rem;
-  padding-right: 3rem;
+
+  /* 헤더 배경은 화면 전체 폭을 그대로 유지하고,
+     로고와 오른쪽 문구의 위치만 중앙 작업영역 안으로 당깁니다. */
+  padding-left: max(3rem, calc((100% - 1280px) / 2 + 3rem));
+  padding-right: max(3rem, calc((100% - 1280px) / 2 + 3rem));
 }
 
-/* 1080px ~ 901px에서는 본문과 같은 좌우 여백을 사용합니다. */
+/* 1080px ~ 901px에서는 본문과 비슷한 좌우 여백을 사용해
+   로고와 오른쪽 문구도 함께 가까워지도록 합니다. */
 @media (max-width: 1080px) and (min-width: 901px) {
   #auth-screen header {
     padding-left: 4rem;
@@ -1031,20 +1036,17 @@ content: "놓아서 이동";
   }
 }
 
-/* 로그인 화면이 세로형으로 바뀌면 오른쪽 안내 문구를 숨깁니다. */
+/* 로그인 화면이 세로형으로 바뀌면 오른쪽 안내 문구는 숨기고,
+   로고만 본문 430px 축의 왼쪽에 맞춥니다. */
 @media (max-width: 900px) {
-  #auth-screen header > :last-child {
+  .header-product-label {
     display: none;
   }
 
-  /* 세로형에서도 로고가 본문 폭과 어색하게 떨어지지 않도록 정렬합니다. */
   #auth-screen header {
     width: 100%;
-    max-width: 430px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: max(1rem, calc((100% - 430px) / 2));
+    padding-right: max(1rem, calc((100% - 430px) / 2));
   }
 }
 
