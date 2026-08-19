@@ -3,10 +3,9 @@
 const SUPABASE_URL = 'https://xhghpywvthjuvespzdul.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rPKY5Wfpp1JnSkPhIzJqJA_cijBqYgc';
 const supabaseClient = window.macroWatchSupabase
-  || (window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null);
+|| (window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null);
 
 // ===== 화면과 데이터의 현재 상태 =====
-// Track, 편집, 삭제, 드래그 상태를 여러 함수가 함께 사용하므로 전역 상태로 관리합니다.
 const ITEMS_PER_TRACK = 8;
 const MAX_TRACKS = 10;
 const MAX_TARGETS = ITEMS_PER_TRACK * MAX_TRACKS;
@@ -33,8 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
-
-  // Drag & Drop 도움말의 ? 버튼은 클릭/터치로도 열 수 있게 합니다.
   // 화면의 다른 곳을 누르면 열린 도움말을 자동으로 닫습니다.
   document.addEventListener('click', (event) => {
     const helpButton = event.target.closest('.track-help-button');
@@ -68,9 +65,7 @@ async function getCurrentUserId() {
   return currentUserId;
 }
 
-// DB 연결 상태 표시
-// DB 연결 상태를 화면 상단 상태 표시 영역에 반영합니다.
-// loading / connected / missing / error 네 상태를 처리합니다.
+// ===== DB 연결 상태 표시 =====
 function setDbStatus(state) {
   const statusEl = document.getElementById('db-status');
   if (!statusEl) return;
@@ -114,8 +109,6 @@ function toggleTargetValueInput(conditionId, valueId) {
 }
 
 // ===== 추적 지표 목록 불러오기 =====
-// DB에서 현재 사용자의 추적 지표 목록을 불러옵니다.
-// display_order 순서대로 받아 targets 배열에 저장한 뒤 화면을 다시 그립니다.
 async function fetchTargets() {
   if (!supabaseClient) {
     setDbStatus('missing');
@@ -129,10 +122,10 @@ async function fetchTargets() {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('로그인 정보를 확인하지 못했습니다.');
     const { data, error } = await supabaseClient
-      .from('targets')
-      .select('*')
-      .eq('user_id', userId)
-      .order('display_order', { ascending: true, nullsFirst: false });
+    .from('targets')
+    .select('*')
+    .eq('user_id', userId)
+    .order('display_order', { ascending: true, nullsFirst: false });
     if (error) throw error;
     targets = data || [];
     setDbStatus('connected');
@@ -147,7 +140,6 @@ async function fetchTargets() {
 
 // ===== Track 계산 / Track 탭 표시 =====
 // 현재 지표 개수로 필요한 Track 개수를 계산합니다.
-// Track 하나당 8개, 최대 Track 10개까지만 허용합니다.
 function getTrackCount() {
   return Math.max(1, Math.min(MAX_TRACKS, Math.ceil(targets.length / ITEMS_PER_TRACK)));
 }
@@ -242,12 +234,11 @@ function showCenteredNotice(titleText, messageText = '') {
 }
 
 // + ADD Track을 눌렀을 때 보여주는 안내 문구입니다.
-// Track은 사용자가 직접 만드는 것이 아니라 지표 개수에 따라 자동 생성됩니다.
 function showAddTrackNotice() {
   showCenteredNotice(
-    '서비스 준비 중입니다.',
-    '지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.'
-  );
+  '서비스 준비 중입니다.',
+  '지표 신규 등록을 하면 자동으로 Track 탭이 생성됩니다.'
+);
 }
 
 // 가운데 공용 안내 모달을 닫습니다.
@@ -269,7 +260,7 @@ function finishTargetRegistration() {
 }
 
 // ===== 추적 지표 한 줄 만들기 =====
-// 추적 지표 한 개를 화면에 표시할 HTML 문자열로 만듭니다.
+// 지표 한 개를 화면에 표시할 HTML 문자열로 만듭니다.
 // 제목, 현재값, 알림 상태, 상세정보, 수정/삭제 버튼이 모두 여기에서 만들어집니다.
 function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   return `
@@ -308,31 +299,31 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
         </button>
       </div>
       ${String(item.id) === expandedTargetId ? `
-        <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
-          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 text-xs">
-            <div class="sm:col-span-2">
-              <dt class="text-slate-500">대상 URL</dt>
-              <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(getOriginalUrl(item) || '—')}</dd>
-            </div>
-            <div class="sm:col-span-2">
-              <dt class="text-slate-500">추출 설정</dt>
-              <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(item.css_selector || '—')}</dd>
-            </div>
-            <div>
-              <dt class="text-slate-500">알림 조건</dt>
-              <dd class="mt-1 text-slate-200">${getConditionText(item.condition_type)}</dd>
-            </div>
-            <div>
-              <dt class="text-slate-500">목표값</dt>
-              <dd class="mt-1 font-mono text-blue-400">${item.target_value ?? '—'}</dd>
-            </div>
-          </dl>
-          <div class="mt-4 flex justify-end gap-2">
-            <button onclick="openEditModal('${item.id}')" class="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"><i class="fa-solid fa-pen-to-square mr-1"></i>수정</button>
-            <button onclick="handleDeleteTarget('${item.id}')" class="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition"><i class="fa-solid fa-trash-can mr-1"></i>삭제</button>
-          </div>
-        </div>
-      ` : ''}
+  <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
+  <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 text-xs">
+  <div class="sm:col-span-2">
+  <dt class="text-slate-500">대상 URL</dt>
+  <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(getOriginalUrl(item) || '—')}</dd>
+  </div>
+  <div class="sm:col-span-2">
+  <dt class="text-slate-500">추출 설정</dt>
+  <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(item.css_selector || '—')}</dd>
+  </div>
+  <div>
+  <dt class="text-slate-500">알림 조건</dt>
+  <dd class="mt-1 text-slate-200">${getConditionText(item.condition_type)}</dd>
+  </div>
+  <div>
+  <dt class="text-slate-500">목표값</dt>
+  <dd class="mt-1 font-mono text-blue-400">${item.target_value ?? '—'}</dd>
+  </div>
+  </dl>
+  <div class="mt-4 flex justify-end gap-2">
+  <button onclick="openEditModal('${item.id}')" class="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"><i class="fa-solid fa-pen-to-square mr-1"></i>수정</button>
+  <button onclick="handleDeleteTarget('${item.id}')" class="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition"><i class="fa-solid fa-trash-can mr-1"></i>삭제</button>
+  </div>
+  </div>
+  ` : ''}
     </div>
   `;
 }
@@ -364,12 +355,12 @@ function renderTargets() {
   listEl.innerHTML = visibleTargets.map((item, localIndex) => {
     const globalIndex = startIndex + localIndex;
     return renderTargetItem(
-      item,
-      globalIndex,
-      localIndex === 0,
-      localIndex === visibleTargets.length - 1
-    );
-  }).join('');
+    item,
+    globalIndex,
+    localIndex === 0,
+    localIndex === visibleTargets.length - 1
+  );
+}).join('');
 }
 
 // 지표 제목을 눌렀을 때 상세정보 영역을 펼치거나 접습니다.
@@ -380,7 +371,6 @@ function toggleTargetDetails(id) {
 }
 
 // 종 모양 버튼을 눌렀을 때 해당 지표의 알림 활성/비활성 상태를 바꿉니다.
-// DB 업데이트가 성공한 경우에만 화면 상태도 변경합니다.
 async function toggleTargetActive(id) {
   const index = targets.findIndex(item => String(item.id) === String(id));
   if (index === -1) return;
@@ -392,10 +382,10 @@ async function toggleTargetActive(id) {
     try {
       const userId = await getCurrentUserId();
       const { error } = await supabaseClient
-        .from('targets')
-        .update({ is_active: nextIsActive })
-        .eq('id', id)
-        .eq('user_id', userId);
+      .from('targets')
+      .update({ is_active: nextIsActive })
+      .eq('id', id)
+      .eq('user_id', userId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
@@ -455,8 +445,8 @@ function handleDragOver(e, targetGlobalIndex) {
   const targetRow = e.currentTarget.querySelector('[data-target-row]') || e.currentTarget;
   const rect = targetRow.getBoundingClientRect();
   const insertIndex = e.clientY < rect.top + rect.height / 2
-    ? targetGlobalIndex
-    : targetGlobalIndex + 1;
+  ? targetGlobalIndex
+  : targetGlobalIndex + 1;
 
   setDropIndicator(insertIndex);
 }
@@ -474,10 +464,10 @@ function handleDrop(e, targetGlobalIndex) {
   const trackEnd = getTrackEndIndex();
 
   if (
-    draggedItemIndex < trackStart ||
-    draggedItemIndex >= trackEnd ||
-    insertIndex < trackStart ||
-    insertIndex > trackEnd
+  draggedItemIndex < trackStart ||
+  draggedItemIndex >= trackEnd ||
+  insertIndex < trackStart ||
+  insertIndex > trackEnd
   ) {
     return;
   }
@@ -586,11 +576,11 @@ async function saveOrderToDb() {
 
   try {
     const results = await Promise.all(targets.map((target, displayOrder) =>
-      supabaseClient
-        .from('targets')
-        .update({ display_order: displayOrder })
-        .eq('id', target.id)
-        .eq('user_id', userId)
+    supabaseClient
+    .from('targets')
+    .update({ display_order: displayOrder })
+    .eq('id', target.id)
+    .eq('user_id', userId)
     ));
     const failed = results.find((result) => result.error);
     if (failed?.error) throw failed.error;
@@ -671,20 +661,20 @@ async function handleAddTarget(e) {
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
-        .from('targets')
-        .insert([{
-          user_id: userId,
-          title,
-          url,
-          css_selector: cssSelector,
-          source_type: sourceType,
-          source_config: sourceConfig,
-          condition_type: conditionType,
-          target_value: targetVal,
-          is_active: true,
-          display_order: targets.length
-        }])
-        .select();
+      .from('targets')
+      .insert([{
+        user_id: userId,
+        title,
+        url,
+        css_selector: cssSelector,
+        source_type: sourceType,
+        source_config: sourceConfig,
+        condition_type: conditionType,
+        target_value: targetVal,
+        is_active: true,
+        display_order: targets.length
+      }])
+      .select();
 
       if (!error && data) {
         targets.push(data[0]);
@@ -752,10 +742,10 @@ async function saveEditTarget() {
     try {
       const userId = await getCurrentUserId();
       const { error } = await supabaseClient
-        .from('targets')
-        .update(updatedData)
-        .eq('id', currentEditId)
-        .eq('user_id', userId);
+      .from('targets')
+      .update(updatedData)
+      .eq('id', currentEditId)
+      .eq('user_id', userId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
@@ -772,7 +762,7 @@ async function saveEditTarget() {
   closeEditModal();
 }
 
-// 항목 삭제
+// ===== 지표 삭제 =====
 // 삭제 버튼을 눌렀을 때 바로 삭제하지 않고 확인 모달을 먼저 엽니다.
 function handleDeleteTarget(id) {
   currentDeleteId = id;
@@ -794,10 +784,10 @@ async function confirmDeleteTarget() {
     try {
       const userId = await getCurrentUserId();
       const { error } = await supabaseClient
-        .from('targets')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
+      .from('targets')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
       if (error) throw error;
     } catch (err) {
       console.error(err);
@@ -810,7 +800,7 @@ async function confirmDeleteTarget() {
   closeDeleteModal();
 }
 
-// 헬퍼 함수
+// ===== 화면 표시와 URL 처리에 사용하는 보조 함수 =====
 function getConditionText(condition) {
   switch (condition) {
     case 'changed': return '지표값 변동 감지';
@@ -821,6 +811,8 @@ function getConditionText(condition) {
   }
 }
 
+// 지표 상세정보의 '원본 URL'을 만듭니다.
+// 일반 웹은 저장된 URL을 그대로 사용하고, FRED/ECOS처럼 별도 설정이 있는 데이터는 원본 페이지 주소를 복원합니다.
 function getOriginalUrl(item) {
   const url = item?.url || '';
   if (url.includes('api.stlouisfed.org/fred/series/observations')) {
@@ -837,7 +829,8 @@ function getOriginalUrl(item) {
   return url;
 }
 
+// 사용자 입력값을 HTML 안에 안전하게 표시하기 위해 특수문자를 바꿉니다.
+// 제목이나 URL에 <, >, &, 따옴표가 들어가도 화면 구조가 깨지지 않게 합니다.
 function escapeHtml(str) {
   return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
 }
