@@ -159,11 +159,11 @@ function setWebInputMode(mode) {
   autoButton.setAttribute('aria-selected', String(isAuto));
   manualButton.setAttribute('aria-selected', String(!isAuto));
   autoButton.className = isAuto
-    ? 'rounded-t-2xl border-r border-slate-700 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-inner transition'
-    : 'border-r border-slate-800 bg-slate-950/50 px-3 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-800 hover:text-slate-200';
+    ? 'rounded-xl border border-blue-500 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-md shadow-black/20 transition'
+    : 'rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white';
   manualButton.className = !isAuto
-    ? 'rounded-t-2xl bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-inner transition'
-    : 'bg-slate-950/50 px-3 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-800 hover:text-slate-200';
+    ? 'rounded-xl border border-blue-500 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-md shadow-black/20 transition'
+    : 'rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white';
 
   toggleTypeFields();
 }
@@ -178,6 +178,7 @@ function resetWebDiscovery() {
   const status = document.getElementById('discover-values-status');
   const list = document.getElementById('discover-values-list');
   const retryButton = document.getElementById('discover-values-retry');
+  const modalStatus = document.getElementById('discover-values-modal-status');
 
   if (selectorInput) selectorInput.value = '';
   if (status) {
@@ -189,6 +190,7 @@ function resetWebDiscovery() {
     list.classList.add('hidden');
   }
   if (retryButton) retryButton.classList.add('hidden');
+  if (modalStatus) modalStatus.textContent = '';
   discoveryRetryUsed = false;
   closeDiscoveryModal();
 }
@@ -220,27 +222,27 @@ function renderDiscoveredValues(candidates) {
 
   if (discoveredValueCandidates.length === 0) {
     const empty = document.createElement('p');
-    empty.className = 'rounded-xl border border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-600';
-    empty.textContent = '첫 번째 결과를 제외한 새로운 후보값을 찾지 못했습니다.';
+    empty.className = 'rounded-xl border border-slate-700 bg-slate-800 px-4 py-6 text-center text-sm text-slate-300';
+    empty.textContent = '표시할 후보값이 없습니다.';
     list.appendChild(empty);
   }
 
   discoveredValueCandidates.forEach((candidate, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'flex w-full items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-3 text-left text-slate-800 shadow-sm transition hover:border-blue-400 hover:bg-blue-50';
+    button.className = 'flex w-full items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3 py-3 text-left text-white shadow-sm transition hover:border-blue-400 hover:bg-slate-700';
 
     const left = document.createElement('span');
-    left.className = 'min-w-0 flex-1 truncate text-right text-xs text-slate-600';
+    left.className = 'min-w-0 flex-1 truncate text-right text-xs text-slate-200';
     left.textContent = candidate.left || candidate.section || '—';
     left.title = left.textContent;
 
     const value = document.createElement('span');
-    value.className = 'shrink-0 rounded-lg border border-blue-300 bg-blue-100 px-3 py-1.5 text-sm font-extrabold text-blue-700';
+    value.className = 'shrink-0 rounded-lg border border-amber-200 bg-amber-300 px-3 py-1.5 text-sm font-extrabold text-slate-950 shadow-sm';
     value.textContent = candidate.display;
 
     const right = document.createElement('span');
-    right.className = 'min-w-0 flex-1 truncate text-left text-xs text-slate-600';
+    right.className = 'min-w-0 flex-1 truncate text-left text-xs text-slate-200';
     right.textContent = candidate.right || '—';
     right.title = right.textContent;
 
@@ -257,6 +259,29 @@ function openDiscoveryModal() {
 
 function closeDiscoveryModal() {
   document.getElementById('discover-values-modal')?.classList.add('hidden');
+}
+
+function setDiscoveryModalStatus(message, state = 'normal') {
+  const status = document.getElementById('discover-values-modal-status');
+  if (!status) return;
+
+  const colors = {
+    normal: 'text-blue-300',
+    loading: 'text-blue-300',
+    error: 'text-amber-300'
+  };
+  status.textContent = message;
+  status.className = `mt-2 text-xs font-semibold ${colors[state] || colors.normal}`;
+}
+
+function showDiscoveryModalLoading() {
+  const list = document.getElementById('discover-values-list');
+  if (!list) return;
+
+  const loading = document.createElement('p');
+  loading.className = 'rounded-xl border border-slate-700 bg-slate-800 px-4 py-8 text-center text-sm text-slate-300';
+  loading.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-blue-300"></i>후보값을 불러오고 있습니다.';
+  list.replaceChildren(loading);
 }
 
 // 선택한 후보를 강조하고 실제 등록에 사용할 CSS 선택자를 저장합니다.
@@ -341,11 +366,17 @@ async function discoverWebValues(isRetry = false) {
     document.getElementById('discover-values-retry')?.classList.add('hidden');
   }
 
+  openDiscoveryModal();
+  showDiscoveryModalLoading();
+  setDiscoveryModalStatus(
+    isRetry ? '첫 번째 후보를 제외하고 다시 찾고 있습니다.' : '웹페이지에서 후보값을 찾고 있습니다.',
+    'loading'
+  );
+
   if (button) {
     button.disabled = true;
     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>찾는 중';
   }
-  setDiscoveryStatus('웹페이지에서 지표로 보이는 숫자를 찾고 있습니다.', 'loading');
 
   try {
     const { data, error } = await supabaseClient.functions.invoke('discover-values', {
@@ -358,21 +389,24 @@ async function discoverWebValues(isRetry = false) {
 
     const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
     renderDiscoveredValues(candidates);
-    if (candidates.length) openDiscoveryModal();
+    setDiscoveryModalStatus(
+      candidates.length
+        ? (data.message || '가능성이 높은 값을 골라 주세요.')
+        : (data.message || '숫자 후보를 찾지 못했습니다.'),
+      candidates.length ? 'normal' : 'error'
+    );
 
     const retryButton = document.getElementById('discover-values-retry');
     if (retryButton) {
       retryButton.classList.toggle('hidden', isRetry || discoveryRetryUsed || candidates.length === 0);
     }
 
-    setDiscoveryStatus(
-      candidates.length ? (data.message || '가능성이 높은 값을 골라 주세요.') : (data.message || '숫자 후보를 찾지 못했습니다.'),
-      candidates.length ? 'normal' : 'error'
-    );
+
   } catch (error) {
     console.error('Value discovery error:', error);
-    setDiscoveryStatus(
-      error?.message || '자동 탐색에 실패했습니다. CSS 선택자를 직접 입력해 주세요.',
+    renderDiscoveredValues([]);
+    setDiscoveryModalStatus(
+      error?.message || '자동 탐색에 실패했습니다. 직접 입력을 이용해 주세요.',
       'error'
     );
   } finally {
