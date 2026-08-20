@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // 화면의 다른 곳을 누르면 열린 도움말을 자동으로 닫습니다.
   document.addEventListener('click', (event) => {
-    const helpButton = event.target.closest('.track-help-button');
     const helpBox = event.target.closest('.track-help');
+    const isTouchLayout = !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-    if (helpBox) {
+    if (helpBox && isTouchLayout) {
       event.stopPropagation();
 
       const willOpen = !helpBox.classList.contains('is-open');
