@@ -544,22 +544,6 @@ position: relative;
 }.track-help-icon {
 color: #d1a55d;
   font-size: .62rem;
-}/* ? 버튼은 안내창을 열고 닫는 용도입니다. */
-.track-help-button {
-display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1rem;
-  height: 1rem;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: #d1a55d;
-  color: #071b42;
-  font-size: .62rem;
-  font-weight: 800;
-  line-height: 1;
-  cursor: help;
 }/* 평소에는 숨겨 두었다가 hover / focus / click 때 아래로 펼칩니다. */
 .track-help-tooltip {
 position: absolute;
@@ -602,7 +586,6 @@ color: #f2d49c;
   font-weight: 700;
 }/* 데스크톱 hover, 키보드 focus, 모바일 click 모두 같은 방식으로 안내창을 표시합니다. */
 .track-help:hover .track-help-tooltip,
-.track-help:focus-within .track-help-tooltip,
 .track-help.is-open .track-help-tooltip {
 opacity: 1;
   visibility: visible;
@@ -1100,15 +1083,6 @@ content: "놓아서 이동";
           <div class="track-help">
             <i class="fa-solid fa-arrows-up-down track-help-icon" aria-hidden="true"></i>
             <span>끌어서 순서 변경</span>
-
-            <button
-              type="button"
-              class="track-help-button"
-              aria-label="Drag & Drop 사용법 보기"
-              aria-expanded="false"
-            >
-              ?
-            </button>
 
             <div class="track-help-tooltip" role="tooltip">
               <p>
