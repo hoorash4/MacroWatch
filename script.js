@@ -272,6 +272,35 @@ function renderDiscoveredValues(candidates) {
   });
 }
 
+// 자동 탐색 오류를 기술적인 원문 대신 사용자가 이해하기 쉬운 한글로 바꿉니다.
+function getDiscoveryErrorMessage(error) {
+  const raw = String(error?.message || '').trim();
+
+  // Edge Function이 이미 한글로 설명한 오류는 그대로 사용합니다.
+  if (/[가-힣]/.test(raw)) return raw;
+
+  if (/Edge Function returned a non-2xx status code/i.test(raw)) {
+    return '웹페이지를 불러오지 못했습니다. 사이트가 외부 자동 수집을 차단했거나 응답 시간이 초과되었을 수 있습니다.';
+  }
+  if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
+    return '웹페이지에 연결하지 못했습니다. 주소가 맞는지와 사이트 접속 가능 여부를 확인해 주세요.';
+  }
+  if (/403|forbidden|blocked/i.test(raw)) {
+    return '이 웹페이지가 자동 수집을 허용하지 않아 값을 확인할 수 없습니다.';
+  }
+  if (/404|not found/i.test(raw)) {
+    return '입력한 웹페이지 주소를 찾을 수 없습니다. 주소를 다시 확인해 주세요.';
+  }
+  if (/429|rate limit|too many requests/i.test(raw)) {
+    return '요청이 너무 많아 잠시 제한되었습니다. 잠시 후 다시 시도해 주세요.';
+  }
+  if (/timeout|timed out/i.test(raw)) {
+    return '웹페이지 응답이 너무 오래 걸렸습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
+  return '자동으로 후보값을 찾지 못했습니다. 주소를 확인하거나 직접 입력을 이용해 주세요.';
+}
+
 // 후보 모달을 열고 닫는 동작은 탐색 결과 표시와 분리합니다.
 function openDiscoveryModal() {
   document.getElementById('discover-values-modal')?.classList.remove('hidden');
@@ -428,7 +457,7 @@ async function discoverWebValues(isRetry = false) {
     console.error('Value discovery error:', error);
     renderDiscoveredValues([]);
     setDiscoveryModalStatus(
-      error?.message || '자동 탐색에 실패했습니다. 직접 입력을 이용해 주세요.',
+      getDiscoveryErrorMessage(error),
       'error'
     );
   } finally {
