@@ -523,39 +523,15 @@ position: relative;
   z-index: 2;
   border-radius: 0 0 1.75rem 1.75rem;
   padding-bottom: 1rem;
-}/* 터치 드래그는 점 6개 핸들에서만 시작하고 일반 목록 스크롤은 유지합니다. */
+}/* ===== 마우스·터치 공통 드래그 표시 =====
+   마우스는 행 전체, 터치는 점 6개에서 시작하며 같은 미리보기를 사용합니다.
+*/
 .touch-drag-handle {
+  touch-action: none;
   user-select: none;
 }
 
-/* 마우스에서는 점 6개도 행 전체의 드래그 영역으로 처리합니다. */
-@media (hover: hover) and (pointer: fine) {
-  .touch-drag-handle {
-    pointer-events: none;
-  }
-}
-
-/* 터치에서는 점 6개 핸들에서만 롱프레스 드래그를 시작합니다. */
-@media (pointer: coarse) {
-  .touch-drag-handle {
-    touch-action: none;
-    pointer-events: auto;
-    padding: 12px !important;
-    margin: -12px;
-  }
-}
-
-.touch-drag-row {
-  opacity: .55;
-}
-
-/* 터치 드래그 중인 항목 전체를 흐리게 표시합니다. */
-.touch-drag-source {
-  opacity: .45 !important;
-}
-
-/* 터치 드래그 중 손가락을 따라 움직이는 미리보기입니다. */
-.touch-drag-preview {
+.drag-preview {
   position: fixed;
   z-index: 100;
   pointer-events: none;
@@ -566,20 +542,9 @@ position: relative;
   box-shadow: 0 12px 24px rgba(0,0,0,.35);
 }
 
-body.is-touch-dragging {
-  user-select: none;
-}
-
-/* 마우스에서는 행 안의 모든 요소를 하나의 드래그 영역으로 표시합니다. */
 #target-list [data-target-row],
 #target-list [data-target-row] * {
   cursor: pointer !important;
-}
-
-/* 마우스로 항목을 잡고 있는 동안 주먹을 쥔 커서를 유지합니다. */
-body.is-mouse-dragging,
-body.is-mouse-dragging * {
-  cursor: grabbing !important;
 }
 
 /* ===== Drag & Drop 사용 안내 =====
@@ -1335,6 +1300,6 @@ content: "↓" !important;
   <script src="auth.js?v=11"></script>
 
   <!-- 지표 등록 / Tab / Drag & Drop 처리 스크립트 -->
-  <script src="script.js?v=30"></script>
+  <script src="script.js?v=31"></script>
 </body>
 </html>
