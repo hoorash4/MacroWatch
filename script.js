@@ -195,7 +195,8 @@ function renderTrackTabs() {
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
 
-    button.textContent = `Tab${String(trackNumber).padStart(2, '0')}`;
+    const tabNumber = String(trackNumber).padStart(2, '0');
+    button.innerHTML = `<span class="tab-label-wide">Tab ${tabNumber}</span><span class="tab-label-compact">T${tabNumber}</span>`;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
     button.addEventListener('dragenter', (event) => handleTrackDragOver(event, trackNumber));
@@ -210,7 +211,7 @@ function renderTrackTabs() {
   addButton.type = 'button';
   addButton.className = 'sheet-tab sheet-tab-add';
   addButton.setAttribute('role', 'button');
-  addButton.textContent = '+ ADD Tab';
+  addButton.innerHTML = '<span class="tab-label-wide">+ ADD Tab</span><span class="tab-label-compact">+ ADD</span>';
   addButton.addEventListener('click', showAddTrackNotice);
   tabsEl.appendChild(addButton);
 }
