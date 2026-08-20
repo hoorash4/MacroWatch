@@ -391,6 +391,7 @@ position: relative;
 }
 
 #tab-content-tracker {
+  container-type: inline-size;
 display: grid;
   grid-template-columns: minmax(0,1fr) 360px;
   gap: 1.25rem;
@@ -614,7 +615,7 @@ position: relative;
   align-items: center;
   justify-content: center;
   height: 30px;
-  min-width: 67px;
+  min-width: clamp(38px, 9cqw, 67px);
   padding: 0;
   margin-left: -10px;
   background: #ece8df;
