@@ -612,8 +612,8 @@ content: "놓아서 이동";
 @media (min-width:1024px) {
   #auth-screen > div > header {
     display: grid;
-    grid-template-columns: minmax(0,350px) 420px;
-    column-gap: 48px;
+    grid-template-columns: minmax(0,520px) 420px;
+    column-gap: 64px;
     justify-content: center;
   }
 }
@@ -632,6 +632,7 @@ content: "놓아서 이동";
     padding: 2.5rem 1.5rem 4rem;
   }
   .auth-canvas > div > section:last-child::before { display: none; }
+  #auth-screen .header-product-label { display: none; }
 
   #auth-screen .grid.flex-1 {
     padding-left: clamp(1.5rem,7vw,4rem);
