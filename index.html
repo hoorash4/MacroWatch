@@ -726,8 +726,8 @@ content: "놓아서 이동";
 
 @media (max-width:767px) {
 
-  /* 767px 이하에서 대시보드 로고 블럭을 화면 폭에 맞춰 점진적으로 줄입니다. */
-  .dashboard-logo {
+  /* 767px 이하에서 로고와 서비스명을 포함한 브랜드 블럭을 함께 줄입니다. */
+  .dashboard-brand {
     transform: scale(clamp(.7, calc(100vw / 767px), 1));
     transform-origin: left center;
   }
@@ -860,7 +860,7 @@ content: "놓아서 이동";
     <!-- 대시보드 상단: 제목 / 설정 / 로그아웃 -->
     <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl">
       <!-- 왼쪽: 로고와 MacroWatch 제목을 하나의 영역으로 묶습니다. -->
-      <div class="flex items-center gap-2.5">    
+      <div class="dashboard-brand flex items-center gap-2.5">    
         <!-- Evotive 로고 이미지 -->
         <div class="dashboard-logo" aria-hidden="true"></div>    
         <!-- 서비스 이름과 설명 -->
