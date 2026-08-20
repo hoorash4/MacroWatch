@@ -448,7 +448,10 @@ function createPointerDragState() {
     startY: 0,
     offsetX: 0,
     offsetY: 0,
-    preview: null
+    preview: null,
+    scrollFrame: null,
+    lastClientX: 0,
+    lastClientY: 0
   };
 }
 
@@ -497,6 +500,7 @@ function handlePointerDragMove(event) {
   event.preventDefault();
   moveDragPreview(event.clientX, event.clientY);
   updatePointerDropTarget(event.clientX, event.clientY);
+  updateDownwardAutoScroll(event.clientX, event.clientY);
 }
 
 function handlePointerDragEnd(event) {
@@ -566,6 +570,66 @@ function moveDragPreview(clientX, clientY) {
   if (!pointerDragState.preview) return;
   pointerDragState.preview.style.left = (clientX - pointerDragState.offsetX) + 'px';
   pointerDragState.preview.style.top = (clientY - pointerDragState.offsetY) + 'px';
+}
+
+// 드래그 중 화면 하단에 가까워질 때 아래 방향으로만 자동 스크롤합니다.
+function updateDownwardAutoScroll(clientX, clientY) {
+  const threshold = 80;
+  pointerDragState.lastClientX = clientX;
+  pointerDragState.lastClientY = clientY;
+
+  if (window.innerHeight - clientY >= threshold) {
+    stopDownwardAutoScroll();
+    return;
+  }
+
+  if (pointerDragState.scrollFrame === null) {
+    pointerDragState.scrollFrame = requestAnimationFrame(runDownwardAutoScroll);
+  }
+}
+
+function runDownwardAutoScroll() {
+  if (!pointerDragState.active) {
+    stopDownwardAutoScroll();
+    return;
+  }
+
+  const threshold = 80;
+  const distanceFromBottom = Math.max(
+    0,
+    window.innerHeight - pointerDragState.lastClientY
+  );
+
+  if (distanceFromBottom >= threshold) {
+    stopDownwardAutoScroll();
+    return;
+  }
+
+  const speed = Math.max(
+    2,
+    Math.ceil((threshold - distanceFromBottom) / threshold * 14)
+  );
+  const previousScrollY = window.scrollY;
+  window.scrollBy(0, speed);
+
+  updatePointerDropTarget(
+    pointerDragState.lastClientX,
+    pointerDragState.lastClientY
+  );
+
+  if (window.scrollY === previousScrollY) {
+    stopDownwardAutoScroll();
+    return;
+  }
+
+  pointerDragState.scrollFrame = requestAnimationFrame(runDownwardAutoScroll);
+}
+
+function stopDownwardAutoScroll() {
+  if (pointerDragState.scrollFrame !== null) {
+    cancelAnimationFrame(pointerDragState.scrollFrame);
+    pointerDragState.scrollFrame = null;
+  }
 }
 
 function updatePointerDropTarget(clientX, clientY) {
@@ -670,6 +734,7 @@ function clearDropIndicator() {
 
 function cancelPointerDrag() {
   clearTimeout(pointerDragState.timer);
+  stopDownwardAutoScroll();
   document.body.classList.remove('is-pointer-dragging');
   pointerDragState.sourceContainer?.style.removeProperty('opacity');
   pointerDragState.preview?.remove();
