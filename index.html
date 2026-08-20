@@ -523,7 +523,21 @@ position: relative;
   z-index: 2;
   border-radius: 0 0 1.75rem 1.75rem;
   padding-bottom: 1rem;
-}/* ===== Drag & Drop 사용 안내 =====
+}/* 터치 드래그는 점 6개 핸들에서만 시작하고 일반 목록 스크롤은 유지합니다. */
+.touch-drag-handle {
+  touch-action: none;
+  user-select: none;
+}
+
+.is-touch-dragging {
+  opacity: .55;
+}
+
+body.is-touch-dragging {
+  user-select: none;
+}
+
+/* ===== Drag & Drop 사용 안내 =====
    리스트 제목 오른쪽에 보이는 "Drag & Drop 순서 변경 ?" 안내입니다.
    데스크톱에서는 마우스를 올리면 열리고,
    클릭/터치 환경에서는 JS가 .is-open 클래스를 붙여 열어 줍니다.
