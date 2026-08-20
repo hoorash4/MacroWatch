@@ -608,6 +608,16 @@ content: "놓아서 이동";
   color: #071b42;
 }
 
+/* 큰 화면 헤더를 메인 콘텐츠와 같은 중앙 그리드에 맞춥니다. */
+@media (min-width:1024px) {
+  #auth-screen > div > header {
+    display: grid;
+    grid-template-columns: minmax(0,350px) 420px;
+    column-gap: 48px;
+    justify-content: center;
+  }
+}
+
 /* ===== 반응형 화면 =====
    데스크톱 기본 디자인은 위쪽 규칙을 사용합니다.
    아래에서는 화면 폭이 작아질 때 꼭 필요한 배치와 크기만 바꿉니다.
