@@ -378,6 +378,25 @@ position: relative;
   }
 }
 
+.tab-label-compact {
+  display: none;
+}
+
+@media (max-width:670px) {
+  /* 670px 이하에서는 11개 탭을 고려해 짧은 이름과 작은 폭을 사용합니다. */
+  .tab-label-wide {
+    display: none;
+  }
+
+  .tab-label-compact {
+    display: inline;
+  }
+
+  #tab-content-tracker > .sheet-tabs .sheet-tab {
+    min-width: clamp(38px, 9cqw, 60px);
+  }
+}
+
 /* 추적 메인 영역이 좁은 화면에서 콘텐츠의 고정 최소 폭을 만들지 않게 합니다. */
 #app-shell,
 #tab-content-tracker,
