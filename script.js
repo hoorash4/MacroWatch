@@ -297,9 +297,9 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
           <span class="block text-[10px] text-slate-500">현재값</span>
           <span class="block text-sm font-bold text-blue-400 font-mono">${item.last_value ?? '—'}</span>
         </div>
-        ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-blue-500/30 bg-blue-500/10 text-blue-300 transition hover:bg-blue-500/20 hover:text-blue-100" title="출처 열기" aria-label="출처 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>` : ''}
+        ${item.url ? `<a href="${escapeHtml(getOriginalUrl(item))}" target="_blank" rel="noopener noreferrer" class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-blue-500/30 bg-blue-500/10 text-blue-300 transition hover:bg-blue-500/20 hover:text-blue-100" title="출처 열기" aria-label="출처 열기"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>` : ''}
         <button type="button" onclick="toggleTargetActive('${item.id}')" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition ${item.is_active !== false ? 'text-amber-400 hover:bg-amber-500/20 hover:text-amber-300' : 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'}" title="${item.is_active !== false ? '알림 끄기' : '알림 켜기'}" aria-label="${item.is_active !== false ? '알림 끄기' : '알림 켜기'}">
-          <i class="fa-solid text-[14px] ${item.is_active !== false ? 'fa-bell' : 'fa-bell-slash'}"></i>
+          <i class="fa-solid text-[15px] ${item.is_active !== false ? 'fa-bell' : 'fa-bell-slash'}"></i>
         </button>
       </div>
       ${String(item.id) === expandedTargetId ? `
