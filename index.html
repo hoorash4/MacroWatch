@@ -627,21 +627,14 @@ content: "놓아서 이동";
 */
 
 @media (max-width:1023px) {
-  /* 세로형에서는 로고·메인 콘텐츠·로그인 폼의 왼쪽 기준선을 맞춥니다. */
-  #auth-screen > div > header {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
+  /* 세로형에서는 로고·메인 콘텐츠·로그인 폼을 같은 중앙 폭에 맞춥니다. */
+  #auth-screen > div > header,
   #auth-screen .grid.flex-1 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-  #auth-screen > div > section:last-child {
-    justify-content: flex-start;
-  }
-  #auth-screen .auth-panel {
-    margin-left: 0;
-    margin-right: 0;
+    width: min(calc(100% - 3rem), 430px);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
   }
   .auth-canvas { min-height: calc(100vh - 1.5rem) !important; }
   .auth-canvas > div { display: block; }
@@ -712,7 +705,7 @@ content: "놓아서 이동";
 }
 
 @media (max-width:640px) {
-  #auth-screen > div > header { padding: 1rem 1.5rem; }
+  #auth-screen > div > header { padding: 1rem 0; }
   #auth-screen > div > footer { font-size: 9px; }
 
 
