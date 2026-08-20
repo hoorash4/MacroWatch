@@ -1147,8 +1147,11 @@ async function handleAddTarget(e) {
       setDiscoveryStatus(`확인된 현재값: ${verifiedWebValue.display}`, 'success');
     } catch (error) {
       console.error('Web target verification error:', error);
-      window.alert(`현재값 확인 실패: ${error?.message || '웹페이지에서 값을 읽지 못했습니다.'}`);
-      return;
+      const reason = error?.message || '웹페이지에서 값을 읽지 못했습니다.';
+      const shouldContinue = window.confirm(
+        `현재값을 바로 확인하지 못했습니다.\n${reason}\n\n그래도 등록하시겠습니까?`
+      );
+      if (!shouldContinue) return;
     } finally {
       setAddSubmitBusy(false);
     }
