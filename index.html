@@ -726,13 +726,12 @@ content: "놓아서 이동";
 
 @media (max-width:767px) {
 
-  /* 모바일에서는 대시보드 로고 크기를 조금 줄입니다. */
+  /* 767px 이하에서 대시보드 로고 블럭을 화면 폭에 맞춰 점진적으로 줄입니다. */
   .dashboard-logo {
-    width: 44px;
-    height: 44px;
+    transform: scale(clamp(.72, calc(100vw / 767px), 1));
+    transform-origin: left center;
   }
 
-  
   #app-shell {
     width: calc(100% - 1rem);
     padding: 0 1rem;
