@@ -268,13 +268,14 @@ content: "© 2026 EVOTIVE RESEARCH. All rights reserved.";
    로그인 후 보이는 MacroWatch 본 화면의 카드, 입력폼, 추적 리스트 기본 디자인입니다.
 */
 #app-shell {
+  --dashboard-inner-pad: 1.5rem;
 border: 1px solid rgba(255,255,255,.1);
   box-shadow: 0 24px 70px rgba(0,0,0,.3);
   position: relative;
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 var(--dashboard-inner-pad);
   border-radius: 1.75rem;
   background: #071b42;
   overflow: hidden;
@@ -327,7 +328,7 @@ position: relative;
 #app-shell > .bg-slate-900:first-child {
 border-color: #d9d4ca;
   background: #f7f5f0;
-  margin: 0 -1.5rem;
+  margin: 0 calc(var(--dashboard-inner-pad) * -1);
   border-radius: 1.75rem 1.75rem 0 0;
   padding: 1.25rem .5rem 1.25rem 1.5rem;
   box-shadow: none;
@@ -355,9 +356,9 @@ background: #0d2a55;
 #app-shell > #tab-content-news {
 position: relative;
   z-index: 1;
-  margin-left: -1.5rem;
-  margin-right: -1.5rem;
-  padding: 1.5rem;
+  margin-left: calc(var(--dashboard-inner-pad) * -1);
+  margin-right: calc(var(--dashboard-inner-pad) * -1);
+  padding: 1.5rem var(--dashboard-inner-pad);
   background-image: radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);
   background-size: 36px 36px;
 }#tab-content-tracker {
@@ -778,6 +779,13 @@ content: "놓아서 이동";
 }
 
 
+
+/* 767px부터 대시보드 내부 좌우 패딩을 줄여 425px에서 0이 되게 합니다. */
+@media (max-width:767px) {
+  #app-shell {
+    --dashboard-inner-pad: clamp(0px, calc(9.8vw - 41.6px), 1.5rem);
+  }
+}
 
 /* 갤럭시 Z Fold6 펼침 세로 화면 기준(약 670px)부터 바깥 여백을 줄입니다. */
 @media (max-width:670px) {
