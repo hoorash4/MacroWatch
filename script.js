@@ -472,7 +472,6 @@ function handlePointerDragStart(event) {
   pointerDragState.sourceContainer = sourceContainer;
   pointerDragState.startX = event.clientX;
   pointerDragState.startY = event.clientY;
-  sourceRow.setPointerCapture?.(event.pointerId);
 
   if (!isMouse) {
     pointerDragState.timer = setTimeout(() => {
