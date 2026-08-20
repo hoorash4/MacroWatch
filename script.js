@@ -512,9 +512,13 @@ function handleTouchDragMove(event) {
 
   if (container) {
     const index = Number(container.dataset.targetContainer);
-    const row = container.querySelector('[data-target-row]') || container;
+    if (index === draggedItemIndex) {
+      clearDropIndicator();
+    } else {
+      const row = container.querySelector('[data-target-row]') || container;
     const rect = row.getBoundingClientRect();
-    setDropIndicator(event.clientY < rect.top + rect.height / 2 ? index : index + 1);
+      setDropIndicator(event.clientY < rect.top + rect.height / 2 ? index : index + 1);
+    }
   }
 
   document.querySelectorAll('.sheet-tab.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
@@ -623,6 +627,11 @@ function handleDragStart(e, globalIndex) {
 function handleDragOver(e, targetGlobalIndex) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
+
+  if (targetGlobalIndex === draggedItemIndex) {
+    clearDropIndicator();
+    return;
+  }
 
   const targetRow = e.currentTarget.querySelector('[data-target-row]') || e.currentTarget;
   const rect = targetRow.getBoundingClientRect();
