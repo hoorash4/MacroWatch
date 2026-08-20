@@ -219,7 +219,7 @@ line-height: 2;
   width: 100%;
   font-size: .96rem;
   letter-spacing: -.01em;
-  margin-top: 3.35rem;
+  margin-top: clamp(1rem, 3.35vw, 3.35rem);
 }#auth-screen .grid > section:first-child > p:not(.mb-6)::before {
 content: "";
   position: absolute;
@@ -672,7 +672,6 @@ content: "놓아서 이동";
 
   #auth-screen .grid > section:first-child > p:not(.mb-6) {
     font-size: .9rem;
-    margin-top: 2.5rem;
     padding-left: .95rem;
     line-height: 1.9;
   }
