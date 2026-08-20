@@ -20,6 +20,7 @@ let expandedTargetId = null;
 let currentUserId = null;
 let activeTrack = 1;
 let suppressNextClick = false;
+let suppressClickTimer = null;
 let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
 let discoveredValueCandidates = [];
@@ -57,7 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 드래그 직후 발생하는 클릭은 한 번만 차단합니다.
   document.addEventListener('click', (event) => {
     if (!suppressNextClick) return;
+
     suppressNextClick = false;
+    if (suppressClickTimer) {
+      window.clearTimeout(suppressClickTimer);
+      suppressClickTimer = null;
+    }
     event.preventDefault();
     event.stopImmediatePropagation();
   }, true);
@@ -83,6 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// 드래그가 끝난 직후 생성되는 클릭만 한 번 막습니다.
+// 탭 이동으로 대상 DOM이 다시 그려져 클릭 자체가 사라진 경우에는
+// 다음 이벤트 턴에 자동 해제해, 사용자의 다음 탭 클릭을 막지 않습니다.
+function suppressClickAfterDrag() {
+  suppressNextClick = true;
+
+  if (suppressClickTimer) window.clearTimeout(suppressClickTimer);
+  suppressClickTimer = window.setTimeout(() => {
+    suppressNextClick = false;
+    suppressClickTimer = null;
+  }, 0);
+}
 
 // 현재 로그인한 사용자의 ID를 가져옵니다.
 // 이미 한 번 확인한 ID가 있으면 다시 서버에 묻지 않고 저장된 값을 사용합니다.
@@ -880,7 +899,7 @@ function handlePointerDragEnd(event) {
     );
   }
 
-  suppressNextClick = true;
+  suppressClickAfterDrag();
   cancelPointerDrag();
 }
 
