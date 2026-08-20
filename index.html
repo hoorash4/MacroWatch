@@ -1216,6 +1216,25 @@ content: "놓아서 이동";
     </section>
   </div>
 
+  <!-- ===== 카카오톡 알림 상태 변경 확인창 ===== -->
+  <div
+    id="toggle-alert-modal"
+    class="hidden fixed inset-0 z-[75] flex items-center justify-center bg-black/70 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="toggle-alert-title"
+  >
+    <section class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl">
+      <i class="fa-solid fa-bell text-2xl text-amber-400"></i>
+      <h2 id="toggle-alert-title" class="mt-4 text-lg font-bold text-white">알림 설정 변경</h2>
+      <p id="toggle-alert-message" class="mt-2 text-sm text-slate-400"></p>
+      <div class="mt-5 flex gap-2">
+        <button type="button" onclick="closeToggleAlertModal()" class="flex-1 rounded-lg bg-slate-800 py-2.5 text-sm font-bold text-slate-300 hover:bg-slate-700">취소</button>
+        <button type="button" onclick="confirmToggleTarget()" class="flex-1 rounded-lg bg-amber-500 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400">확인</button>
+      </div>
+    </section>
+  </div>
+
   <!-- ===== 추적 지표 수정창 ===== -->
   <div
     id="edit-modal"
