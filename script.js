@@ -26,6 +26,7 @@ let touchDragState = {
   active: false
 };
 let touchDragPreview = null;
+let touchDragOffset = { x: 0, y: 0 };
 let pendingToggleId = null;
 
 // ===== 페이지 초기화 =====
@@ -445,6 +446,11 @@ function handleTouchDragStart(event, globalIndex) {
   const sourceContainer = handle.closest('[data-target-container]');
   const startX = event.clientX;
   const startY = event.clientY;
+  const sourceRect = sourceRow?.getBoundingClientRect();
+  touchDragOffset = {
+    x: sourceRect ? startX - sourceRect.left : 0,
+    y: sourceRect ? startY - sourceRect.top : 0
+  };
 
   touchDragState.pointerId = event.pointerId;
   touchDragState.globalIndex = globalIndex;
@@ -466,8 +472,12 @@ function handleTouchDragStart(event, globalIndex) {
     if (touchDragPreview) {
       touchDragPreview.className = 'touch-drag-preview';
       touchDragPreview.removeAttribute('draggable');
-      touchDragPreview.style.left = startX + 'px';
-      touchDragPreview.style.top = startY + 'px';
+      if (sourceRect) {
+        touchDragPreview.style.width = sourceRect.width + 'px';
+        touchDragPreview.style.height = sourceRect.height + 'px';
+      }
+      touchDragPreview.style.left = (startX - touchDragOffset.x) + 'px';
+      touchDragPreview.style.top = (startY - touchDragOffset.y) + 'px';
       document.body.appendChild(touchDragPreview);
     }
 
@@ -482,8 +492,8 @@ function handleTouchDragMove(event) {
 
   event.preventDefault();
   if (touchDragPreview) {
-    touchDragPreview.style.left = event.clientX + 'px';
-    touchDragPreview.style.top = event.clientY + 'px';
+    touchDragPreview.style.left = (event.clientX - touchDragOffset.x) + 'px';
+    touchDragPreview.style.top = (event.clientY - touchDragOffset.y) + 'px';
   }
   const element = document.elementFromPoint(event.clientX, event.clientY);
   const container = element?.closest('[data-target-container]');
@@ -534,6 +544,7 @@ function handleTouchDragCancel(event) {
   clearDropIndicator();
   touchDragPreview?.remove();
   touchDragPreview = null;
+  touchDragOffset = { x: 0, y: 0 };
   draggedItemIndex = null;
   touchDragState = { timer: null, pointerId: null, globalIndex: null, active: false };
 }
