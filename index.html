@@ -20,6 +20,16 @@
 <style id="app-theme-clean">/* ===== 공통 기본 스타일 =====
    숫자 입력창, 폰트, 공통 로고처럼 로그인/대시보드 양쪽에서 쓰는 기본 규칙입니다.
 */
+body {
+  padding: 1rem;
+}
+
+@media (min-width:640px) {
+  body {
+    padding: 1.5rem;
+  }
+}
+
 input:focus::placeholder {
 color: transparent;
 }#input-target-val,
@@ -783,7 +793,7 @@ content: "놓아서 이동";
 }
 </style>
 </head>
-<body class="debug-outline bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
+<body class="debug-outline bg-slate-950 text-slate-100 min-h-screen font-sans">
 
   <!-- ===== 로그인 화면 시작 ===== -->
 
