@@ -27,6 +27,8 @@ let touchDragState = {
 };
 let touchDragPreview = null;
 let touchDragOffset = { x: 0, y: 0 };
+let mouseDragPreview = null;
+let mouseDragOffset = { x: 0, y: 0 };
 let pendingToggleId = null;
 
 // ===== 페이지 초기화 =====
@@ -41,6 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
+  // 기본 브라우저 드래그 이미지를 대신할 반투명 미리보기를 마우스 위치에 맞춰 움직입니다.
+  document.addEventListener('dragover', (event) => {
+    if (!mouseDragPreview) return;
+    mouseDragPreview.style.left = (event.clientX - mouseDragOffset.x) + 'px';
+    mouseDragPreview.style.top = (event.clientY - mouseDragOffset.y) + 'px';
+  });
+
   // 화면의 다른 곳을 누르면 열린 도움말을 자동으로 닫습니다.
   document.addEventListener('click', (event) => {
     const helpBox = event.target.closest('.track-help');
@@ -582,12 +591,30 @@ function handleDragStart(e, globalIndex) {
   draggedItemIndex = globalIndex;
   clearDropIndicator();
 
-  document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
-  document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
+  const sourceRow = e.currentTarget;
+  const sourceRect = sourceRow.getBoundingClientRect();
+  mouseDragOffset = {
+    x: e.clientX - sourceRect.left,
+    y: e.clientY - sourceRect.top
+  };
+  mouseDragPreview = sourceRow.cloneNode(true);
+  mouseDragPreview.className = 'touch-drag-preview';
+  mouseDragPreview.removeAttribute('draggable');
+  mouseDragPreview.style.width = sourceRect.width + 'px';
+  mouseDragPreview.style.height = sourceRect.height + 'px';
+  mouseDragPreview.style.left = (e.clientX - mouseDragOffset.x) + 'px';
+  mouseDragPreview.style.top = (e.clientY - mouseDragOffset.y) + 'px';
+  document.body.appendChild(mouseDragPreview);
 
+  const transparentImage = new Image();
+  transparentImage.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+  e.dataTransfer.setDragImage(transparentImage, 0, 0);
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', String(globalIndex));
-  e.currentTarget.classList.add('opacity-40');
+
+  document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
+  document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
+  sourceRow.classList.add('opacity-40');
 }
 
 // 같은 Track 안에서 지표를 위아래로 움직일 때 들어갈 위치를 계산합니다.
@@ -702,6 +729,9 @@ function handleDropOnTrack(e, targetTrack) {
 // 드래그가 끝나면 반투명 효과, Track 강조, 드롭 위치선을 모두 원래 상태로 돌립니다.
 function handleDragEnd(e) {
   e.currentTarget.classList.remove('opacity-40');
+  mouseDragPreview?.remove();
+  mouseDragPreview = null;
+  mouseDragOffset = { x: 0, y: 0 };
 
   document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
   document.querySelectorAll('.sheet-tab').forEach(tab => {
