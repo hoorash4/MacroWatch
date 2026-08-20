@@ -667,7 +667,8 @@ z-index: 1;
 }#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
 border-color: rgba(209,165,93,.75);
 }#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add):not(.is-active)::before {
-content: "↓";
+content: "↓" !important;
+  display: block !important;
   position: absolute;
   left: 50%;
   bottom: calc(100% + 7px);
