@@ -276,7 +276,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
           <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
           <div class="min-w-0 flex-1 py-3">
             <div class="flex items-center gap-2 min-w-0">
-              <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 max-w-[calc(100%-2.75rem)] text-left">
+              <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 text-left">
                 <span class="flex items-center gap-2">
                   <span class="text-sm font-bold text-white truncate">${escapeHtml(item.title)}</span>
                   <i class="fa-solid ${String(item.id) === expandedTargetId ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px] text-slate-500"></i>
