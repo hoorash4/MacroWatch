@@ -731,6 +731,12 @@ content: "놓아서 이동";
 
 @media (max-width:767px) {
 
+  /* 767px 이하에서 오른쪽 액션 버튼을 브랜드와 함께 축소합니다. */
+  .dashboard-actions {
+    transform: scale(clamp(.7, calc(100vw / 767px), 1));
+    transform-origin: right center;
+  }
+
   /* 767px 이하에서 로고와 서비스명을 포함한 브랜드 블럭을 함께 줄입니다. */
   .dashboard-brand {
     transform: scale(clamp(.7, calc(100vw / 767px), 1));
@@ -878,7 +884,7 @@ content: "놓아서 이동";
           </p>
         </div>    
       </div>
-      <div class="flex items-center gap-2">
+      <div class="dashboard-actions flex items-center gap-2">
         <div id="db-status" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-400 border border-slate-700/60 flex items-center gap-2 shadow-inner">
           <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span> DB 연결 확인 중...
         </div>
