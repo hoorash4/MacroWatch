@@ -24,11 +24,17 @@ let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
 let discoveredValueCandidates = [];
 let discoveryRetryUsed = false;
+let selectedDiscoveredValue = null;
+let webInputMode = 'auto';
+let lastManualSourceType = 'SELECTOR';
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
 // 입력폼 초기 상태, 안내 모달 닫기 버튼, Drag & Drop 도움말을 여기서 연결합니다.
 document.addEventListener('DOMContentLoaded', () => {
+  // 신규 등록폼의 기본값은 자동 찾기이며, 데이터 소스 선택은 직접 입력에서만 보입니다.
+  setWebInputMode('auto');
+
   // 알림 조건이 '변동 감지'인지 확인해서 설정값 입력칸 활성/비활성 상태를 맞춥니다.
   toggleTargetValueInput('input-condition', 'input-target-val');
 
@@ -106,7 +112,9 @@ function setDbStatus(state) {
 // 사용자가 선택한 데이터 소스 유형에 맞는 입력칸만 보여줍니다.
 // 일반 웹 / FRED / 한국은행 ECOS / JSON API 입력 영역 중 하나만 표시됩니다.
 function toggleTypeFields() {
-  const type = document.getElementById('input-type').value;
+  const selectedType = document.getElementById('input-type').value;
+  const type = webInputMode === 'auto' ? 'SELECTOR' : selectedType;
+
   document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
   document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
@@ -115,36 +123,56 @@ function toggleTypeFields() {
   if (type !== 'SELECTOR') resetWebDiscovery();
 }
 
-// 일반 웹페이지 등록 방식을 자동 탐색과 CSS 직접 입력 탭으로 전환합니다.
+// 직접 입력에서 선택한 데이터 소스를 기억해 자동 찾기 탭을 다녀와도 복원합니다.
+function handleSourceTypeChange() {
+  if (webInputMode === 'manual') {
+    lastManualSourceType = document.getElementById('input-type').value;
+  }
+  toggleTypeFields();
+}
+
+// 폼 최상단 탭을 전환합니다.
+// 자동 찾기는 일반 웹 스크래핑으로 고정하고 데이터 소스 드롭다운을 숨깁니다.
 function setWebInputMode(mode) {
   const isAuto = mode !== 'manual';
   const autoButton = document.getElementById('selector-mode-auto');
   const manualButton = document.getElementById('selector-mode-manual');
   const autoPanel = document.getElementById('selector-auto-panel');
   const manualPanel = document.getElementById('selector-manual-panel');
+  const sourceField = document.getElementById('input-type-field');
+  const titleField = document.getElementById('input-title-field');
+  const typeInput = document.getElementById('input-type');
 
-  autoPanel?.classList.toggle('hidden', !isAuto);
-  manualPanel?.classList.toggle('hidden', isAuto);
+  if (!autoButton || !manualButton || !autoPanel || !manualPanel || !typeInput) return;
 
-  if (autoButton) {
-    autoButton.setAttribute('aria-selected', String(isAuto));
-    autoButton.className = isAuto
-      ? 'rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-950/40 transition'
-      : 'rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200';
+  if (webInputMode === 'manual') {
+    lastManualSourceType = typeInput.value;
   }
+  webInputMode = isAuto ? 'auto' : 'manual';
+  typeInput.value = isAuto ? 'SELECTOR' : lastManualSourceType;
 
-  if (manualButton) {
-    manualButton.setAttribute('aria-selected', String(!isAuto));
-    manualButton.className = !isAuto
-      ? 'rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-950/40 transition'
-      : 'rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200';
-  }
+  sourceField?.classList.toggle('hidden', isAuto);
+  titleField?.classList.toggle('sm:col-span-2', isAuto);
+  autoPanel.classList.toggle('hidden', !isAuto);
+  manualPanel.classList.toggle('hidden', isAuto);
+
+  autoButton.setAttribute('aria-selected', String(isAuto));
+  manualButton.setAttribute('aria-selected', String(!isAuto));
+  autoButton.className = isAuto
+    ? 'rounded-t-2xl border-r border-slate-700 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-inner transition'
+    : 'border-r border-slate-800 bg-slate-950/50 px-3 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-800 hover:text-slate-200';
+  manualButton.className = !isAuto
+    ? 'rounded-t-2xl bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-inner transition'
+    : 'bg-slate-950/50 px-3 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-800 hover:text-slate-200';
+
+  toggleTypeFields();
 }
 
 // ===== 일반 웹페이지 값 자동 찾기 =====
 // URL이 바뀌거나 등록이 끝났을 때 이전 탐색 결과가 재사용되지 않도록 초기화합니다.
 function resetWebDiscovery() {
   discoveredValueCandidates = [];
+  selectedDiscoveredValue = null;
 
   const selectorInput = document.getElementById('input-selector');
   const status = document.getElementById('discover-values-status');
@@ -162,6 +190,7 @@ function resetWebDiscovery() {
   }
   if (retryButton) retryButton.classList.add('hidden');
   discoveryRetryUsed = false;
+  closeDiscoveryModal();
 }
 
 // 탐색 진행·성공·실패 상태를 입력폼 안에서 간단히 안내합니다.
@@ -177,7 +206,7 @@ function setDiscoveryStatus(message, state = 'normal') {
   };
 
   status.textContent = message;
-  status.className = `text-xs leading-relaxed ${colors[state] || colors.normal}`;
+  status.className = `rounded-lg bg-slate-800/70 px-3 py-2 text-xs leading-relaxed ${colors[state] || colors.normal}`;
 }
 
 // 백엔드가 추린 숫자 후보를 버튼으로 표시합니다.
@@ -189,66 +218,97 @@ function renderDiscoveredValues(candidates) {
   list.replaceChildren();
   discoveredValueCandidates = Array.isArray(candidates) ? candidates : [];
 
+  if (discoveredValueCandidates.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'rounded-xl border border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-600';
+    empty.textContent = '첫 번째 결과를 제외한 새로운 후보값을 찾지 못했습니다.';
+    list.appendChild(empty);
+  }
+
   discoveredValueCandidates.forEach((candidate, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'block w-full rounded-xl border border-slate-600 bg-slate-700/70 px-3 py-3 text-left transition hover:border-blue-400/80 hover:bg-slate-700';
+    button.className = 'flex w-full items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-3 text-left text-slate-800 shadow-sm transition hover:border-blue-400 hover:bg-blue-50';
 
-    const header = document.createElement('span');
-    header.className = 'flex items-start gap-3';
+    const left = document.createElement('span');
+    left.className = 'min-w-0 flex-1 truncate text-right text-xs text-slate-600';
+    left.textContent = candidate.left || candidate.section || '—';
+    left.title = left.textContent;
 
     const value = document.createElement('span');
-    value.className = 'shrink-0 rounded-md bg-slate-900/70 px-2.5 py-1 text-sm font-bold text-blue-300';
+    value.className = 'shrink-0 rounded-lg border border-blue-300 bg-blue-100 px-3 py-1.5 text-sm font-extrabold text-blue-700';
     value.textContent = candidate.display;
 
-    const summary = document.createElement('span');
-    summary.className = 'min-w-0 text-xs leading-relaxed text-slate-200';
-    summary.textContent = candidate.section || candidate.left || candidate.right || candidate.context || '주변 설명 없음';
+    const right = document.createElement('span');
+    right.className = 'min-w-0 flex-1 truncate text-left text-xs text-slate-600';
+    right.textContent = candidate.right || '—';
+    right.title = right.textContent;
 
-    header.append(value, summary);
-    button.appendChild(header);
-
-    const location = document.createElement('span');
-    location.className = 'mt-2 block space-y-1 border-t border-slate-500/40 pt-2 text-[11px] leading-relaxed text-slate-300';
-
-    const locationRows = [
-      candidate.section ? ['영역', candidate.section] : null,
-      candidate.left ? ['왼쪽', candidate.left] : null,
-      candidate.right ? ['오른쪽', candidate.right] : null
-    ].filter(Boolean);
-
-    if (locationRows.length === 0 && candidate.context) {
-      locationRows.push(['주변', candidate.context]);
-    }
-
-    locationRows.forEach(([label, text]) => {
-      const row = document.createElement('span');
-      row.className = 'block truncate';
-      row.textContent = `${label} · ${text}`;
-      location.appendChild(row);
-    });
-
-    if (locationRows.length) button.appendChild(location);
-    button.addEventListener('click', () => selectDiscoveredValue(index, button));
+    button.append(left, value, right);
+    button.addEventListener('click', () => selectDiscoveredValue(index));
     list.appendChild(button);
   });
+}
 
-  list.classList.toggle('hidden', discoveredValueCandidates.length === 0);
+// 후보 모달을 열고 닫는 동작은 탐색 결과 표시와 분리합니다.
+function openDiscoveryModal() {
+  document.getElementById('discover-values-modal')?.classList.remove('hidden');
+}
+
+function closeDiscoveryModal() {
+  document.getElementById('discover-values-modal')?.classList.add('hidden');
 }
 
 // 선택한 후보를 강조하고 실제 등록에 사용할 CSS 선택자를 저장합니다.
-function selectDiscoveredValue(index, selectedButton) {
+function selectDiscoveredValue(index) {
   const candidate = discoveredValueCandidates[index];
   const selectorInput = document.getElementById('input-selector');
-  const list = document.getElementById('discover-values-list');
-  if (!candidate || !selectorInput || !list) return;
+  if (!candidate || !selectorInput) return;
 
+  selectedDiscoveredValue = candidate;
   selectorInput.value = candidate.selector;
-  list.querySelectorAll('button').forEach((button) => {
-    button.classList.remove('border-blue-300', 'bg-blue-500/20', 'ring-1', 'ring-blue-300/50');
+  closeDiscoveryModal();
+  setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 시 이 값을 다시 확인합니다.`, 'success');
+}
+
+// Edge Function의 HTTP 오류 본문을 사용자에게 보여줄 문장으로 바꿉니다.
+async function getEdgeFunctionErrorMessage(error, fallback) {
+  let message = error?.message || fallback;
+  if (error?.context && typeof error.context.json === 'function') {
+    const details = await error.context.json().catch(() => null);
+    if (details?.error) message = details.error;
+  }
+  return message;
+}
+
+// CSS 선택자로 해당 지표만 다시 읽어 등록 직전 현재값을 검증합니다.
+async function verifyWebTarget(url, selector) {
+  const { data, error } = await supabaseClient.functions.invoke('discover-values', {
+    body: { action: 'verify', url, selector }
   });
-  selectedButton.classList.add('border-blue-300', 'bg-blue-500/20', 'ring-1', 'ring-blue-300/50');
-  setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 전에 값이 맞는지 확인해 주세요.`, 'success');
+
+  if (error) {
+    throw new Error(await getEdgeFunctionErrorMessage(error, '현재값을 확인하지 못했습니다.'));
+  }
+  if (!Number.isFinite(Number(data?.current_value))) {
+    throw new Error('웹페이지에서 현재값을 숫자로 확인하지 못했습니다.');
+  }
+
+  return {
+    value: Number(data.current_value),
+    display: String(data.display ?? data.current_value)
+  };
+}
+
+// 등록 버튼은 현재값 확인 중에만 잠시 잠가 중복 요청을 막습니다.
+function setAddSubmitBusy(isBusy) {
+  const button = document.getElementById('add-submit-button');
+  if (!button) return;
+
+  button.disabled = isBusy;
+  button.innerHTML = isBusy
+    ? '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>현재값 확인 중'
+    : '신규 등록하기';
 }
 
 // 로그인된 사용자의 권한으로 Edge Function을 호출해 숫자 후보를 가져옵니다.
@@ -293,16 +353,12 @@ async function discoverWebValues(isRetry = false) {
     });
 
     if (error) {
-      let message = error.message || '값을 자동으로 찾지 못했습니다.';
-      if (error.context && typeof error.context.json === 'function') {
-        const details = await error.context.json().catch(() => null);
-        if (details?.error) message = details.error;
-      }
-      throw new Error(message);
+      throw new Error(await getEdgeFunctionErrorMessage(error, '값을 자동으로 찾지 못했습니다.'));
     }
 
     const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
     renderDiscoveredValues(candidates);
+    if (candidates.length) openDiscoveryModal();
 
     const retryButton = document.getElementById('discover-values-retry');
     if (retryButton) {
@@ -515,17 +571,21 @@ function closeServicePreparingModal() {
 
 // 새 지표 등록이 성공한 뒤 공통으로 처리할 작업입니다.
 // 마지막 Track으로 이동 → 화면 갱신 → 입력폼 초기화 → 등록 완료 안내 순서로 실행합니다.
-function finishTargetRegistration() {
+function finishTargetRegistration(currentValueDisplay = '') {
   activeTrack = getTrackCount();
   renderTargets();
 
   document.getElementById('add-form').reset();
   resetWebDiscovery();
+  lastManualSourceType = 'SELECTOR';
   setWebInputMode('auto');
   toggleTypeFields();
   toggleTargetValueInput('input-condition', 'input-target-val');
 
-  showCenteredNotice('등록 되었습니다.');
+  showCenteredNotice(
+    '등록 되었습니다.',
+    currentValueDisplay ? `확인된 현재값: ${currentValueDisplay}` : ''
+  );
 }
 
 // ===== 추적 지표 한 줄 만들기 =====
@@ -1052,19 +1112,46 @@ async function handleAddTarget(e) {
   }
 
   const title = document.getElementById('input-title').value.trim();
-  const type = document.getElementById('input-type').value;
+  const type = webInputMode === 'auto'
+    ? 'SELECTOR'
+    : document.getElementById('input-type').value;
   const conditionType = document.getElementById('input-condition').value;
   const targetValStr = document.getElementById('input-target-val').value.trim();
-  const targetVal = conditionType === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
+  const targetVal = conditionType === 'changed' || targetValStr === ''
+    ? null
+    : parseFloat(targetValStr);
 
   let url = '';
   let cssSelector = '';
   let sourceType = 'web';
   let sourceConfig = {};
+  let verifiedWebValue = null;
 
   if (type === 'SELECTOR') {
     url = document.getElementById('input-url').value.trim();
     cssSelector = document.getElementById('input-selector').value.trim();
+    sourceConfig = { selector: cssSelector };
+
+    if (!url || !cssSelector) {
+      window.alert(
+        webInputMode === 'auto'
+          ? '값 자동 찾기에서 추적할 후보값을 먼저 선택해 주세요.'
+          : '웹페이지 URL과 CSS 선택자를 모두 입력해 주세요.'
+      );
+      return;
+    }
+
+    setAddSubmitBusy(true);
+    try {
+      verifiedWebValue = await verifyWebTarget(url, cssSelector);
+      setDiscoveryStatus(`확인된 현재값: ${verifiedWebValue.display}`, 'success');
+    } catch (error) {
+      console.error('Web target verification error:', error);
+      window.alert(`현재값 확인 실패: ${error?.message || '웹페이지에서 값을 읽지 못했습니다.'}`);
+      return;
+    } finally {
+      setAddSubmitBusy(false);
+    }
   } else if (type === 'FRED') {
     const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
     url = `https://fred.stlouisfed.org/series/${encodeURIComponent(seriesId)}`;
@@ -1103,6 +1190,7 @@ async function handleAddTarget(e) {
     source_config: sourceConfig,
     condition_type: conditionType,
     target_value: targetVal,
+    last_value: verifiedWebValue?.value ?? null,
     is_active: true,
     display_order: targets.length
   };
@@ -1120,6 +1208,7 @@ async function handleAddTarget(e) {
         source_config: sourceConfig,
         condition_type: conditionType,
         target_value: targetVal,
+        last_value: verifiedWebValue?.value ?? null,
         is_active: true,
         display_order: targets.length
       }])
@@ -1127,21 +1216,21 @@ async function handleAddTarget(e) {
 
       if (!error && data) {
         targets.push(data[0]);
-        finishTargetRegistration();
+        finishTargetRegistration(verifiedWebValue?.display || '');
         return;
       }
       if (error) {
-        alert('등록 실패: ' + error.message);
+        window.alert('등록 실패: ' + error.message);
         return;
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       return;
     }
   }
 
   targets.push(newItem);
-  finishTargetRegistration();
+  finishTargetRegistration(verifiedWebValue?.display || '');
 }
 
 // ===== 지표 수정 =====
