@@ -169,7 +169,7 @@ function scoreCandidate(element: Element, text: string, titleTokens: string[]) {
   return score;
 }
 
-function collectCandidates(document: Document, title: string) {
+function collectCandidates(document: Document, title: string, excludedKeys: Set<string>) {
   const titleTokens = title.toLowerCase().split(/[\s/|_-]+/).filter((token) => token.length >= 2);
   const candidates: Array<{
     value: number;
@@ -194,7 +194,7 @@ function collectCandidates(document: Document, title: string) {
     if (!selector) continue;
 
     const key = `${selector}|${number.display}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key) || excludedKeys.has(key)) continue;
     seen.add(key);
 
     candidates.push({
@@ -230,6 +230,11 @@ Deno.serve(async (request) => {
     const body = await request.json();
     const url = parseTargetUrl(body.url);
     const title = String(body.title || "").trim().slice(0, 120);
+    const excludedKeys = new Set(
+      (Array.isArray(body.exclude) ? body.exclude : [])
+        .slice(0, MAX_CANDIDATES)
+        .map((value: unknown) => String(value).slice(0, 500)),
+    );
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
@@ -264,7 +269,7 @@ Deno.serve(async (request) => {
 
     const html = (await response.text()).slice(0, MAX_HTML_BYTES);
     const document = new DOMParser().parseFromString(html, "text/html");
-    const candidates = collectCandidates(document, title);
+    const candidates = collectCandidates(document, title, excludedKeys);
 
     return json({
       candidates,
