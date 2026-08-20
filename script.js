@@ -451,7 +451,7 @@ function handleTouchDragStart(event, globalIndex) {
     document.body.classList.add('is-touch-dragging');
     event.currentTarget.classList.add('is-touch-dragging');
     event.currentTarget.closest('[data-target-row]')?.classList.add('is-touch-dragging');
-    event.currentTarget.closest('[data-target-container]')?.classList.add('opacity-40');
+    event.currentTarget.closest('[data-target-container]')?.classList.add('touch-drag-source');
     document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
     document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
   }, 450);
@@ -504,8 +504,8 @@ function handleTouchDragCancel(event) {
   clearTimeout(touchDragState.timer);
   document.body.classList.remove('is-touch-dragging');
   document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
-  document.querySelectorAll('.is-touch-dragging, [data-target-container].opacity-40, .sheet-tab.is-drag-over, .sheet-tab.is-drag-target').forEach(item => {
-    item.classList.remove('is-touch-dragging', 'is-drag-over', 'is-drag-target', 'opacity-40');
+  document.querySelectorAll('.is-touch-dragging, .touch-drag-source, [data-target-container].opacity-40, .sheet-tab.is-drag-over, .sheet-tab.is-drag-target').forEach(item => {
+    item.classList.remove('is-touch-dragging', 'touch-drag-source', 'is-drag-over', 'is-drag-target', 'opacity-40');
   });
   clearDropIndicator();
   draggedItemIndex = null;
