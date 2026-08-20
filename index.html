@@ -32,6 +32,11 @@ body {
 
 input:focus::placeholder {
 color: transparent;
+}
+
+/* 지표 이름을 제외한 코드·주소·로그인 입력란은 영문 IME를 우선합니다. */
+.latin-input {
+  ime-mode: inactive;
 }#input-target-val,
 #edit-target-val {
 appearance: textfield;
@@ -942,11 +947,11 @@ border-color: rgba(209,165,93,.75);
             <form id="password-login-form" autocomplete="off" class="space-y-3">
               <div>
                <!-- <label for="login-id" class="mb-1.5 flex items-center justify-between text-xs font-medium text-slate-400">아이디 </label> -->
-                <input id="login-id" type="text" autocomplete="username" placeholder="아이디 입력" class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#d1a55d]/70 focus:bg-slate-950">
+                <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" id="login-id" type="text" autocomplete="username" placeholder="아이디 입력" class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#d1a55d]/70 focus:bg-slate-950 latin-input">
               </div>
               <div>
                <!-- <label for="login-password" class="mb-1.5 block text-xs font-medium text-slate-400">비밀번호</label> -->
-                <input id="login-password" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#d1a55d]/70 focus:bg-slate-950">
+                <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" id="login-password" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-[#d1a55d]/70 focus:bg-slate-950 latin-input">
               </div>
               <button id="password-login-button" type="submit" class="flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/[.045] py-3 text-sm font-bold text-slate-300 transition hover:border-[#d1a55d]/40 hover:bg-white/[.08] hover:text-white">
                 ID/PW로 로그인
@@ -1037,18 +1042,18 @@ border-color: rgba(209,165,93,.75);
           <div id="field-selector" class="space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">대상 웹페이지 URL</label>
-              <input autocomplete="off" type="url" id="input-url" placeholder="예: https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="url" id="input-url" placeholder="예: https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">수치 추출용 CSS Selector</label>
-              <input autocomplete="off" type="text" id="input-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none font-mono">
+              <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="input-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none font-mono latin-input">
             </div>
           </div>
 
           <div id="field-fred" class="hidden space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">FRED Series ID</label>
-              <input autocomplete="off" type="text" id="input-fred-id" placeholder="예: DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="input-fred-id" placeholder="예: DGS10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
             </div>
           </div>
 
@@ -1056,11 +1061,11 @@ border-color: rgba(209,165,93,.75);
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="text-xs text-slate-400 block mb-1">한국은행 통계표 코드</label>
-                <input autocomplete="off" type="text" id="input-bok-code" placeholder="예: 817Y002" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="input-bok-code" placeholder="예: 817Y002" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
               </div>
               <div>
                 <label class="text-xs text-slate-400 block mb-1">통계 항목 코드</label>
-                <input autocomplete="off" type="text" id="input-bok-item-code" placeholder="예: 010210000" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="input-bok-item-code" placeholder="예: 010210000" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
               </div>
             </div>
             <div>
@@ -1078,11 +1083,11 @@ border-color: rgba(209,165,93,.75);
           <div id="field-api" class="hidden space-y-3">
             <div>
               <label class="text-xs text-slate-400 block mb-1">JSON API 엔드포인트 URL</label>
-              <input autocomplete="off" type="url" id="input-api-url" placeholder="예: https://api.example.com/data" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="url" id="input-api-url" placeholder="예: https://api.example.com/data" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">JSON 추출 경로</label>
-              <input autocomplete="off" type="text" id="input-json-path" placeholder="예: data.price" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="input-json-path" placeholder="예: data.price" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
             </div>
           </div>
 
@@ -1272,11 +1277,11 @@ border-color: rgba(209,165,93,.75);
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">대상 웹페이지 URL</label>
-          <input autocomplete="off" type="url" id="edit-url" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+          <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="url" id="edit-url" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white latin-input">
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">수치 추출용 CSS Selector</label>
-          <input autocomplete="off" type="text" id="edit-selector" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono">
+          <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="edit-selector" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white font-mono latin-input">
         </div>
         <div>
           <label class="text-xs text-slate-400 block mb-1">알림 조건 설정</label>
