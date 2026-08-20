@@ -45,14 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.track-help.is-open')?.classList.remove('is-open');
 
       helpBox.classList.toggle('is-open', willOpen);
-      helpBox.querySelector('.track-help-button')?.setAttribute('aria-expanded', String(willOpen));
       return;
     }
 
     const openedHelp = document.querySelector('.track-help.is-open');
     if (openedHelp) {
       openedHelp.classList.remove('is-open');
-      openedHelp.querySelector('.track-help-button')?.setAttribute('aria-expanded', 'false');
     }
   });
 });
