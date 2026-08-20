@@ -676,9 +676,10 @@ z-index: 1;
   color: #64748b;
 }#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add) {
 border-color: rgba(209,165,93,.75);
-}#tab-content-tracker > .sheet-tabs.is-dragging .sheet-tab:not(.sheet-tab-add):not(.is-active)::before,
-#tab-content-tracker > .sheet-tabs .sheet-tab.is-drag-target:not(.is-active)::before {
-content: "↓" !important;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-drop-allowed::before,
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-drop-forbidden::before {
   display: block !important;
   position: absolute;
   left: 50%;
@@ -686,13 +687,23 @@ content: "↓" !important;
   transform: translateX(-50%);
   padding: .22rem .42rem;
   border-radius: .35rem;
-  background: #071b42;
-  color: #f2d49c;
   font-size: .56rem;
   font-weight: 700;
   white-space: nowrap;
   box-shadow: 0 5px 12px rgba(0,0,0,.22);
   pointer-events: none;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-drop-allowed::before {
+  content: "↓" !important;
+  background: #071b42;
+  color: #f2d49c;
+}
+
+#tab-content-tracker > .sheet-tabs .sheet-tab.is-drop-forbidden::before {
+  content: "⊘" !important;
+  background: #7f1d1d;
+  color: #fecaca;
 }
 /* 큰 화면 헤더를 메인 콘텐츠와 같은 중앙 그리드에 맞춥니다. */
 @media (min-width:1024px) {
@@ -1300,6 +1311,6 @@ content: "↓" !important;
   <script src="auth.js?v=11"></script>
 
   <!-- 지표 등록 / Tab / Drag & Drop 처리 스크립트 -->
-  <script src="script.js?v=32"></script>
+  <script src="script.js?v=33"></script>
 </body>
 </html>
