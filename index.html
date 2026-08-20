@@ -528,9 +528,18 @@ position: relative;
   user-select: none;
 }
 
+/* 마우스에서는 점 6개도 행 전체의 드래그 영역으로 처리합니다. */
+@media (hover: hover) and (pointer: fine) {
+  .touch-drag-handle {
+    pointer-events: none;
+  }
+}
+
+/* 터치에서는 점 6개 핸들에서만 롱프레스 드래그를 시작합니다. */
 @media (pointer: coarse) {
   .touch-drag-handle {
     touch-action: none;
+    pointer-events: auto;
   }
 }
 
