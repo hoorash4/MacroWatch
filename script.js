@@ -200,6 +200,17 @@ function renderTrackTabs() {
     button.style.zIndex = String(20 - Math.abs(trackNumber - activeTrack));
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
+    button.setAttribute('tabindex', isActive ? '0' : '-1');
+    button.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        const nextTrack = event.key === 'ArrowRight' ? trackNumber + 1 : trackNumber - 1;
+        if (nextTrack >= 1 && nextTrack <= trackCount) {
+          switchTrack(nextTrack);
+          document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)')[nextTrack - 1]?.focus();
+        }
+      }
+    });
 
     const tabNumber = String(trackNumber).padStart(2, '0');
     button.innerHTML = `<span class="tab-label-wide">Tab ${tabNumber}</span><span class="tab-label-compact">T${tabNumber}</span>`;
