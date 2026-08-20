@@ -134,8 +134,10 @@ function isExcludedElement(element: Element) {
 
 function extractNumber(text: string) {
   if (/\b\d{1,2}:\d{2}\b/.test(text)) return null;
-  const match = text.replace(/[−–]/g, "-").match(/[-+]?\d[\d,]*(?:\.\d+)?/);
-  if (!match) return null;
+
+  const normalized = text.replace(/[−–]/g, "-");
+  const match = normalized.match(/[-+]?\d[\d,]*(?:\.\d+)?/);
+  if (!match || match.index === undefined) return null;
 
   const compact = match[0].replace(/,/g, "");
   const numeric = Number(compact);
@@ -143,7 +145,57 @@ function extractNumber(text: string) {
 
   const isLikelyYear = /^\d{4}$/.test(compact) && numeric >= 1900 && numeric <= 2100;
   if (isLikelyYear && /(년|date|updated|published|작성|등록)/i.test(text)) return null;
-  return { display: match[0], numeric };
+
+  return {
+    display: match[0],
+    numeric,
+    start: match.index,
+    end: match.index + match[0].length,
+  };
+}
+
+// 같은 숫자가 여러 번 나와도 구분할 수 있도록 바로 앞뒤 요소의 문구를 찾습니다.
+function siblingText(element: Element, direction: "previous" | "next") {
+  let sibling = direction === "previous"
+    ? element.previousElementSibling
+    : element.nextElementSibling;
+
+  for (let depth = 0; sibling && depth < 3; depth += 1) {
+    if (!isExcludedElement(sibling as Element)) {
+      const text = normalizeSpace(sibling.textContent || "");
+      if (text && text.length <= 120) return text;
+    }
+    sibling = direction === "previous"
+      ? sibling.previousElementSibling
+      : sibling.nextElementSibling;
+  }
+  return "";
+}
+
+// 가장 가까운 제목·라벨을 찾아 후보가 속한 페이지 영역을 설명합니다.
+function sectionText(element: Element) {
+  const directLabel = normalizeSpace(
+    element.getAttribute("aria-label") ||
+    element.getAttribute("title") ||
+    "",
+  );
+  if (directLabel) return directLabel.slice(0, 100);
+
+  let parent = element.parentElement;
+  for (let depth = 0; parent && depth < 4; depth += 1) {
+    const parentLabel = normalizeSpace(
+      parent.getAttribute("aria-label") ||
+      parent.getAttribute("title") ||
+      "",
+    );
+    if (parentLabel) return parentLabel.slice(0, 100);
+
+    const heading = parent.querySelector("h1, h2, h3, h4, h5, h6, legend, caption");
+    const headingText = normalizeSpace(heading?.textContent || "");
+    if (headingText && !heading?.contains(element)) return headingText.slice(0, 100);
+    parent = parent.parentElement;
+  }
+  return "";
 }
 
 function scoreCandidate(element: Element, text: string, titleTokens: string[]) {
@@ -175,6 +227,9 @@ function collectCandidates(document: Document, title: string, excludedKeys: Set<
     value: number;
     display: string;
     context: string;
+    left: string;
+    right: string;
+    section: string;
     selector: string;
     score: number;
   }> = [];
@@ -197,10 +252,16 @@ function collectCandidates(document: Document, title: string, excludedKeys: Set<
     if (seen.has(key) || excludedKeys.has(key)) continue;
     seen.add(key);
 
+    const leftInElement = normalizeSpace(text.slice(Math.max(0, number.start - 70), number.start));
+    const rightInElement = normalizeSpace(text.slice(number.end, number.end + 70));
+
     candidates.push({
       value: number.numeric,
       display: number.display,
       context: text.slice(0, 120),
+      left: (leftInElement || siblingText(element, "previous")).slice(0, 100),
+      right: (rightInElement || siblingText(element, "next")).slice(0, 100),
+      section: sectionText(element),
       selector,
       score: scoreCandidate(element, text, titleTokens),
     });
