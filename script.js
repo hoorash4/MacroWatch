@@ -284,7 +284,8 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
               </button>
 
             </div>
-            <span class="compact-current-value block text-xs text-slate-400 mt-0.5">
+            <span class="compact-mobile-summary block text-xs text-slate-400 mt-0.5">
+              ${item.target_value !== null && item.target_value !== undefined ? `설정: <span class="text-blue-400 font-mono">${item.target_value}</span> | ` : ''}
               현재: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
             </span>
             <span class="target-condition-summary block text-xs text-slate-400 mt-0.5 truncate">
