@@ -23,6 +23,7 @@ let suppressNextClick = false;
 let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
 let discoveredValueCandidates = [];
+let discoveryRetryUsed = false;
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
@@ -123,6 +124,7 @@ function resetWebDiscovery() {
   const status = document.getElementById('discover-values-status');
   const list = document.getElementById('discover-values-list');
   const advanced = document.getElementById('selector-advanced');
+  const retryButton = document.getElementById('discover-values-retry');
 
   if (selectorInput) selectorInput.value = '';
   if (status) {
@@ -134,6 +136,8 @@ function resetWebDiscovery() {
     list.classList.add('hidden');
   }
   if (advanced) advanced.open = false;
+  if (retryButton) retryButton.classList.add('hidden');
+  discoveryRetryUsed = false;
 }
 
 // 탐색 진행·성공·실패 상태를 입력폼 안에서 간단히 안내합니다.
@@ -198,7 +202,7 @@ function selectDiscoveredValue(index, selectedButton) {
 }
 
 // 로그인된 사용자의 권한으로 Edge Function을 호출해 숫자 후보를 가져옵니다.
-async function discoverWebValues() {
+async function discoverWebValues(isRetry = false) {
   const title = document.getElementById('input-title')?.value.trim() || '';
   const url = document.getElementById('input-url')?.value.trim() || '';
   const button = document.getElementById('discover-values-button');
@@ -215,7 +219,18 @@ async function discoverWebValues() {
     return;
   }
 
-  resetWebDiscovery();
+  const excludedCandidates = isRetry
+    ? discoveredValueCandidates.map((candidate) => `${candidate.selector}|${candidate.display}`)
+    : [];
+
+  if (!isRetry) {
+    resetWebDiscovery();
+  } else {
+    if (discoveryRetryUsed) return;
+    discoveryRetryUsed = true;
+    document.getElementById('discover-values-retry')?.classList.add('hidden');
+  }
+
   if (button) {
     button.disabled = true;
     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>찾는 중';
@@ -224,7 +239,7 @@ async function discoverWebValues() {
 
   try {
     const { data, error } = await supabaseClient.functions.invoke('discover-values', {
-      body: { url, title }
+      body: { url, title, exclude: excludedCandidates }
     });
 
     if (error) {
@@ -238,6 +253,12 @@ async function discoverWebValues() {
 
     const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
     renderDiscoveredValues(candidates);
+
+    const retryButton = document.getElementById('discover-values-retry');
+    if (retryButton) {
+      retryButton.classList.toggle('hidden', isRetry || discoveryRetryUsed || candidates.length === 0);
+    }
+
     setDiscoveryStatus(
       candidates.length ? (data.message || '가능성이 높은 값을 골라 주세요.') : (data.message || '숫자 후보를 찾지 못했습니다.'),
       candidates.length ? 'normal' : 'error'
