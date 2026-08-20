@@ -24,7 +24,7 @@ let activeTrack = 1;
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
 // 입력폼 초기 상태, 안내 모달 닫기 버튼, Drag & Drop 도움말을 여기서 연결합니다.
 document.addEventListener('DOMContentLoaded', () => {
-  // 알림 조건이 '변동 감지'인지 확인해서 목표값 입력칸 활성/비활성 상태를 맞춥니다.
+  // 알림 조건이 '변동 감지'인지 확인해서 설정값 입력칸 활성/비활성 상태를 맞춥니다.
   toggleTargetValueInput('input-condition', 'input-target-val');
 
   // '서비스 준비 중 / 등록 되었습니다' 공용 안내창의 확인 버튼입니다.
@@ -91,8 +91,8 @@ function toggleTypeFields() {
   document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
 }
 
-// 알림 조건에 따라 목표값 입력칸을 켜거나 끕니다.
-// '지표값 변동 감지'는 목표값이 필요 없으므로 입력칸을 비활성화합니다.
+// 알림 조건에 따라 설정값 입력칸을 켜거나 끕니다.
+// '지표값 변동 감지'는 설정값이 필요 없으므로 입력칸을 비활성화합니다.
 function toggleTargetValueInput(conditionId, valueId) {
   const conditionEl = document.getElementById(conditionId);
   const valueEl = document.getElementById(valueId);
@@ -289,7 +289,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
             </span>
             <span class="target-condition-summary block text-xs text-slate-400 mt-0.5 truncate">
               <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
-              ${item.target_value !== null && item.target_value !== undefined ? ` | 목표: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
+              ${item.target_value !== null && item.target_value !== undefined ? ` | 설정: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
               | 현재: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
             </span>
           </div>
@@ -315,7 +315,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   <dd class="mt-1 text-slate-200">${getConditionText(item.condition_type)}</dd>
   </div>
   <div>
-  <dt class="text-slate-500">목표</dt>
+  <dt class="text-slate-500">설정값</dt>
   <dd class="mt-1 font-mono text-blue-400">${item.target_value ?? '—'}</dd>
   </div>
   </dl>
