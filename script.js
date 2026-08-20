@@ -451,6 +451,8 @@ function handleTouchDragStart(event, globalIndex) {
     touchDragState.active = true;
     document.body.classList.add('is-touch-dragging');
     event.currentTarget.classList.add('is-touch-dragging');
+    event.currentTarget.closest('[data-target-container]')?.classList.add('opacity-40');
+    document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
   }, 450);
 }
 
@@ -500,7 +502,7 @@ function handleTouchDragEnd(event) {
 function handleTouchDragCancel(event) {
   clearTimeout(touchDragState.timer);
   document.body.classList.remove('is-touch-dragging');
-  document.querySelectorAll('.is-touch-dragging, .sheet-tab.is-drag-over').forEach(item => {
+  document.querySelectorAll('.is-touch-dragging, [data-target-container].opacity-40, .sheet-tab.is-drag-over').forEach(item => {
     item.classList.remove('is-touch-dragging', 'is-drag-over');
   });
   clearDropIndicator();
