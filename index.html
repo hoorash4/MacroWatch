@@ -621,8 +621,10 @@ content: "놓아서 이동";
 /* ===== 반응형 화면 =====
    데스크톱 기본 디자인은 위쪽 규칙을 사용합니다.
    아래에서는 화면 폭이 작아질 때 꼭 필요한 배치와 크기만 바꿉니다.
-   900px은 대시보드 2열→1열 전환, 700px 이하는 로그인 설명 정리,
-   640px 이하는 작은 화면 여백, 480/420px은 아주 좁은 휴대폰 화면을 보정합니다.
+   반응형으로 작아지게 만들어서 소형 스마트폰인 320px 까지는 온전하게 표현 됨.
+  1023 - 1024까지 랩탑 등 컴퓨터 화면 용.
+  767 - 768이 아이패드 기준값. 767부터 타블릿으로 처리.
+  스마트폰의 경우 적응형으로 작아지게 코딩했으므로 별도의 처리 불필요함.
 */
 
 @media (max-width:1023px) {
@@ -667,7 +669,7 @@ content: "놓아서 이동";
   }
 }
 
-@media (max-width:900px) {
+@media (max-width:1023px) {
   #tab-content-tracker { grid-template-columns: 1fr; }
 
   #tab-content-tracker > div:first-child,
@@ -695,8 +697,8 @@ content: "놓아서 이동";
   .header-product-label { display: none; }
   .mobile-space { display: inline; }
 
-  #auth-screen .grid > section:first-child > p:not(.mb-6) br { display: none; }
-
+  #auth-screen > div > footer { font-size: 9px; }
+  
   #auth-screen .grid > section:first-child > p:not(.mb-6) {
     font-size: .9rem;
     padding-left: .95rem;
@@ -710,14 +712,7 @@ content: "놓아서 이동";
   }
 }
 
-@media (min-width:701px) {
-  #auth-screen .header-product-label { margin-right: 8px; }
-}
-
-@media (max-width:640px) {
-  #auth-screen > div > header { padding: 1rem 0; }
-  #auth-screen > div > footer { font-size: 9px; }
-
+@media (max-width:767px) {
 
   /* 모바일에서는 대시보드 로고 크기를 조금 줄입니다. */
   .dashboard-logo {
