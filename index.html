@@ -628,7 +628,18 @@ content: "놓아서 이동";
 
 @media (max-width:1023px) {
   /* 세로형에서는 로고·메인 콘텐츠·로그인 폼을 같은 중앙 폭에 맞춥니다. */
-  #auth-screen > div > header,
+  #auth-screen > div > header {
+    width: auto;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  #auth-screen > div > header > div:first-child {
+    width: min(calc(100% - 3rem), 430px);
+    margin-left: auto;
+    margin-right: auto;
+  }
   #auth-screen .grid.flex-1 {
     width: min(calc(100% - 3rem), 430px);
     margin-left: auto;
@@ -705,7 +716,7 @@ content: "놓아서 이동";
 }
 
 @media (max-width:640px) {
-  #auth-screen > div > header { padding: 1rem 0; }
+  #auth-screen > div > header { padding: 1rem 1.5rem; }
   #auth-screen > div > footer { font-size: 9px; }
 
 
