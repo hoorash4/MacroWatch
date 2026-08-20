@@ -393,7 +393,7 @@ position: relative;
   }
 
   #tab-content-tracker > .sheet-tabs .sheet-tab {
-    min-width: clamp(38px, 9cqw, 60px);
+    min-width: clamp(38px, 9cqw, 60px) !important;
   }
 }
 
@@ -410,7 +410,6 @@ position: relative;
 }
 
 #tab-content-tracker {
-  container-type: inline-size;
 display: grid;
   grid-template-columns: minmax(0,1fr) 360px;
   gap: 1.25rem;
@@ -615,6 +614,7 @@ opacity: 1;
    지표를 드래그하는 동안에는 다른 Track으로 옮길 수 있다는 안내도 여기서 표시합니다.
 */
 #tab-content-tracker > .sheet-tabs {
+  container-type: inline-size;
 grid-column: 1;
   grid-row: 2;
   display: flex;
