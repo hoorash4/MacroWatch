@@ -610,21 +610,12 @@ content: "놓아서 이동";
 
 /* 큰 화면 헤더를 메인 콘텐츠와 같은 중앙 그리드에 맞춥니다. */
 @media (min-width:1024px) {
+  /* 큰 화면에서는 두 헤더 콘텐츠 사이 간격만 화면 폭에 맞춰 넓힙니다. */
   #auth-screen > div > header {
     display: grid;
-    padding-left: clamp(2.5rem,11vw,11rem);
-    padding-right: clamp(2.5rem,11vw,11rem);
-    grid-template-columns: minmax(0,350px) 420px;
-    column-gap: 48px;
+    grid-template-columns: auto auto;
+    column-gap: clamp(8rem,28vw,36rem);
     justify-content: center;
-  }
-  #auth-screen > div > header > div:first-child {
-    justify-self: start;
-    transform: translateX(-50%);
-  }
-  #auth-screen > div > header > .header-product-label {
-    justify-self: end;
-    transform: translateX(50%);
   }
 }
 
