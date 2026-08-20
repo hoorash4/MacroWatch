@@ -593,6 +593,7 @@ function clearDropIndicator() {
 // 어떤 지표를 잡았는지 저장하고 Track 탭에 '여기로 이동' 안내를 켭니다.
 function handleDragStart(e, globalIndex) {
   draggedItemIndex = globalIndex;
+  document.body.classList.add('is-mouse-dragging');
   clearDropIndicator();
 
   const sourceRow = e.currentTarget.closest('[data-target-row]') || e.currentTarget;
@@ -737,6 +738,7 @@ function handleDropOnTrack(e, targetTrack) {
 
 // 드래그가 끝나면 반투명 효과, Track 강조, 드롭 위치선을 모두 원래 상태로 돌립니다.
 function handleDragEnd(e) {
+  document.body.classList.remove('is-mouse-dragging');
   e.currentTarget.classList.remove('opacity-40');
   mouseDragPreview?.remove();
   mouseDragPreview = null;
