@@ -479,7 +479,7 @@ function handleTouchDragStart(event, globalIndex) {
 
     touchDragPreview = sourceRow?.cloneNode(true);
     if (touchDragPreview) {
-      touchDragPreview.className = 'touch-drag-preview';
+      touchDragPreview.classList.add('touch-drag-preview');
       touchDragPreview.removeAttribute('draggable');
       if (sourceRect) {
         touchDragPreview.style.width = sourceRect.width + 'px';
@@ -598,7 +598,7 @@ function handleDragStart(e, globalIndex) {
     y: e.clientY - sourceRect.top
   };
   mouseDragPreview = sourceRow.cloneNode(true);
-  mouseDragPreview.className = 'touch-drag-preview';
+  mouseDragPreview.classList.add('touch-drag-preview');
   mouseDragPreview.removeAttribute('draggable');
   mouseDragPreview.style.width = sourceRect.width + 'px';
   mouseDragPreview.style.height = sourceRect.height + 'px';
