@@ -1040,30 +1040,44 @@ border-color: rgba(209,165,93,.75);
           </div>
 
           <div id="field-selector" class="space-y-3">
+            <!-- 일반 웹 등록 방식: 자동 탐색과 CSS 직접 입력을 한 화면에 겹치지 않게 분리합니다. -->
+            <div class="grid grid-cols-2 gap-1 rounded-xl border border-slate-700 bg-slate-950/70 p-1" role="tablist" aria-label="웹페이지 값 등록 방식">
+              <button id="selector-mode-auto" type="button" role="tab" aria-selected="true" onclick="setWebInputMode('auto')" class="rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-950/40 transition">
+                <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>자동 찾기
+              </button>
+              <button id="selector-mode-manual" type="button" role="tab" aria-selected="false" onclick="setWebInputMode('manual')" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200">
+                <i class="fa-solid fa-code mr-1.5"></i>직접 입력
+              </button>
+            </div>
+
             <div>
               <label class="text-xs text-slate-400 block mb-1">대상 웹페이지 URL</label>
-              <div class="flex flex-col sm:flex-row gap-2">
-                <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="url" id="input-url" placeholder="예: https://..." class="min-w-0 flex-1 bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
-                <button id="discover-values-button" type="button" onclick="discoverWebValues()" class="shrink-0 rounded-lg border border-blue-500/60 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/20 disabled:cursor-wait disabled:opacity-60">
-                  <i class="fa-solid fa-magnifying-glass mr-1.5"></i>값 자동 찾기
-                </button>
-              </div>
-              <p id="discover-values-status" class="mt-2 hidden text-xs leading-relaxed text-slate-400" aria-live="polite"></p>
-              <div id="discover-values-list" class="mt-2 hidden space-y-2"></div>
-              <button id="discover-values-retry" type="button" onclick="discoverWebValues(true)" class="mt-2 hidden w-full rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-blue-500/60 hover:text-blue-300">
+              <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="url" id="input-url" placeholder="예: https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none latin-input">
+            </div>
+
+            <div id="selector-auto-panel" role="tabpanel" aria-labelledby="selector-mode-auto" class="space-y-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3">
+              <p class="text-xs leading-relaxed text-slate-400">
+                웹페이지에서 지표로 보이는 숫자를 찾아 추천합니다. 결과에서 추적할 값을 한 번 선택해 주세요.
+              </p>
+              <button id="discover-values-button" type="button" onclick="discoverWebValues()" class="w-full rounded-lg border border-blue-500/60 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/20 disabled:cursor-wait disabled:opacity-60">
+                <i class="fa-solid fa-magnifying-glass mr-1.5"></i>이 페이지에서 값 찾기
+              </button>
+              <p id="discover-values-status" class="hidden text-xs leading-relaxed text-slate-400" aria-live="polite"></p>
+              <div id="discover-values-list" class="hidden space-y-2"></div>
+              <button id="discover-values-retry" type="button" onclick="discoverWebValues(true)" class="hidden w-full rounded-lg border border-slate-600 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-blue-500/60 hover:text-blue-300">
                 <i class="fa-solid fa-rotate-right mr-1.5"></i>다른 값 다시 찾기 (1회)
               </button>
             </div>
 
-            <details id="selector-advanced" class="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
-              <summary class="cursor-pointer select-none text-xs font-semibold text-slate-400 hover:text-slate-200">
-                CSS 선택자 직접 입력
-              </summary>
-              <div class="pt-3">
+            <div id="selector-manual-panel" role="tabpanel" aria-labelledby="selector-mode-manual" class="hidden space-y-3 rounded-xl border border-slate-700 bg-slate-800/40 p-3">
+              <p class="text-xs leading-relaxed text-slate-400">
+                자동 찾기가 어렵거나 이미 선택자를 알고 있다면 CSS 선택자를 직접 입력하세요.
+              </p>
+              <div>
                 <label class="text-xs text-slate-400 block mb-1">수치 추출용 CSS Selector</label>
                 <input lang="en" inputmode="latin" autocapitalize="off" spellcheck="false" autocomplete="off" type="text" id="input-selector" placeholder="예: [data-test=&quot;instrument-price-last&quot;]" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-blue-500 focus:outline-none font-mono latin-input">
               </div>
-            </details>
+            </div>
           </div>
 
           <div id="field-fred" class="hidden space-y-3">
@@ -1343,6 +1357,6 @@ border-color: rgba(209,165,93,.75);
   <script src="auth.js?v=11"></script>
 
   <!-- 지표 등록 / Tab / Drag & Drop 처리 스크립트 -->
-  <script src="script.js?v=39"></script>
+  <script src="script.js?v=40"></script>
 </body>
 </html>
