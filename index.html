@@ -361,7 +361,19 @@ position: relative;
   padding: 1.5rem var(--dashboard-inner-pad);
   background-image: radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);
   background-size: 36px 36px;
-}#tab-content-tracker {
+}/* 추적 메인 영역이 좁은 화면에서 콘텐츠의 고정 최소 폭을 만들지 않게 합니다. */
+#app-shell,
+#tab-content-tracker,
+#tab-content-tracker > div,
+#tab-content-tracker > .sheet-tabs,
+#target-list,
+#target-list > div[data-target-container],
+#tab-content-tracker input,
+#tab-content-tracker select {
+  min-width: 0;
+}
+
+#tab-content-tracker {
 display: grid;
   grid-template-columns: minmax(0,1fr) 360px;
   gap: 1.25rem;
