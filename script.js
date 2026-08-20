@@ -19,6 +19,12 @@ let dropIndicatorIndex = null;    // targets 배열 기준 삽입 인덱스
 let expandedTargetId = null;
 let currentUserId = null;
 let activeTrack = 1;
+let touchDragState = {
+  timer: null,
+  pointerId: null,
+  globalIndex: null,
+  active: false
+};
 let pendingToggleId = null;
 
 // ===== 페이지 초기화 =====
@@ -274,7 +280,11 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
            ondragstart="handleDragStart(event, ${globalIndex})"
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <i class="fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"></i>
+          <i class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"
+             onpointerdown="handleTouchDragStart(event, ${globalIndex})"
+             onpointermove="handleTouchDragMove(event)"
+             onpointerup="handleTouchDragEnd(event)"
+             onpointercancel="handleTouchDragCancel(event)"></i>
           <div class="min-w-0 flex-1 py-3">
             <div class="flex items-center gap-2 min-w-0">
               <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 text-left">
@@ -423,6 +433,79 @@ async function confirmToggleTarget() {
     console.error(err);
     closeToggleAlertModal();
   }
+}
+
+// ===== 터치 드래그 순서 변경 =====
+// 점 6개 핸들을 길게 누른 뒤 이동할 때만 터치 드래그를 시작합니다.
+function handleTouchDragStart(event, globalIndex) {
+  if (event.pointerType === 'mouse') return;
+
+  touchDragState.pointerId = event.pointerId;
+  touchDragState.globalIndex = globalIndex;
+  touchDragState.active = false;
+  event.currentTarget.setPointerCapture?.(event.pointerId);
+
+  clearTimeout(touchDragState.timer);
+  touchDragState.timer = setTimeout(() => {
+    draggedItemIndex = globalIndex;
+    touchDragState.active = true;
+    document.body.classList.add('is-touch-dragging');
+    event.currentTarget.classList.add('is-touch-dragging');
+  }, 450);
+}
+
+function handleTouchDragMove(event) {
+  if (event.pointerId !== touchDragState.pointerId) return;
+  if (!touchDragState.active) return;
+
+  event.preventDefault();
+  const element = document.elementFromPoint(event.clientX, event.clientY);
+  const container = element?.closest('[data-target-container]');
+  const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
+
+  if (container) {
+    const index = Number(container.dataset.targetContainer);
+    const row = container.querySelector('[data-target-row]') || container;
+    const rect = row.getBoundingClientRect();
+    setDropIndicator(event.clientY < rect.top + rect.height / 2 ? index : index + 1);
+  }
+
+  document.querySelectorAll('.sheet-tab.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
+  if (tab) {
+    const targetTrack = [...document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)')].indexOf(tab) + 1;
+    const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
+    if (targetTrack !== sourceTrack) tab.classList.add('is-drag-over');
+  }
+}
+
+function handleTouchDragEnd(event) {
+  if (event.pointerId !== touchDragState.pointerId) return;
+  clearTimeout(touchDragState.timer);
+
+  if (touchDragState.active) {
+    const element = document.elementFromPoint(event.clientX, event.clientY);
+    const container = element?.closest('[data-target-container]');
+    const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
+    if (tab) {
+      const targetTrack = [...document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)')].indexOf(tab) + 1;
+      handleDropOnTrack({ preventDefault() {}, currentTarget: tab }, targetTrack);
+    } else if (container) {
+      handleDrop({ preventDefault() {} }, Number(container.dataset.targetContainer));
+    }
+  }
+
+  handleTouchDragCancel(event);
+}
+
+function handleTouchDragCancel(event) {
+  clearTimeout(touchDragState.timer);
+  document.body.classList.remove('is-touch-dragging');
+  document.querySelectorAll('.is-touch-dragging, .sheet-tab.is-drag-over').forEach(item => {
+    item.classList.remove('is-touch-dragging', 'is-drag-over');
+  });
+  clearDropIndicator();
+  draggedItemIndex = null;
+  touchDragState = { timer: null, pointerId: null, globalIndex: null, active: false };
 }
 
 // ===== Drag & Drop 순서 변경 =====
