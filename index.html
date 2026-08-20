@@ -568,6 +568,12 @@ body.is-touch-dragging {
   user-select: none;
 }
 
+/* 마우스로 항목을 잡고 있는 동안 주먹을 쥔 커서를 유지합니다. */
+body.is-mouse-dragging,
+body.is-mouse-dragging * {
+  cursor: grabbing !important;
+}
+
 /* ===== Drag & Drop 사용 안내 =====
    리스트 제목 오른쪽에 보이는 "Drag & Drop 순서 변경 ?" 안내입니다.
    데스크톱에서는 마우스를 올리면 열리고,
@@ -1321,6 +1327,6 @@ content: "↓" !important;
   <script src="auth.js?v=11"></script>
 
   <!-- 지표 등록 / Tab / Drag & Drop 처리 스크립트 -->
-  <script src="script.js?v=28"></script>
+  <script src="script.js?v=29"></script>
 </body>
 </html>
