@@ -285,12 +285,12 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
 
             </div>
             <span class="compact-current-value block text-xs text-slate-400 mt-0.5">
-              현재값: <span class="text-blue-400 font-mono">${item.last_value ?? '—'}</span>
+              현재값: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
             </span>
             <span class="target-condition-summary block text-xs text-slate-400 mt-0.5 truncate">
               <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
               ${item.target_value !== null && item.target_value !== undefined ? ` | 목표값: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
-              | 현재값: <span class="text-blue-400 font-mono">${item.last_value ?? '—'}</span>
+              | 현재값: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
             </span>
           </div>
         </div>
