@@ -392,9 +392,6 @@ position: relative;
     display: inline;
   }
 
-  #tab-content-tracker > .sheet-tabs .sheet-tab {
-    min-width: clamp(38px, 9cqw, 60px) !important;
-  }
 }
 
 /* 추적 메인 영역이 좁은 화면에서 콘텐츠의 고정 최소 폭을 만들지 않게 합니다. */
@@ -633,7 +630,6 @@ opacity: 1;
    지표를 드래그하는 동안에는 다른 Track으로 옮길 수 있다는 안내도 여기서 표시합니다.
 */
 #tab-content-tracker > .sheet-tabs {
-  container-type: inline-size;
 grid-column: 1;
   grid-row: 2;
   display: flex;
@@ -653,7 +649,8 @@ position: relative;
   align-items: center;
   justify-content: center;
   height: 30px;
-  min-width: clamp(44px, 9cqw, 67px);
+  width: 72px;
+  min-width: 72px;
   padding: 0;
   margin-left: -10px;
   background: #ece8df;
