@@ -780,10 +780,19 @@ content: "놓아서 이동";
 
 
 
-/* 767px부터 대시보드 내부 좌우 패딩을 줄여 425px에서 0이 되게 합니다. */
-@media (max-width:767px) {
+/* 갤럭시 Z Fold6 펼침 세로 화면 기준(약 670px)부터 내부 좌우 패딩을 줄입니다. */
+@media (max-width:670px) {
   #app-shell {
     --dashboard-inner-pad: clamp(0px, calc(9.8vw - 41.6px), 1.5rem);
+  }
+}
+
+/* 425px 이하에서는 화면 가장자리에 맞춰 최외곽 라운드만 제거합니다. */
+@media (max-width:425px) {
+  #auth-screen,
+  .auth-canvas,
+  #app-shell {
+    border-radius: 0 !important;
   }
 }
 
