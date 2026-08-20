@@ -19,6 +19,7 @@ let dropIndicatorIndex = null;    // targets 배열 기준 삽입 인덱스
 let expandedTargetId = null;
 let currentUserId = null;
 let activeTrack = 1;
+let pendingToggleId = null;
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
@@ -375,30 +376,55 @@ function toggleTargetDetails(id) {
 }
 
 // 종 모양 버튼을 눌렀을 때 해당 지표의 알림 활성/비활성 상태를 바꿉니다.
-async function toggleTargetActive(id) {
+function toggleTargetActive(id) {
+  const item = targets.find(target => String(target.id) === String(id));
+  if (!item) return;
+
+  pendingToggleId = id;
+  const nextIsActive = item.is_active === false;
+  const modal = document.getElementById('toggle-alert-modal');
+  const message = document.getElementById('toggle-alert-message');
+
+  if (!modal || !message) return;
+  message.textContent = nextIsActive
+    ? '카카오톡 알림을 켭니다.'
+    : '카카오톡 알림을 끕니다.';
+  modal.classList.remove('hidden');
+}
+
+function closeToggleAlertModal() {
+  pendingToggleId = null;
+  document.getElementById('toggle-alert-modal')?.classList.add('hidden');
+}
+
+async function confirmToggleTarget() {
+  if (pendingToggleId === null) return;
+
+  const id = pendingToggleId;
   const index = targets.findIndex(item => String(item.id) === String(id));
-  if (index === -1) return;
+  if (index === -1) return closeToggleAlertModal();
 
   const item = targets[index];
   const nextIsActive = item.is_active === false;
 
-  if (supabaseClient && !String(id).startsWith('local_')) {
-    try {
+  try {
+    if (supabaseClient && !String(id).startsWith('local_')) {
       const userId = await getCurrentUserId();
       const { error } = await supabaseClient
-      .from('targets')
-      .update({ is_active: nextIsActive })
-      .eq('id', id)
-      .eq('user_id', userId);
+        .from('targets')
+        .update({ is_active: nextIsActive })
+        .eq('id', id)
+        .eq('user_id', userId);
       if (error) throw error;
-    } catch (err) {
-      console.error(err);
-      return;
     }
-  }
 
-  targets[index] = { ...item, is_active: nextIsActive };
-  renderTargets();
+    targets[index] = { ...item, is_active: nextIsActive };
+    closeToggleAlertModal();
+    renderTargets();
+  } catch (err) {
+    console.error(err);
+    closeToggleAlertModal();
+  }
 }
 
 // ===== Drag & Drop 순서 변경 =====
