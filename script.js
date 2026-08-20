@@ -440,19 +440,23 @@ async function confirmToggleTarget() {
 function handleTouchDragStart(event, globalIndex) {
   if (event.pointerType === 'mouse') return;
 
+  const handle = event.currentTarget;
+  const sourceRow = handle.closest('[data-target-row]');
+  const sourceContainer = handle.closest('[data-target-container]');
+  const startX = event.clientX;
+  const startY = event.clientY;
+
   touchDragState.pointerId = event.pointerId;
   touchDragState.globalIndex = globalIndex;
   touchDragState.active = false;
-  event.currentTarget.setPointerCapture?.(event.pointerId);
+  handle.setPointerCapture?.(event.pointerId);
 
   clearTimeout(touchDragState.timer);
   touchDragState.timer = setTimeout(() => {
     draggedItemIndex = globalIndex;
     touchDragState.active = true;
     document.body.classList.add('is-touch-dragging');
-    event.currentTarget.classList.add('is-touch-dragging');
-    const sourceRow = event.currentTarget.closest('[data-target-row]');
-    const sourceContainer = event.currentTarget.closest('[data-target-container]');
+    handle.classList.add('is-touch-dragging');
     sourceRow?.classList.add('touch-drag-row');
     sourceRow?.style.setProperty('opacity', '.4', 'important');
     sourceContainer?.classList.add('touch-drag-source');
@@ -462,8 +466,8 @@ function handleTouchDragStart(event, globalIndex) {
     if (touchDragPreview) {
       touchDragPreview.className = 'touch-drag-preview';
       touchDragPreview.removeAttribute('draggable');
-      touchDragPreview.style.left = event.clientX + 'px';
-      touchDragPreview.style.top = event.clientY + 'px';
+      touchDragPreview.style.left = startX + 'px';
+      touchDragPreview.style.top = startY + 'px';
       document.body.appendChild(touchDragPreview);
     }
 
