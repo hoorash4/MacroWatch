@@ -539,6 +539,7 @@ function beginPointerDrag(clientX, clientY) {
   const sourceRect = pointerDragState.sourceRow.getBoundingClientRect();
   pointerDragState.active = true;
   draggedItemIndex = pointerDragState.sourceIndex;
+  document.body.classList.add('is-pointer-dragging');
   pointerDragState.offsetX = pointerDragState.startX - sourceRect.left;
   pointerDragState.offsetY = pointerDragState.startY - sourceRect.top;
 
@@ -669,6 +670,7 @@ function clearDropIndicator() {
 
 function cancelPointerDrag() {
   clearTimeout(pointerDragState.timer);
+  document.body.classList.remove('is-pointer-dragging');
   pointerDragState.sourceContainer?.style.removeProperty('opacity');
   pointerDragState.preview?.remove();
 
