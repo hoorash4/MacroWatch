@@ -647,7 +647,15 @@ content: "놓아서 이동";
     padding-right: 0;
   }
   .auth-canvas { min-height: calc(100vh - 1.5rem) !important; }
-  .auth-canvas > div { display: block; }
+  /* 세로형에서도 전체 높이를 유지하고 푸터를 최하단으로 밀어냅니다. */
+  .auth-canvas > div {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 1.5rem);
+  }
+  .auth-canvas > div > footer {
+    margin-top: auto;
+  }
   .auth-canvas > div > section:last-child {
     padding: 2.5rem 1.5rem 4rem;
   }
