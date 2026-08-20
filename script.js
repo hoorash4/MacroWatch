@@ -115,6 +115,32 @@ function toggleTypeFields() {
   if (type !== 'SELECTOR') resetWebDiscovery();
 }
 
+// 일반 웹페이지 등록 방식을 자동 탐색과 CSS 직접 입력 탭으로 전환합니다.
+function setWebInputMode(mode) {
+  const isAuto = mode !== 'manual';
+  const autoButton = document.getElementById('selector-mode-auto');
+  const manualButton = document.getElementById('selector-mode-manual');
+  const autoPanel = document.getElementById('selector-auto-panel');
+  const manualPanel = document.getElementById('selector-manual-panel');
+
+  autoPanel?.classList.toggle('hidden', !isAuto);
+  manualPanel?.classList.toggle('hidden', isAuto);
+
+  if (autoButton) {
+    autoButton.setAttribute('aria-selected', String(isAuto));
+    autoButton.className = isAuto
+      ? 'rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-950/40 transition'
+      : 'rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200';
+  }
+
+  if (manualButton) {
+    manualButton.setAttribute('aria-selected', String(!isAuto));
+    manualButton.className = !isAuto
+      ? 'rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-950/40 transition'
+      : 'rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200';
+  }
+}
+
 // ===== 일반 웹페이지 값 자동 찾기 =====
 // URL이 바뀌거나 등록이 끝났을 때 이전 탐색 결과가 재사용되지 않도록 초기화합니다.
 function resetWebDiscovery() {
@@ -123,19 +149,17 @@ function resetWebDiscovery() {
   const selectorInput = document.getElementById('input-selector');
   const status = document.getElementById('discover-values-status');
   const list = document.getElementById('discover-values-list');
-  const advanced = document.getElementById('selector-advanced');
   const retryButton = document.getElementById('discover-values-retry');
 
   if (selectorInput) selectorInput.value = '';
   if (status) {
     status.textContent = '';
-    status.className = 'mt-2 hidden text-xs leading-relaxed text-slate-400';
+    status.className = 'hidden text-xs leading-relaxed text-slate-400';
   }
   if (list) {
     list.replaceChildren();
     list.classList.add('hidden');
   }
-  if (advanced) advanced.open = false;
   if (retryButton) retryButton.classList.add('hidden');
   discoveryRetryUsed = false;
 }
@@ -153,7 +177,7 @@ function setDiscoveryStatus(message, state = 'normal') {
   };
 
   status.textContent = message;
-  status.className = `mt-2 text-xs leading-relaxed ${colors[state] || colors.normal}`;
+  status.className = `text-xs leading-relaxed ${colors[state] || colors.normal}`;
 }
 
 // 백엔드가 추린 숫자 후보를 버튼으로 표시합니다.
@@ -168,17 +192,43 @@ function renderDiscoveredValues(candidates) {
   discoveredValueCandidates.forEach((candidate, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'flex w-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2.5 text-left transition hover:border-blue-500/70 hover:bg-slate-800/70';
+    button.className = 'block w-full rounded-xl border border-slate-600 bg-slate-700/70 px-3 py-3 text-left transition hover:border-blue-400/80 hover:bg-slate-700';
+
+    const header = document.createElement('span');
+    header.className = 'flex items-start gap-3';
 
     const value = document.createElement('span');
-    value.className = 'shrink-0 rounded-md bg-blue-500/15 px-2 py-1 text-sm font-bold text-blue-300';
+    value.className = 'shrink-0 rounded-md bg-slate-900/70 px-2.5 py-1 text-sm font-bold text-blue-300';
     value.textContent = candidate.display;
 
-    const context = document.createElement('span');
-    context.className = 'min-w-0 truncate text-xs text-slate-400';
-    context.textContent = candidate.context || '주변 설명 없음';
+    const summary = document.createElement('span');
+    summary.className = 'min-w-0 text-xs leading-relaxed text-slate-200';
+    summary.textContent = candidate.section || candidate.left || candidate.right || candidate.context || '주변 설명 없음';
 
-    button.append(value, context);
+    header.append(value, summary);
+    button.appendChild(header);
+
+    const location = document.createElement('span');
+    location.className = 'mt-2 block space-y-1 border-t border-slate-500/40 pt-2 text-[11px] leading-relaxed text-slate-300';
+
+    const locationRows = [
+      candidate.section ? ['영역', candidate.section] : null,
+      candidate.left ? ['왼쪽', candidate.left] : null,
+      candidate.right ? ['오른쪽', candidate.right] : null
+    ].filter(Boolean);
+
+    if (locationRows.length === 0 && candidate.context) {
+      locationRows.push(['주변', candidate.context]);
+    }
+
+    locationRows.forEach(([label, text]) => {
+      const row = document.createElement('span');
+      row.className = 'block truncate';
+      row.textContent = `${label} · ${text}`;
+      location.appendChild(row);
+    });
+
+    if (locationRows.length) button.appendChild(location);
     button.addEventListener('click', () => selectDiscoveredValue(index, button));
     list.appendChild(button);
   });
@@ -195,9 +245,9 @@ function selectDiscoveredValue(index, selectedButton) {
 
   selectorInput.value = candidate.selector;
   list.querySelectorAll('button').forEach((button) => {
-    button.classList.remove('border-emerald-400', 'bg-emerald-500/10');
+    button.classList.remove('border-blue-300', 'bg-blue-500/20', 'ring-1', 'ring-blue-300/50');
   });
-  selectedButton.classList.add('border-emerald-400', 'bg-emerald-500/10');
+  selectedButton.classList.add('border-blue-300', 'bg-blue-500/20', 'ring-1', 'ring-blue-300/50');
   setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 전에 값이 맞는지 확인해 주세요.`, 'success');
 }
 
@@ -272,7 +322,7 @@ async function discoverWebValues(isRetry = false) {
   } finally {
     if (button) {
       button.disabled = false;
-      button.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-1.5"></i>값 자동 찾기';
+      button.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-1.5"></i>이 페이지에서 값 찾기';
     }
   }
 }
@@ -471,6 +521,7 @@ function finishTargetRegistration() {
 
   document.getElementById('add-form').reset();
   resetWebDiscovery();
+  setWebInputMode('auto');
   toggleTypeFields();
   toggleTargetValueInput('input-condition', 'input-target-val');
 
