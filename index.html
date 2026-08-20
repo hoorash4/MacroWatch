@@ -361,7 +361,22 @@ position: relative;
   padding: 1.5rem var(--dashboard-inner-pad);
   background-image: radial-gradient(rgba(247,245,240,.1) 1px,transparent 1px);
   background-size: 36px 36px;
-}/* 추적 메인 영역이 좁은 화면에서 콘텐츠의 고정 최소 폭을 만들지 않게 합니다. */
+}/* 넓은 화면은 오른쪽 현재값을 사용하고, 425px 이하에서는 타이틀 아래로 이동합니다. */
+.compact-current-value {
+  display: none;
+}
+
+@media (max-width:425px) {
+  .target-current-value {
+    display: none;
+  }
+
+  .compact-current-value {
+    display: block;
+  }
+}
+
+/* 추적 메인 영역이 좁은 화면에서 콘텐츠의 고정 최소 폭을 만들지 않게 합니다. */
 #app-shell,
 #tab-content-tracker,
 #tab-content-tracker > div,
