@@ -538,6 +538,20 @@ position: relative;
   opacity: .45 !important;
 }
 
+/* 터치 드래그 중 손가락을 따라 움직이는 미리보기입니다. */
+.touch-drag-preview {
+  position: fixed;
+  z-index: 100;
+  width: min(34rem, 80vw);
+  pointer-events: none;
+  opacity: .82;
+  transform: translate(14px, 14px);
+  background: #0d2a55;
+  border: 1px solid rgba(209,165,93,.75);
+  border-radius: .55rem;
+  box-shadow: 0 12px 24px rgba(0,0,0,.35);
+}
+
 body.is-touch-dragging {
   user-select: none;
 }
