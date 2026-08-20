@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 마우스와 터치가 같은 Pointer Events 드래그 흐름을 사용합니다.
   const targetList = document.getElementById('target-list');
   targetList?.addEventListener('pointerdown', handlePointerDragStart);
+  window.addEventListener('resize', updateTrackTabSizing);
   document.addEventListener('pointermove', handlePointerDragMove, { passive: false });
   document.addEventListener('pointerup', handlePointerDragEnd);
   document.addEventListener('pointercancel', handlePointerDragCancel);
@@ -213,7 +214,10 @@ function renderTrackTabs() {
     button.setAttribute('aria-selected', String(isActive));
     button.dataset.track = String(trackNumber);
     const tabNumber = String(trackNumber).padStart(2, '0');
-    button.textContent = `Tab ${tabNumber}`;
+    button.innerHTML = `
+      <span class="tab-label-full">Tab ${tabNumber}</span>
+      <span class="tab-label-short">T${tabNumber}</span>
+    `;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
 
@@ -225,10 +229,38 @@ function renderTrackTabs() {
     addButton.type = 'button';
     addButton.className = 'sheet-tab sheet-tab-add';
     addButton.setAttribute('role', 'button');
-    addButton.textContent = '+ Tab';
+    addButton.innerHTML = `
+      <span class="tab-label-full">+ Tab</span>
+      <span class="tab-label-short">+</span>
+    `;
     addButton.addEventListener('click', showAddTrackNotice);
     tabsEl.appendChild(addButton);
   }
+
+  updateTrackTabSizing();
+  requestAnimationFrame(updateTrackTabSizing);
+}
+
+// 탭 영역의 실제 폭과 탭 개수에 맞춰 80px부터 38px까지 균등하게 줄입니다.
+function updateTrackTabSizing() {
+  const tabsEl = document.querySelector('#tab-content-tracker > .sheet-tabs');
+  if (!tabsEl) return;
+
+  const tabCount = tabsEl.querySelectorAll('.sheet-tab').length;
+  if (tabCount === 0 || tabsEl.clientWidth === 0) return;
+
+  const styles = getComputedStyle(tabsEl);
+  const horizontalPadding = parseFloat(styles.paddingLeft)
+    + parseFloat(styles.paddingRight);
+  const availableWidth = tabsEl.clientWidth - horizontalPadding;
+  const overlapWidth = 10 * Math.max(0, tabCount - 1);
+  const fittedWidth = Math.floor(
+    (availableWidth + overlapWidth) / tabCount
+  );
+  const tabWidth = Math.max(38, Math.min(80, fittedWidth));
+
+  tabsEl.style.setProperty('--sheet-tab-width', tabWidth + 'px');
+  tabsEl.classList.toggle('is-compact-label', tabWidth < 50);
 }
 
 // 화면 가운데에 공용 안내 모달을 표시합니다.
