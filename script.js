@@ -218,6 +218,7 @@ function renderDiscoveredValues(candidates) {
   if (!list) return;
 
   list.replaceChildren();
+  list.classList.remove('hidden');
   discoveredValueCandidates = Array.isArray(candidates) ? candidates : [];
 
   if (discoveredValueCandidates.length === 0) {
@@ -277,6 +278,8 @@ function setDiscoveryModalStatus(message, state = 'normal') {
 function showDiscoveryModalLoading() {
   const list = document.getElementById('discover-values-list');
   if (!list) return;
+
+  list.classList.remove('hidden');
 
   const loading = document.createElement('p');
   loading.className = 'rounded-xl border border-slate-700 bg-slate-800 px-4 py-8 text-center text-sm text-slate-300';
