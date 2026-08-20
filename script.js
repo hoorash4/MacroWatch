@@ -285,12 +285,12 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
          style="${isFirstVisible ? 'border-top-color: transparent;' : ''}${isLastVisible ? 'border-bottom-color: transparent;' : ''}"
          ondragover="handleDragOver(event, ${globalIndex})"
          ondrop="handleDrop(event, ${globalIndex})">
-      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition cursor-grab active:cursor-grabbing"
+      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
            draggable="true"
            ondragstart="handleDragStart(event, ${globalIndex})"
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <i class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"
+          <i class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 px-1"
              ondragstart="handleDragStart(event, ${globalIndex})"\n             ondragend="handleDragEnd(event)"\n             onpointerdown="handleTouchDragStart(event, ${globalIndex})"
              onpointermove="handleTouchDragMove(event)"
              onpointerup="handleTouchDragEnd(event)"
