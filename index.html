@@ -701,9 +701,21 @@ border-color: rgba(209,165,93,.75);
 }
 
 #tab-content-tracker > .sheet-tabs .sheet-tab.is-drop-forbidden::before {
-  content: "⊘" !important;
-  background: #7f1d1d;
-  color: #fecaca;
+  content: "" !important;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid #ef4444;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      45deg,
+      transparent 43%,
+      #ef4444 44%,
+      #ef4444 56%,
+      transparent 57%
+    ),
+    #fff;
 }
 /* 큰 화면 헤더를 메인 콘텐츠와 같은 중앙 그리드에 맞춥니다. */
 @media (min-width:1024px) {
@@ -1311,6 +1323,6 @@ border-color: rgba(209,165,93,.75);
   <script src="auth.js?v=11"></script>
 
   <!-- 지표 등록 / Tab / Drag & Drop 처리 스크립트 -->
-  <script src="script.js?v=33"></script>
+  <script src="script.js?v=34"></script>
 </body>
 </html>
