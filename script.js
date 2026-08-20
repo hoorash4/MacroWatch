@@ -213,20 +213,22 @@ function renderTrackTabs() {
     button.setAttribute('aria-selected', String(isActive));
     button.dataset.track = String(trackNumber);
     const tabNumber = String(trackNumber).padStart(2, '0');
-    button.innerHTML = `<span class="tab-label-wide">Tab ${tabNumber}</span><span class="tab-label-compact">T${tabNumber}</span>`;
+    button.textContent = `Tab ${tabNumber}`;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
 
     tabsEl.appendChild(button);
   }
 
-  const addButton = document.createElement('button');
-  addButton.type = 'button';
-  addButton.className = 'sheet-tab sheet-tab-add';
-  addButton.setAttribute('role', 'button');
-  addButton.innerHTML = '<span class="tab-label-wide">+ Tab</span><span class="tab-label-compact">+Tab</span>';
-  addButton.addEventListener('click', showAddTrackNotice);
-  tabsEl.appendChild(addButton);
+  if (trackCount < MAX_TRACKS) {
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'sheet-tab sheet-tab-add';
+    addButton.setAttribute('role', 'button');
+    addButton.textContent = '+ Tab';
+    addButton.addEventListener('click', showAddTrackNotice);
+    tabsEl.appendChild(addButton);
+  }
 }
 
 // 화면 가운데에 공용 안내 모달을 표시합니다.
