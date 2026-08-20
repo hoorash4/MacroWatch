@@ -25,6 +25,7 @@ let touchDragState = {
   globalIndex: null,
   active: false
 };
+let touchDragPreview = null;
 let pendingToggleId = null;
 
 // ===== 페이지 초기화 =====
@@ -456,6 +457,16 @@ function handleTouchDragStart(event, globalIndex) {
     sourceRow?.style.setProperty('opacity', '.4', 'important');
     sourceContainer?.classList.add('touch-drag-source');
     sourceContainer?.style.setProperty('opacity', '.4', 'important');
+
+    touchDragPreview = sourceRow?.cloneNode(true);
+    if (touchDragPreview) {
+      touchDragPreview.className = 'touch-drag-preview';
+      touchDragPreview.removeAttribute('draggable');
+      touchDragPreview.style.left = event.clientX + 'px';
+      touchDragPreview.style.top = event.clientY + 'px';
+      document.body.appendChild(touchDragPreview);
+    }
+
     document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
     document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
   }, 450);
@@ -466,6 +477,10 @@ function handleTouchDragMove(event) {
   if (!touchDragState.active) return;
 
   event.preventDefault();
+  if (touchDragPreview) {
+    touchDragPreview.style.left = event.clientX + 'px';
+    touchDragPreview.style.top = event.clientY + 'px';
+  }
   const element = document.elementFromPoint(event.clientX, event.clientY);
   const container = element?.closest('[data-target-container]');
   const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
@@ -513,6 +528,8 @@ function handleTouchDragCancel(event) {
     if (item.matches('[data-target-row], [data-target-container]')) item.style.removeProperty('opacity');
   });
   clearDropIndicator();
+  touchDragPreview?.remove();
+  touchDragPreview = null;
   draggedItemIndex = null;
   touchDragState = { timer: null, pointerId: null, globalIndex: null, active: false };
 }
