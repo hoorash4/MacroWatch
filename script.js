@@ -285,7 +285,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
          style="${isFirstVisible ? 'border-top-color: transparent;' : ''}${isLastVisible ? 'border-bottom-color: transparent;' : ''}"
          ondragover="handleDragOver(event, ${globalIndex})"
          ondrop="handleDrop(event, ${globalIndex})">
-      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
+      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition cursor-grab active:cursor-grabbing"
            draggable="true"
            ondragstart="handleDragStart(event, ${globalIndex})"
            ondragend="handleDragEnd(event)">
