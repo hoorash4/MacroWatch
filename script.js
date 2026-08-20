@@ -509,10 +509,14 @@ function handlePointerDragEnd(event) {
   }
 
   const element = document.elementFromPoint(event.clientX, event.clientY);
-  const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
+  const tab = element?.closest('.sheet-tab');
   const container = element?.closest('[data-target-container]');
 
-  if (tab && Number(tab.dataset.track) !== activeTrack) {
+  if (
+    tab
+    && !tab.classList.contains('sheet-tab-add')
+    && Number(tab.dataset.track) !== activeTrack
+  ) {
     moveDraggedItemToTrack(Number(tab.dataset.track));
   } else if (container || dropIndicatorIndex !== null) {
     moveDraggedItemWithinTrack(
@@ -549,8 +553,10 @@ function beginPointerDrag(clientX, clientY) {
 
   moveDragPreview(clientX, clientY);
   document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
-  document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => {
-    tab.classList.add('is-drag-target');
+  document.querySelectorAll('.sheet-tab').forEach(tab => {
+    const isAllowed = !tab.classList.contains('sheet-tab-add')
+      && Number(tab.dataset.track) !== activeTrack;
+    tab.classList.toggle('is-drop-allowed', isAllowed);
   });
 }
 
@@ -562,18 +568,19 @@ function moveDragPreview(clientX, clientY) {
 
 function updatePointerDropTarget(clientX, clientY) {
   const element = document.elementFromPoint(clientX, clientY);
-  const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
+  const tab = element?.closest('.sheet-tab');
   const container = element?.closest('[data-target-container]');
 
-  document.querySelectorAll('.sheet-tab.is-drag-over').forEach(item => {
-    item.classList.remove('is-drag-over');
+  document.querySelectorAll('.sheet-tab.is-drag-over, .sheet-tab.is-drop-forbidden').forEach(item => {
+    item.classList.remove('is-drag-over', 'is-drop-forbidden');
   });
 
   if (tab) {
     clearDropIndicator();
-    if (Number(tab.dataset.track) !== activeTrack) {
-      tab.classList.add('is-drag-over');
-    }
+
+    const isAllowed = !tab.classList.contains('sheet-tab-add')
+      && Number(tab.dataset.track) !== activeTrack;
+    tab.classList.add(isAllowed ? 'is-drag-over' : 'is-drop-forbidden');
     return;
   }
 
@@ -666,7 +673,11 @@ function cancelPointerDrag() {
 
   document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
   document.querySelectorAll('.sheet-tab').forEach(tab => {
-    tab.classList.remove('is-drag-over', 'is-drag-target');
+    tab.classList.remove(
+      'is-drag-over',
+      'is-drop-allowed',
+      'is-drop-forbidden'
+    );
   });
   clearDropIndicator();
 
