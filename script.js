@@ -195,7 +195,7 @@ function renderTrackTabs() {
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
 
-    button.textContent = `Track ${String(trackNumber).padStart(2, '0')}`;
+    button.textContent = `Tab${String(trackNumber).padStart(2, '0')}`;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
     button.addEventListener('dragenter', (event) => handleTrackDragOver(event, trackNumber));
@@ -210,7 +210,7 @@ function renderTrackTabs() {
   addButton.type = 'button';
   addButton.className = 'sheet-tab sheet-tab-add';
   addButton.setAttribute('role', 'button');
-  addButton.textContent = '+ ADD Track';
+  addButton.textContent = '+ ADD Tab';
   addButton.addEventListener('click', showAddTrackNotice);
   tabsEl.appendChild(addButton);
 }
@@ -330,7 +330,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   `;
 }
 
-// ===== 현재 Track의 추적 목록 화면에 표시 =====
+// ===== 현재 Tab의 추적 목록 화면에 표시 =====
 // 현재 활성 Track에 속한 최대 8개의 지표를 목록 영역에 표시합니다.
 // 먼저 Track 탭을 다시 그리고, 오류/빈 목록/정상 목록 상태를 각각 처리합니다.
 function renderTargets() {
@@ -461,7 +461,7 @@ function handleDrop(e, targetGlobalIndex) {
 
   if (draggedItemIndex === null) return;
 
-  // 리스트 내부 드롭은 현재 Track 안에서만 순서를 바꾼다.
+  // 리스트 내부 드롭은 현재 Tab 안에서만 순서를 바꾼다.
   const trackStart = getTrackStartIndex();
   const trackEnd = getTrackEndIndex();
 
