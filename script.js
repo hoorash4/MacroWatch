@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const helpButton = event.target.closest('.track-help-button');
     const helpBox = event.target.closest('.track-help');
 
-    if (helpBox && !event.target.closest('.track-help-tooltip')) {
+    if (helpBox) {
       event.stopPropagation();
 
       const willOpen = !helpBox.classList.contains('is-open');
