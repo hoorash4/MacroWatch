@@ -192,6 +192,7 @@ function renderTrackTabs() {
 
     button.type = 'button';
     button.className = `sheet-tab${isActive ? ' is-active' : ''}`;
+    button.style.zIndex = String(20 - Math.abs(trackNumber - activeTrack));
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
 
