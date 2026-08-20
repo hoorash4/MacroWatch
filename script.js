@@ -38,14 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const helpButton = event.target.closest('.track-help-button');
     const helpBox = event.target.closest('.track-help');
 
-    if (helpButton && helpBox) {
+    if (helpBox && !event.target.closest('.track-help-tooltip')) {
       event.stopPropagation();
 
       const willOpen = !helpBox.classList.contains('is-open');
       document.querySelector('.track-help.is-open')?.classList.remove('is-open');
 
       helpBox.classList.toggle('is-open', willOpen);
-      helpButton.setAttribute('aria-expanded', String(willOpen));
+      helpBox.querySelector('.track-help-button')?.setAttribute('aria-expanded', String(willOpen));
       return;
     }
 
