@@ -363,17 +363,17 @@ position: relative;
   background-size: 36px 36px;
 }/* 넓은 화면은 오른쪽 현재값을 사용하고, 425px 이하에서는 타이틀 아래로 이동합니다. */
 .compact-current-value {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width:425px) {
   .target-current-value,
   .target-condition-summary {
-    display: none;
+    display: none !important;
   }
 
   .compact-current-value {
-    display: block;
+    display: block !important;
   }
 }
 
