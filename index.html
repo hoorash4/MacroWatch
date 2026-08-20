@@ -585,7 +585,15 @@ margin-top: .7rem;
 color: #f2d49c;
   font-weight: 700;
 }/* 데스크톱 hover, 키보드 focus, 모바일 click 모두 같은 방식으로 안내창을 표시합니다. */
-.track-help:hover .track-help-tooltip,
+@media (hover: hover) and (pointer: fine) {
+  .track-help:hover .track-help-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
 .track-help.is-open .track-help-tooltip {
 opacity: 1;
   visibility: visible;
