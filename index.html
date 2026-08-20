@@ -633,8 +633,8 @@ position: relative;
   align-items: center;
   justify-content: center;
   height: 30px;
-  width: 80px;
-  min-width: 80px;
+  width: var(--sheet-tab-width, 80px);
+  min-width: var(--sheet-tab-width, 80px);
   padding: 0;
   margin-left: -10px;
   background: #ece8df;
@@ -649,6 +649,18 @@ position: relative;
   transition: transform .15s ease, background .15s ease, color .15s ease;
 }#tab-content-tracker > .sheet-tabs .sheet-tab:first-child {
 margin-left: 0;
+}
+
+.tab-label-short {
+  display: none;
+}
+
+#tab-content-tracker > .sheet-tabs.is-compact-label .tab-label-full {
+  display: none;
+}
+
+#tab-content-tracker > .sheet-tabs.is-compact-label .tab-label-short {
+  display: inline;
 }#tab-content-tracker > .sheet-tabs .sheet-tab.is-active {
 z-index: 3;
   background: #fff;
@@ -1140,7 +1152,7 @@ border-color: rgba(209,165,93,.75);
           role="tablist"
           aria-label="Tab tabs"
         >
-            <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true">Tab01</button>
+            <button type="button" class="sheet-tab is-active" role="tab" aria-selected="true">Tab 01</button>
             <button type="button" class="sheet-tab sheet-tab-add" role="tab" aria-selected="false">+ Tab</button>
           </div>
 
@@ -1310,6 +1322,6 @@ border-color: rgba(209,165,93,.75);
   <script src="auth.js?v=11"></script>
 
   <!-- 지표 등록 / Tab / Drag & Drop 처리 스크립트 -->
-  <script src="script.js?v=37"></script>
+  <script src="script.js?v=38"></script>
 </body>
 </html>
