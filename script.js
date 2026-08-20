@@ -557,6 +557,7 @@ function beginPointerDrag(clientX, clientY) {
     const isAllowed = !tab.classList.contains('sheet-tab-add')
       && Number(tab.dataset.track) !== activeTrack;
     tab.classList.toggle('is-drop-allowed', isAllowed);
+    tab.classList.toggle('is-drop-forbidden', !isAllowed);
   });
 }
 
@@ -571,8 +572,8 @@ function updatePointerDropTarget(clientX, clientY) {
   const tab = element?.closest('.sheet-tab');
   const container = element?.closest('[data-target-container]');
 
-  document.querySelectorAll('.sheet-tab.is-drag-over, .sheet-tab.is-drop-forbidden').forEach(item => {
-    item.classList.remove('is-drag-over', 'is-drop-forbidden');
+  document.querySelectorAll('.sheet-tab.is-drag-over').forEach(item => {
+    item.classList.remove('is-drag-over');
   });
 
   if (tab) {
@@ -580,7 +581,7 @@ function updatePointerDropTarget(clientX, clientY) {
 
     const isAllowed = !tab.classList.contains('sheet-tab-add')
       && Number(tab.dataset.track) !== activeTrack;
-    tab.classList.add(isAllowed ? 'is-drag-over' : 'is-drop-forbidden');
+    if (isAllowed) tab.classList.add('is-drag-over');
     return;
   }
 
