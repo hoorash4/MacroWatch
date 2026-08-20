@@ -295,7 +295,24 @@ position: relative;
 }
   
   
-  #app-shell > .bg-slate-900:first-child {
+  /* 대시보드 상단은 브랜드와 액션 사이에 가변 공간을 둔 3열 구조로 배치합니다. */
+.dashboard-header {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1rem;
+}
+
+.dashboard-brand,
+.dashboard-actions {
+  min-width: 0;
+}
+
+.dashboard-actions {
+  justify-self: end;
+}
+
+#app-shell > .bg-slate-900:first-child {
 border-color: #d9d4ca;
   background: #f7f5f0;
   margin: 0 -1.5rem;
@@ -869,7 +886,7 @@ content: "놓아서 이동";
   >
 
     <!-- 대시보드 상단: 제목 / 설정 / 로그아웃 -->
-    <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-5 mb-6 flex items-center justify-between gap-4 shadow-xl">
+    <div class="dashboard-header bg-slate-900 border border-slate-700/80 rounded-xl p-5 mb-6 shadow-xl">
       <!-- 왼쪽: 로고와 MacroWatch 제목을 하나의 영역으로 묶습니다. -->
       <div class="dashboard-brand flex items-center gap-2.5">    
         <!-- Evotive 로고 이미지 -->
