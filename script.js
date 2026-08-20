@@ -290,7 +290,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
            ondragstart="handleDragStart(event, ${globalIndex})"
            ondragend="handleDragEnd(event)">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <i draggable="true" class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"
+          <i class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing px-1"
              ondragstart="handleDragStart(event, ${globalIndex})"\n             ondragend="handleDragEnd(event)"\n             onpointerdown="handleTouchDragStart(event, ${globalIndex})"
              onpointermove="handleTouchDragMove(event)"
              onpointerup="handleTouchDragEnd(event)"
