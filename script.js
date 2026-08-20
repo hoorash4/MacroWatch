@@ -19,16 +19,8 @@ let dropIndicatorIndex = null;    // targets 배열 기준 삽입 인덱스
 let expandedTargetId = null;
 let currentUserId = null;
 let activeTrack = 1;
-let touchDragState = {
-  timer: null,
-  pointerId: null,
-  globalIndex: null,
-  active: false
-};
-let touchDragPreview = null;
-let touchDragOffset = { x: 0, y: 0 };
-let mouseDragPreview = null;
-let mouseDragOffset = { x: 0, y: 0 };
+let suppressNextClick = false;
+let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
 
 // ===== 페이지 초기화 =====
@@ -43,12 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
-  // 기본 브라우저 드래그 이미지를 대신할 반투명 미리보기를 마우스 위치에 맞춰 움직입니다.
-  document.addEventListener('dragover', (event) => {
-    if (!mouseDragPreview) return;
-    mouseDragPreview.style.left = (event.clientX - mouseDragOffset.x) + 'px';
-    mouseDragPreview.style.top = (event.clientY - mouseDragOffset.y) + 'px';
-  });
+  // 마우스와 터치가 같은 Pointer Events 드래그 흐름을 사용합니다.
+  const targetList = document.getElementById('target-list');
+  targetList?.addEventListener('pointerdown', handlePointerDragStart);
+  document.addEventListener('pointermove', handlePointerDragMove, { passive: false });
+  document.addEventListener('pointerup', handlePointerDragEnd);
+  document.addEventListener('pointercancel', handlePointerDragCancel);
+
+  // 드래그 직후 발생하는 클릭은 한 번만 차단합니다.
+  document.addEventListener('click', (event) => {
+    if (!suppressNextClick) return;
+    suppressNextClick = false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
 
   // 화면의 다른 곳을 누르면 열린 도움말을 자동으로 닫습니다.
   document.addEventListener('click', (event) => {
@@ -211,14 +211,11 @@ function renderTrackTabs() {
     button.style.zIndex = String(20 - Math.abs(trackNumber - activeTrack));
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', String(isActive));
+    button.dataset.track = String(trackNumber);
     const tabNumber = String(trackNumber).padStart(2, '0');
     button.innerHTML = `<span class="tab-label-wide">Tab ${tabNumber}</span><span class="tab-label-compact">T${tabNumber}</span>`;
 
     button.addEventListener('click', () => switchTrack(trackNumber));
-    button.addEventListener('dragenter', (event) => handleTrackDragOver(event, trackNumber));
-    button.addEventListener('dragover', (event) => handleTrackDragOver(event, trackNumber));
-    button.addEventListener('dragleave', handleTrackDragLeave);
-    button.addEventListener('drop', (event) => handleDropOnTrack(event, trackNumber));
 
     tabsEl.appendChild(button);
   }
@@ -282,19 +279,10 @@ function finishTargetRegistration() {
 function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   return `
     <div data-target-container="${globalIndex}" class="py-3 border-b border-slate-800/80 first:border-t"
-         style="${isFirstVisible ? 'border-top-color: transparent;' : ''}${isLastVisible ? 'border-bottom-color: transparent;' : ''}"
-         ondragover="handleDragOver(event, ${globalIndex})"
-         ondrop="handleDrop(event, ${globalIndex})">
-      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition"
-           draggable="true"
-           ondragstart="handleDragStart(event, ${globalIndex})"
-           ondragend="handleDragEnd(event)">
+         style="${isFirstVisible ? 'border-top-color: transparent;' : ''}${isLastVisible ? 'border-bottom-color: transparent;' : ''}">
+      <div data-target-row class="flex items-center justify-between gap-3 px-2 rounded-lg hover:bg-slate-800/30 transition">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <i class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 px-1"
-             ondragstart="handleDragStart(event, ${globalIndex})"\n             ondragend="handleDragEnd(event)"\n             onpointerdown="handleTouchDragStart(event, ${globalIndex})"
-             onpointermove="handleTouchDragMove(event)"
-             onpointerup="handleTouchDragEnd(event)"
-             onpointercancel="handleTouchDragCancel(event)"></i>
+          <i class="touch-drag-handle fa-solid fa-grip-vertical text-slate-600 hover:text-slate-400 px-1" aria-hidden="true"></i>
           <div class="min-w-0 flex-1 py-3">
             <div class="flex items-center gap-2 min-w-0">
               <button type="button" onclick="toggleTargetDetails('${item.id}')" class="min-w-0 flex-1 text-left">
@@ -445,125 +433,210 @@ async function confirmToggleTarget() {
   }
 }
 
-// ===== 터치 드래그 순서 변경 =====
-// 점 6개 핸들을 길게 누른 뒤 이동할 때만 터치 드래그를 시작합니다.
-function handleTouchDragStart(event, globalIndex) {
-  if (event.pointerType === 'mouse') return;
-
-  const handle = event.currentTarget;
-  const sourceRow = handle.closest('[data-target-row]');
-  const sourceContainer = handle.closest('[data-target-container]');
-  const startX = event.clientX;
-  const startY = event.clientY;
-  const sourceRect = sourceRow?.getBoundingClientRect();
-  touchDragOffset = {
-    x: sourceRect ? startX - sourceRect.left : 0,
-    y: sourceRect ? startY - sourceRect.top : 0
+// ===== 마우스·터치 공통 드래그 순서 변경 =====
+// 마우스는 행 전체에서 시작하고, 터치는 점 6개를 길게 눌렀을 때 시작합니다.
+function createPointerDragState() {
+  return {
+    timer: null,
+    pointerId: null,
+    pointerType: null,
+    sourceIndex: null,
+    sourceRow: null,
+    sourceContainer: null,
+    active: false,
+    startX: 0,
+    startY: 0,
+    offsetX: 0,
+    offsetY: 0,
+    preview: null
   };
-
-  touchDragState.pointerId = event.pointerId;
-  touchDragState.globalIndex = globalIndex;
-  touchDragState.active = false;
-  handle.setPointerCapture?.(event.pointerId);
-
-  clearTimeout(touchDragState.timer);
-  touchDragState.timer = setTimeout(() => {
-    draggedItemIndex = globalIndex;
-    touchDragState.active = true;
-    document.body.classList.add('is-touch-dragging');
-    handle.classList.add('is-touch-dragging');
-    sourceRow?.classList.add('touch-drag-row');
-    sourceRow?.style.setProperty('opacity', '.4', 'important');
-    sourceContainer?.classList.add('touch-drag-source');
-    sourceContainer?.style.setProperty('opacity', '.4', 'important');
-
-    touchDragPreview = sourceRow?.cloneNode(true);
-    if (touchDragPreview) {
-      touchDragPreview.classList.add('touch-drag-preview');
-      touchDragPreview.removeAttribute('draggable');
-      if (sourceRect) {
-        touchDragPreview.style.width = sourceRect.width + 'px';
-        touchDragPreview.style.height = sourceRect.height + 'px';
-      }
-      touchDragPreview.style.left = (startX - touchDragOffset.x) + 'px';
-      touchDragPreview.style.top = (startY - touchDragOffset.y) + 'px';
-      document.body.appendChild(touchDragPreview);
-    }
-
-    document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
-    document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
-  }, 450);
 }
 
-function handleTouchDragMove(event) {
-  if (event.pointerId !== touchDragState.pointerId) return;
-  if (!touchDragState.active) return;
+function handlePointerDragStart(event) {
+  if (event.button !== undefined && event.button !== 0) return;
+
+  const target = event.target instanceof Element ? event.target : null;
+  const sourceRow = target?.closest('[data-target-row]');
+  const sourceContainer = target?.closest('[data-target-container]');
+  if (!sourceRow || !sourceContainer) return;
+
+  const isMouse = event.pointerType === 'mouse';
+  if (!isMouse && !target.closest('.touch-drag-handle')) return;
+
+  cancelPointerDrag();
+
+  pointerDragState.pointerId = event.pointerId;
+  pointerDragState.pointerType = event.pointerType;
+  pointerDragState.sourceIndex = Number(sourceContainer.dataset.targetContainer);
+  pointerDragState.sourceRow = sourceRow;
+  pointerDragState.sourceContainer = sourceContainer;
+  pointerDragState.startX = event.clientX;
+  pointerDragState.startY = event.clientY;
+  sourceRow.setPointerCapture?.(event.pointerId);
+
+  if (!isMouse) {
+    pointerDragState.timer = setTimeout(() => {
+      beginPointerDrag(pointerDragState.startX, pointerDragState.startY);
+    }, 450);
+  }
+}
+
+function handlePointerDragMove(event) {
+  if (event.pointerId !== pointerDragState.pointerId) return;
+
+  if (!pointerDragState.active) {
+    if (pointerDragState.pointerType !== 'mouse') return;
+
+    const distance = Math.hypot(
+      event.clientX - pointerDragState.startX,
+      event.clientY - pointerDragState.startY
+    );
+    if (distance < 4) return;
+    beginPointerDrag(event.clientX, event.clientY);
+  }
 
   event.preventDefault();
-  if (touchDragPreview) {
-    touchDragPreview.style.left = (event.clientX - touchDragOffset.x) + 'px';
-    touchDragPreview.style.top = (event.clientY - touchDragOffset.y) + 'px';
+  moveDragPreview(event.clientX, event.clientY);
+  updatePointerDropTarget(event.clientX, event.clientY);
+}
+
+function handlePointerDragEnd(event) {
+  if (event.pointerId !== pointerDragState.pointerId) return;
+
+  clearTimeout(pointerDragState.timer);
+  if (!pointerDragState.active) {
+    cancelPointerDrag();
+    return;
   }
+
   const element = document.elementFromPoint(event.clientX, event.clientY);
-  const container = element?.closest('[data-target-container]');
   const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
+  const container = element?.closest('[data-target-container]');
 
-  if (container) {
-    const index = Number(container.dataset.targetContainer);
-    if (index === draggedItemIndex) {
-      clearDropIndicator();
-    } else {
-      const row = container.querySelector('[data-target-row]') || container;
-    const rect = row.getBoundingClientRect();
-      setDropIndicator(event.clientY < rect.top + rect.height / 2 ? index : index + 1);
-    }
+  if (tab && Number(tab.dataset.track) !== activeTrack) {
+    moveDraggedItemToTrack(Number(tab.dataset.track));
+  } else if (container || dropIndicatorIndex !== null) {
+    moveDraggedItemWithinTrack(
+      dropIndicatorIndex ?? Number(container.dataset.targetContainer)
+    );
   }
 
-  document.querySelectorAll('.sheet-tab.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
-  if (tab) {
-    const targetTrack = [...document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)')].indexOf(tab) + 1;
-    const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
-    if (targetTrack !== sourceTrack) tab.classList.add('is-drag-over');
-  }
+  suppressNextClick = true;
+  cancelPointerDrag();
 }
 
-function handleTouchDragEnd(event) {
-  if (event.pointerId !== touchDragState.pointerId) return;
-  clearTimeout(touchDragState.timer);
-
-  if (touchDragState.active) {
-    const element = document.elementFromPoint(event.clientX, event.clientY);
-    const container = element?.closest('[data-target-container]');
-    const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
-    if (tab) {
-      const targetTrack = [...document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)')].indexOf(tab) + 1;
-      handleDropOnTrack({ preventDefault() {}, currentTarget: tab }, targetTrack);
-    } else if (container) {
-      handleDrop({ preventDefault() {} }, Number(container.dataset.targetContainer));
-    }
-  }
-
-  handleTouchDragCancel(event);
+function handlePointerDragCancel(event) {
+  if (event.pointerId !== pointerDragState.pointerId) return;
+  cancelPointerDrag();
 }
 
-function handleTouchDragCancel(event) {
-  clearTimeout(touchDragState.timer);
-  document.body.classList.remove('is-touch-dragging');
-  document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
-  document.querySelectorAll('.touch-drag-row, .is-touch-dragging, .touch-drag-source, [data-target-container].opacity-40, .sheet-tab.is-drag-over, .sheet-tab.is-drag-target').forEach(item => {
-    item.classList.remove('touch-drag-row', 'is-touch-dragging', 'touch-drag-source', 'is-drag-over', 'is-drag-target', 'opacity-40');
-    if (item.matches('[data-target-row], [data-target-container]')) item.style.removeProperty('opacity');
+function beginPointerDrag(clientX, clientY) {
+  if (pointerDragState.active || !pointerDragState.sourceRow) return;
+
+  const sourceRect = pointerDragState.sourceRow.getBoundingClientRect();
+  pointerDragState.active = true;
+  draggedItemIndex = pointerDragState.sourceIndex;
+  pointerDragState.offsetX = pointerDragState.startX - sourceRect.left;
+  pointerDragState.offsetY = pointerDragState.startY - sourceRect.top;
+
+  pointerDragState.sourceContainer.style.setProperty('opacity', '.4', 'important');
+
+  const preview = pointerDragState.sourceRow.cloneNode(true);
+  preview.classList.add('drag-preview');
+  preview.style.width = sourceRect.width + 'px';
+  preview.style.height = sourceRect.height + 'px';
+  document.body.appendChild(preview);
+  pointerDragState.preview = preview;
+
+  moveDragPreview(clientX, clientY);
+  document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
+  document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => {
+    tab.classList.add('is-drag-target');
   });
-  clearDropIndicator();
-  touchDragPreview?.remove();
-  touchDragPreview = null;
-  touchDragOffset = { x: 0, y: 0 };
-  draggedItemIndex = null;
-  touchDragState = { timer: null, pointerId: null, globalIndex: null, active: false };
 }
 
-// ===== Drag & Drop 순서 변경 =====
-// 같은 Track 안에서 드래그할 때 '여기에 놓인다'는 위치선을 표시합니다.
+function moveDragPreview(clientX, clientY) {
+  if (!pointerDragState.preview) return;
+  pointerDragState.preview.style.left = (clientX - pointerDragState.offsetX) + 'px';
+  pointerDragState.preview.style.top = (clientY - pointerDragState.offsetY) + 'px';
+}
+
+function updatePointerDropTarget(clientX, clientY) {
+  const element = document.elementFromPoint(clientX, clientY);
+  const tab = element?.closest('.sheet-tab:not(.sheet-tab-add)');
+  const container = element?.closest('[data-target-container]');
+
+  document.querySelectorAll('.sheet-tab.is-drag-over').forEach(item => {
+    item.classList.remove('is-drag-over');
+  });
+
+  if (tab) {
+    clearDropIndicator();
+    if (Number(tab.dataset.track) !== activeTrack) {
+      tab.classList.add('is-drag-over');
+    }
+    return;
+  }
+
+  if (!container) {
+    clearDropIndicator();
+    return;
+  }
+
+  const targetIndex = Number(container.dataset.targetContainer);
+  if (targetIndex === draggedItemIndex) {
+    clearDropIndicator();
+    return;
+  }
+
+  const row = container.querySelector('[data-target-row]') || container;
+  const rect = row.getBoundingClientRect();
+  setDropIndicator(clientY < rect.top + rect.height / 2 ? targetIndex : targetIndex + 1);
+}
+
+function moveDraggedItemWithinTrack(insertIndex) {
+  if (draggedItemIndex === null) return;
+
+  const trackStart = getTrackStartIndex();
+  const trackEnd = getTrackEndIndex();
+  if (
+    draggedItemIndex < trackStart ||
+    draggedItemIndex >= trackEnd ||
+    insertIndex < trackStart ||
+    insertIndex > trackEnd
+  ) return;
+
+  const destinationIndex = draggedItemIndex < insertIndex ? insertIndex - 1 : insertIndex;
+  if (destinationIndex === draggedItemIndex) return;
+
+  const [movedItem] = targets.splice(draggedItemIndex, 1);
+  if (!movedItem) return;
+  targets.splice(destinationIndex, 0, movedItem);
+
+  updateDisplayOrder();
+  renderTargets();
+  saveOrderToDb();
+}
+
+function moveDraggedItemToTrack(targetTrack) {
+  if (draggedItemIndex === null) return;
+
+  const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
+  if (targetTrack === sourceTrack) return;
+
+  const [movedItem] = targets.splice(draggedItemIndex, 1);
+  if (!movedItem) return;
+
+  const insertIndex = targetTrack < sourceTrack
+    ? targetTrack * ITEMS_PER_TRACK - 1
+    : (targetTrack - 1) * ITEMS_PER_TRACK;
+
+  targets.splice(insertIndex, 0, movedItem);
+  updateDisplayOrder();
+  renderTargets();
+  saveOrderToDb();
+}
+
 function setDropIndicator(globalInsertIndex) {
   if (dropIndicatorIndex === globalInsertIndex) return;
 
@@ -571,8 +644,7 @@ function setDropIndicator(globalInsertIndex) {
   dropIndicatorIndex = globalInsertIndex;
 
   const containers = [...document.querySelectorAll('[data-target-container]')];
-  const startIndex = getTrackStartIndex();
-  const localInsertIndex = globalInsertIndex - startIndex;
+  const localInsertIndex = globalInsertIndex - getTrackStartIndex();
 
   if (localInsertIndex >= 0 && localInsertIndex < containers.length) {
     containers[localInsertIndex]?.style.setProperty('box-shadow', 'inset 0 1px 0 white');
@@ -581,7 +653,6 @@ function setDropIndicator(globalInsertIndex) {
   }
 }
 
-// 드래그 위치를 알려주던 선과 내부 저장값을 모두 초기화합니다.
 function clearDropIndicator() {
   document.querySelectorAll('[data-target-container]').forEach(container => {
     container.style.removeProperty('box-shadow');
@@ -589,168 +660,19 @@ function clearDropIndicator() {
   dropIndicatorIndex = null;
 }
 
-// 지표 드래그를 시작할 때 호출됩니다.
-// 어떤 지표를 잡았는지 저장하고 Track 탭에 '여기로 이동' 안내를 켭니다.
-function handleDragStart(e, globalIndex) {
-  draggedItemIndex = globalIndex;
-  document.body.classList.add('is-mouse-dragging');
-  clearDropIndicator();
-
-  const sourceRow = e.currentTarget.closest('[data-target-row]') || e.currentTarget;
-  const sourceRect = sourceRow.getBoundingClientRect();
-  mouseDragOffset = {
-    x: e.clientX - sourceRect.left,
-    y: e.clientY - sourceRect.top
-  };
-  mouseDragPreview = sourceRow.cloneNode(true);
-  mouseDragPreview.classList.add('touch-drag-preview');
-  mouseDragPreview.removeAttribute('draggable');
-  mouseDragPreview.style.width = sourceRect.width + 'px';
-  mouseDragPreview.style.height = sourceRect.height + 'px';
-  mouseDragPreview.style.left = (e.clientX - mouseDragOffset.x) + 'px';
-  mouseDragPreview.style.top = (e.clientY - mouseDragOffset.y) + 'px';
-  document.body.appendChild(mouseDragPreview);
-
-  const transparentImage = new Image();
-  transparentImage.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-  e.dataTransfer.setDragImage(transparentImage, 0, 0);
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', String(globalIndex));
-
-  document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
-  document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
-  sourceRow.classList.add('opacity-40');
-}
-
-// 같은 Track 안에서 지표를 위아래로 움직일 때 들어갈 위치를 계산합니다.
-function handleDragOver(e, targetGlobalIndex) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-
-  if (targetGlobalIndex === draggedItemIndex) {
-    clearDropIndicator();
-    return;
-  }
-
-  const targetRow = e.currentTarget.querySelector('[data-target-row]') || e.currentTarget;
-  const rect = targetRow.getBoundingClientRect();
-  const insertIndex = e.clientY < rect.top + rect.height / 2
-  ? targetGlobalIndex
-  : targetGlobalIndex + 1;
-
-  setDropIndicator(insertIndex);
-}
-
-// 같은 Track 안에 지표를 놓았을 때 실제 배열 순서를 변경하고 DB에 저장합니다.
-function handleDrop(e, targetGlobalIndex) {
-  e.preventDefault();
-  const insertIndex = dropIndicatorIndex ?? targetGlobalIndex;
-  clearDropIndicator();
-
-  if (draggedItemIndex === null) return;
-
-  // 리스트 내부 드롭은 현재 Tab 안에서만 순서를 바꾼다.
-  const trackStart = getTrackStartIndex();
-  const trackEnd = getTrackEndIndex();
-
-  if (
-  draggedItemIndex < trackStart ||
-  draggedItemIndex >= trackEnd ||
-  insertIndex < trackStart ||
-  insertIndex > trackEnd
-  ) {
-    return;
-  }
-
-  const destinationIndex = draggedItemIndex < insertIndex ? insertIndex - 1 : insertIndex;
-  if (destinationIndex === draggedItemIndex) return;
-
-  const movedItem = targets.splice(draggedItemIndex, 1)[0];
-  targets.splice(destinationIndex, 0, movedItem);
-
-  updateDisplayOrder();
-  renderTargets();
-  saveOrderToDb();
-}
-
-// 지표를 다른 Track 탭 위로 가져갔을 때 해당 탭을 드롭 대상으로 강조합니다.
-// 현재 지표가 이미 속한 Track은 드롭 대상으로 처리하지 않습니다.
-function handleTrackDragOver(e, targetTrack) {
-  if (draggedItemIndex === null) return;
-
-  const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
-  if (targetTrack === sourceTrack) return;
-
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('is-drag-over');
-}
-
-// 드래그 중 마우스가 Track 탭 밖으로 나가면 강조 상태를 해제합니다.
-function handleTrackDragLeave(e) {
-  const nextElement = e.relatedTarget;
-
-  if (nextElement && e.currentTarget.contains(nextElement)) {
-    return;
-  }
-
-  e.currentTarget.classList.remove('is-drag-over');
-}
-
-// 지표를 다른 Track 탭에 놓았을 때 Track 사이 이동을 처리합니다.
-// 중간 Track의 경계 항목들이 하나씩 순차적으로 밀리도록 배열 위치를 바꿉니다.
-function handleDropOnTrack(e, targetTrack) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('is-drag-over');
-
-  if (draggedItemIndex === null) return;
-
-  const sourceTrack = Math.floor(draggedItemIndex / ITEMS_PER_TRACK) + 1;
-  if (targetTrack === sourceTrack) return;
-
-  // 원래 위치에서 항목을 먼저 제거한다.
-  // 배열이 당겨지면서 중간 Track의 경계 항목들이 자연스럽게 한 칸씩 이동한다.
-  const [movedItem] = targets.splice(draggedItemIndex, 1);
-  if (!movedItem) return;
-
-  let insertIndex;
-
-  if (targetTrack < sourceTrack) {
-    // 앞쪽 Track으로 이동:
-    // 이동 항목은 대상 Track의 맨 아래에 들어간다.
-    // 대상 Track의 기존 맨 아래 항목은 다음 Track 맨 위로 밀리고,
-    // 이 과정이 출발 Track까지 순차적으로 이어진다.
-    insertIndex = targetTrack * ITEMS_PER_TRACK - 1;
-  } else {
-    // 뒤쪽 Track으로 이동:
-    // 이동 항목은 대상 Track의 맨 위에 들어간다.
-    // 대상 Track의 기존 맨 위 항목은 이전 Track 맨 아래로 밀리고,
-    // 이 과정이 출발 Track까지 역방향으로 순차적으로 이어진다.
-    insertIndex = (targetTrack - 1) * ITEMS_PER_TRACK;
-  }
-
-  targets.splice(insertIndex, 0, movedItem);
-
-  updateDisplayOrder();
-  renderTargets();
-  saveOrderToDb();
-}
-
-// 드래그가 끝나면 반투명 효과, Track 강조, 드롭 위치선을 모두 원래 상태로 돌립니다.
-function handleDragEnd(e) {
-  document.body.classList.remove('is-mouse-dragging');
-  e.currentTarget.classList.remove('opacity-40');
-  mouseDragPreview?.remove();
-  mouseDragPreview = null;
-  mouseDragOffset = { x: 0, y: 0 };
+function cancelPointerDrag() {
+  clearTimeout(pointerDragState.timer);
+  pointerDragState.sourceContainer?.style.removeProperty('opacity');
+  pointerDragState.preview?.remove();
 
   document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
   document.querySelectorAll('.sheet-tab').forEach(tab => {
     tab.classList.remove('is-drag-over', 'is-drag-target');
   });
-
   clearDropIndicator();
+
   draggedItemIndex = null;
+  pointerDragState = createPointerDragState();
 }
 
 // 현재 targets 배열 순서를 display_order 값에 다시 기록합니다.
