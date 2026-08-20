@@ -450,8 +450,11 @@ function handleTouchDragStart(event, globalIndex) {
     touchDragState.active = true;
     document.body.classList.add('is-touch-dragging');
     event.currentTarget.classList.add('is-touch-dragging');
-    event.currentTarget.closest('[data-target-row]')?.classList.add('touch-drag-row');
-    event.currentTarget.closest('[data-target-container]')?.classList.add('touch-drag-source');
+    const sourceRow = event.currentTarget.closest('[data-target-row]');
+    const sourceContainer = event.currentTarget.closest('[data-target-container]');
+    sourceRow?.classList.add('touch-drag-row');
+    sourceRow?.style.setProperty('opacity', '.4', 'important');
+    sourceContainer?.classList.add('touch-drag-source');
     document.querySelector('.sheet-tabs')?.classList.add('is-dragging');
     document.querySelectorAll('.sheet-tab:not(.sheet-tab-add)').forEach(tab => tab.classList.add('is-drag-target'));
   }, 450);
@@ -506,6 +509,7 @@ function handleTouchDragCancel(event) {
   document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
   document.querySelectorAll('.touch-drag-row, .is-touch-dragging, .touch-drag-source, [data-target-container].opacity-40, .sheet-tab.is-drag-over, .sheet-tab.is-drag-target').forEach(item => {
     item.classList.remove('touch-drag-row', 'is-touch-dragging', 'touch-drag-source', 'is-drag-over', 'is-drag-target', 'opacity-40');
+    if (item.matches('[data-target-row]')) item.style.removeProperty('opacity');
   });
   clearDropIndicator();
   draggedItemIndex = null;
