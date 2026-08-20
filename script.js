@@ -22,6 +22,7 @@ let activeTrack = 1;
 let suppressNextClick = false;
 let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
+let discoveredValueCandidates = [];
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
@@ -35,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
+  // URL이 바뀌면 이전 페이지에서 찾은 값과 선택자를 함께 비웁니다.
+  document.getElementById('input-url')?.addEventListener('input', resetWebDiscovery);
+
   // 마우스와 터치가 같은 Pointer Events 드래그 흐름을 사용합니다.
   const targetList = document.getElementById('target-list');
   targetList?.addEventListener('pointerdown', handlePointerDragStart);
@@ -106,6 +110,150 @@ function toggleTypeFields() {
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
   document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
   document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
+
+  if (type !== 'SELECTOR') resetWebDiscovery();
+}
+
+// ===== 일반 웹페이지 값 자동 찾기 =====
+// URL이 바뀌거나 등록이 끝났을 때 이전 탐색 결과가 재사용되지 않도록 초기화합니다.
+function resetWebDiscovery() {
+  discoveredValueCandidates = [];
+
+  const selectorInput = document.getElementById('input-selector');
+  const status = document.getElementById('discover-values-status');
+  const list = document.getElementById('discover-values-list');
+  const advanced = document.getElementById('selector-advanced');
+
+  if (selectorInput) selectorInput.value = '';
+  if (status) {
+    status.textContent = '';
+    status.className = 'mt-2 hidden text-xs leading-relaxed text-slate-400';
+  }
+  if (list) {
+    list.replaceChildren();
+    list.classList.add('hidden');
+  }
+  if (advanced) advanced.open = false;
+}
+
+// 탐색 진행·성공·실패 상태를 입력폼 안에서 간단히 안내합니다.
+function setDiscoveryStatus(message, state = 'normal') {
+  const status = document.getElementById('discover-values-status');
+  if (!status) return;
+
+  const colors = {
+    normal: 'text-slate-400',
+    loading: 'text-blue-300',
+    success: 'text-emerald-300',
+    error: 'text-amber-300'
+  };
+
+  status.textContent = message;
+  status.className = `mt-2 text-xs leading-relaxed ${colors[state] || colors.normal}`;
+}
+
+// 백엔드가 추린 숫자 후보를 버튼으로 표시합니다.
+// 사용자 선택이 끝난 후보의 CSS 선택자만 기존 등록 입력란에 채웁니다.
+function renderDiscoveredValues(candidates) {
+  const list = document.getElementById('discover-values-list');
+  if (!list) return;
+
+  list.replaceChildren();
+  discoveredValueCandidates = Array.isArray(candidates) ? candidates : [];
+
+  discoveredValueCandidates.forEach((candidate, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'flex w-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2.5 text-left transition hover:border-blue-500/70 hover:bg-slate-800/70';
+
+    const value = document.createElement('span');
+    value.className = 'shrink-0 rounded-md bg-blue-500/15 px-2 py-1 text-sm font-bold text-blue-300';
+    value.textContent = candidate.display;
+
+    const context = document.createElement('span');
+    context.className = 'min-w-0 truncate text-xs text-slate-400';
+    context.textContent = candidate.context || '주변 설명 없음';
+
+    button.append(value, context);
+    button.addEventListener('click', () => selectDiscoveredValue(index, button));
+    list.appendChild(button);
+  });
+
+  list.classList.toggle('hidden', discoveredValueCandidates.length === 0);
+}
+
+// 선택한 후보를 강조하고 실제 등록에 사용할 CSS 선택자를 저장합니다.
+function selectDiscoveredValue(index, selectedButton) {
+  const candidate = discoveredValueCandidates[index];
+  const selectorInput = document.getElementById('input-selector');
+  const list = document.getElementById('discover-values-list');
+  if (!candidate || !selectorInput || !list) return;
+
+  selectorInput.value = candidate.selector;
+  list.querySelectorAll('button').forEach((button) => {
+    button.classList.remove('border-emerald-400', 'bg-emerald-500/10');
+  });
+  selectedButton.classList.add('border-emerald-400', 'bg-emerald-500/10');
+  setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 전에 값이 맞는지 확인해 주세요.`, 'success');
+}
+
+// 로그인된 사용자의 권한으로 Edge Function을 호출해 숫자 후보를 가져옵니다.
+async function discoverWebValues() {
+  const title = document.getElementById('input-title')?.value.trim() || '';
+  const url = document.getElementById('input-url')?.value.trim() || '';
+  const button = document.getElementById('discover-values-button');
+
+  if (!url) {
+    setDiscoveryStatus('먼저 대상 웹페이지 URL을 입력해 주세요.', 'error');
+    return;
+  }
+
+  try {
+    new URL(url);
+  } catch {
+    setDiscoveryStatus('http:// 또는 https://로 시작하는 올바른 주소를 입력해 주세요.', 'error');
+    return;
+  }
+
+  resetWebDiscovery();
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>찾는 중';
+  }
+  setDiscoveryStatus('웹페이지에서 지표로 보이는 숫자를 찾고 있습니다.', 'loading');
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('discover-values', {
+      body: { url, title }
+    });
+
+    if (error) {
+      let message = error.message || '값을 자동으로 찾지 못했습니다.';
+      if (error.context && typeof error.context.json === 'function') {
+        const details = await error.context.json().catch(() => null);
+        if (details?.error) message = details.error;
+      }
+      throw new Error(message);
+    }
+
+    const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
+    renderDiscoveredValues(candidates);
+    setDiscoveryStatus(
+      candidates.length ? (data.message || '가능성이 높은 값을 골라 주세요.') : (data.message || '숫자 후보를 찾지 못했습니다.'),
+      candidates.length ? 'normal' : 'error'
+    );
+  } catch (error) {
+    console.error('Value discovery error:', error);
+    setDiscoveryStatus(
+      error?.message || '자동 탐색에 실패했습니다. CSS 선택자를 직접 입력해 주세요.',
+      'error'
+    );
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-1.5"></i>값 자동 찾기';
+    }
+  }
 }
 
 // 알림 조건에 따라 설정값 입력칸을 켜거나 끕니다.
@@ -301,6 +449,7 @@ function finishTargetRegistration() {
   renderTargets();
 
   document.getElementById('add-form').reset();
+  resetWebDiscovery();
   toggleTypeFields();
   toggleTargetValueInput('input-condition', 'input-target-val');
 
