@@ -716,6 +716,12 @@ content: "놓아서 이동";
     padding-right: 1rem;
   }
 }
+
+/* 목록 셀 외곽선: 제거할 때 이 규칙만 삭제하면 됩니다. */
+#target-list.target-table-outline [data-target-row] > * {
+  outline: 1px solid rgba(148, 163, 184, 0.35);
+  outline-offset: -1px;
+}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans">
@@ -983,7 +989,7 @@ content: "놓아서 이동";
             </div>
           </div>
         </div>
-        <div id="target-list" class="divide-y divide-slate-800/80">
+        <div id="target-list" class="target-table-outline divide-y divide-slate-800/80">
           <p class="loading-state text-sm text-slate-500 py-4 text-center">목록을 불러오는 중...</p>
         </div>
           
