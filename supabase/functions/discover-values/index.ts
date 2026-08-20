@@ -291,6 +291,8 @@ Deno.serve(async (request) => {
     const body = await request.json();
     const url = parseTargetUrl(body.url);
     const title = String(body.title || "").trim().slice(0, 120);
+    const action = body.action === "verify" ? "verify" : "discover";
+    const selector = String(body.selector || "").trim().slice(0, 500);
     const excludedKeys = new Set(
       (Array.isArray(body.exclude) ? body.exclude : [])
         .slice(0, MAX_CANDIDATES)
@@ -330,8 +332,37 @@ Deno.serve(async (request) => {
 
     const html = (await response.text()).slice(0, MAX_HTML_BYTES);
     const document = new DOMParser().parseFromString(html, "text/html");
-    const candidates = collectCandidates(document, title, excludedKeys);
 
+    if (action === "verify") {
+      if (!selector) {
+        return json({ error: "현재값 확인에 사용할 CSS 선택자가 없습니다." }, 400, origin);
+      }
+
+      let element: Element | null = null;
+      try {
+        element = document.querySelector(selector) as Element | null;
+      } catch {
+        return json({ error: "CSS 선택자 형식이 올바르지 않습니다." }, 400, origin);
+      }
+
+      if (!element) {
+        return json({ error: "입력한 선택자에 해당하는 값을 웹페이지에서 찾지 못했습니다." }, 422, origin);
+      }
+
+      const text = normalizeSpace(element.textContent || "");
+      const number = extractNumber(text);
+      if (!number) {
+        return json({ error: "선택한 영역에서 숫자를 읽지 못했습니다." }, 422, origin);
+      }
+
+      return json({
+        current_value: number.numeric,
+        display: number.display,
+        context: text.slice(0, 120),
+      }, 200, origin);
+    }
+
+    const candidates = collectCandidates(document, title, excludedKeys);
     return json({
       candidates,
       message: candidates.length
