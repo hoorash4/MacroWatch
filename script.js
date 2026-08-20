@@ -502,6 +502,7 @@ function handleTouchDragEnd(event) {
 function handleTouchDragCancel(event) {
   clearTimeout(touchDragState.timer);
   document.body.classList.remove('is-touch-dragging');
+  document.querySelector('.sheet-tabs')?.classList.remove('is-dragging');
   document.querySelectorAll('.is-touch-dragging, [data-target-container].opacity-40, .sheet-tab.is-drag-over').forEach(item => {
     item.classList.remove('is-touch-dragging', 'is-drag-over');
   });
