@@ -211,7 +211,7 @@ function renderTrackTabs() {
   addButton.type = 'button';
   addButton.className = 'sheet-tab sheet-tab-add';
   addButton.setAttribute('role', 'button');
-  addButton.innerHTML = '<span class="tab-label-wide">+ ADD Tab</span><span class="tab-label-compact">+ ADD</span>';
+  addButton.innerHTML = '<span class="tab-label-wide">+ Tab</span><span class="tab-label-compact">+ Tab</span>';
   addButton.addEventListener('click', showAddTrackNotice);
   tabsEl.appendChild(addButton);
 }
