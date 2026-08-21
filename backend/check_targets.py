@@ -271,11 +271,31 @@ class BrowserCollector:
         page = self.context.new_page()
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-            page.locator(selector).first.wait_for(state="attached", timeout=timeout_ms)
-            attribute = str(config.get("attribute", "")).strip()
             locator = page.locator(selector).first
-            raw_value = locator.get_attribute(attribute) if attribute else locator.inner_text(timeout=timeout_ms)
-            return parse_decimal(raw_value)
+            locator.wait_for(state="attached", timeout=timeout_ms)
+            attribute = str(config.get("attribute", "")).strip()
+
+            # 네이버·야후처럼 요소는 먼저 만들어지고 숫자는 뒤늦게 채워지는 페이지를 처리합니다.
+            deadline = datetime.now(timezone.utc).timestamp() + (timeout_ms / 1000)
+            last_value_error: CollectionError | None = None
+            while datetime.now(timezone.utc).timestamp() < deadline:
+                raw_value = (
+                    locator.get_attribute(attribute)
+                    if attribute
+                    else locator.inner_text(timeout=1000)
+                )
+                try:
+                    return parse_decimal(raw_value)
+                except CollectionError as value_error:
+                    last_value_error = value_error
+                    page.wait_for_timeout(250)
+
+            if last_value_error:
+                raise CollectionError(
+                    "선택한 요소는 찾았지만 표시된 숫자를 읽지 못했습니다. "
+                    "CSS 선택자가 실제 값 요소를 가리키는지 확인해 주세요."
+                ) from last_value_error
+            raise CollectionError("선택한 요소에서 현재값을 읽지 못했습니다.")
         except PlaywrightTimeoutError as exc:
             title = page.title()[:100]
             raise CollectionError(f"브라우저 렌더링 후에도 값을 찾지 못했습니다: {title}") from exc
