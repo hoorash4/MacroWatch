@@ -238,6 +238,35 @@
     }
   }
 
+  async function registerApiSource() {
+    const button = document.getElementById('register-api-button');
+    const label = button.querySelector('span');
+    const source = {
+      name: document.getElementById('api-name').value.trim(),
+      provider_url: document.getElementById('api-provider-url').value.trim(),
+      documentation_url: document.getElementById('api-doc-url').value.trim(),
+      base_url: document.getElementById('api-base-url').value.trim(),
+      response_path: document.getElementById('api-response-path').value.trim(),
+      code_parameter: document.getElementById('api-code-parameter').value.trim(),
+      auth_location: document.getElementById('api-auth-location').value,
+      auth_name: document.getElementById('api-auth-name').value.trim(),
+      secret_name: document.getElementById('api-secret-name').value.trim()
+    };
+    button.disabled = true;
+    label.textContent = '검토·저장 중';
+    try {
+      const result = await invokeAdmin('register_api_source', { source });
+      showNotice('API 설정 저장 완료', result.message || 'API 설정을 저장했습니다.');
+      ['api-name', 'api-provider-url', 'api-doc-url', 'api-base-url', 'api-response-path', 'api-code-parameter', 'api-auth-name', 'api-secret-name']
+        .forEach((id) => { document.getElementById(id).value = ''; });
+    } catch (error) {
+      showNotice('API 설정 저장 실패', error.message || 'API 설정을 저장하지 못했습니다.', true);
+    } finally {
+      button.disabled = false;
+      label.textContent = 'API 설정 검토·저장';
+    }
+  }
+
   async function authorizeAdmin() {
     const accessScreen = document.getElementById('admin-access-screen');
     const accessMessage = document.getElementById('admin-access-message');
@@ -277,6 +306,7 @@
     document.getElementById('run-check-button').addEventListener('click', () => runWorkflow('check'));
     document.getElementById('run-backup-button').addEventListener('click', () => runWorkflow('backup'));
     document.getElementById('save-schedule-button').addEventListener('click', saveSchedule);
+    document.getElementById('register-api-button').addEventListener('click', registerApiSource);
     document.getElementById('operation-close').addEventListener('click', hideNotice);
     document.getElementById('operation-modal').addEventListener('click', (event) => {
       if (event.target === event.currentTarget) hideNotice();
