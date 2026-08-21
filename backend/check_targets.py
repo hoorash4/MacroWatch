@@ -400,8 +400,7 @@ def main() -> int:
     alerts: list[CheckResult] = []
     failures = 0
 
-    with BrowserCollector() as browser:
-        for target in targets:
+    for target in targets:
             target_id = target["id"]
             try:
                 previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
