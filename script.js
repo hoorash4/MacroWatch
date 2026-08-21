@@ -363,7 +363,7 @@ async function checkOneTarget(targetId) {
     const session = await supabaseClient.auth.getSession();
     const token = session.data.session?.access_token;
     if (!token) throw new Error('로그인이 필요합니다.');
-    const response = await fetch(SUPABASE_URL + '/functions/v1/check-one-target', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ target_id: targetId }) });
+    const response = await fetch(SUPABASE_URL + '/functions/v1/admin-control', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'check_one', target_id: targetId }) });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || '현재값 확인 작업을 시작하지 못했습니다.');
     const previousCheckedAt = target.last_checked_at || '';
