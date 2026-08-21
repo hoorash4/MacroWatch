@@ -365,9 +365,17 @@ async function checkOneTarget(targetId) {
     if (!token) throw new Error('로그인이 필요합니다.');
     const response = await fetch(SUPABASE_URL + '/functions/v1/check-one-target', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ target_id: targetId }) });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || '현재값을 확인하지 못했습니다.');
+    if (!response.ok) throw new Error(result.error || '현재값 확인 작업을 시작하지 못했습니다.');
+    const previousCheckedAt = target.last_checked_at || '';
+    let updatedTarget = result.target || null;
+    for (let attempt = 0; !updatedTarget && attempt < 24; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const { data, error } = await supabaseClient.from('targets').select('*').eq('id', targetId).single();
+      if (!error && data && data.last_checked_at && data.last_checked_at !== previousCheckedAt) updatedTarget = data;
+    }
+    if (!updatedTarget) throw new Error('확인 작업이 아직 끝나지 않았습니다. 잠시 후 다시 확인해 주세요.');
     const index = targets.findIndex((item) => String(item.id) === String(targetId));
-    if (index !== -1 && result.target) targets[index] = result.target;
+    if (index !== -1) targets[index] = updatedTarget;
     renderTargets();
   } catch (error) {
     showCenteredNotice('현재값 확인 실패', error.message || '현재값을 확인하지 못했습니다.');
@@ -439,7 +447,7 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   </div>
   </dl>
   <div class="mt-4 flex flex-wrap justify-end gap-2">
-  <button type="button" data-check-one="${item.id}" onclick="checkOneTarget(&quot;${item.id}&quot;)" class="rounded-md bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-300 hover:bg-blue-500/20 transition">현재값 확인</button>
+  <button type="button" data-check-one="${item.id}" onclick="checkOneTarget(&quot;${item.id}&quot;)" class="mr-auto rounded-md bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-300 hover:bg-blue-500/20 transition">현재값 확인</button>
   <button onclick="openEditModal('${item.id}')" class="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"><i class="fa-solid fa-pen-to-square mr-1"></i>수정</button>
   <button onclick="handleDeleteTarget('${item.id}')" class="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition"><i class="fa-solid fa-trash-can mr-1"></i>삭제</button>
   </div>
