@@ -219,6 +219,24 @@ function renderIndicatorSearchResults(results, warning = '') {
   modal.classList.remove('hidden');
 }
 
+function buildFredSearchTerms(query) {
+  const normalizedQuery = String(query || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  const terms = Array.isArray(window.MACROWATCH_FRED_TERMS) ? window.MACROWATCH_FRED_TERMS : [];
+  const candidates = [];
+
+  terms
+    .slice()
+    .sort((left, right) => Math.max(...right.terms.map((term) => term.length)) - Math.max(...left.terms.map((term) => term.length)))
+    .forEach((entry) => {
+      if (entry.terms.some((term) => normalizedQuery.includes(String(term).toLowerCase()))) {
+        candidates.push(...entry.queries);
+      }
+    });
+
+  if (/[a-z]/i.test(query)) candidates.unshift(query.trim());
+  return [...new Set(candidates)].slice(0, 4);
+}
+
 async function searchIndicators() {
   const input = document.getElementById('indicator-search-query');
   const button = document.getElementById('indicator-search-button');
@@ -250,7 +268,7 @@ async function searchIndicators() {
         Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ action: 'search', query }),
+      body: JSON.stringify({ action: 'search', query, fredQueries: buildFredSearchTerms(query) }),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || '지표 후보를 불러오지 못했습니다.');
