@@ -111,22 +111,6 @@ def parse_decimal(value: Any) -> Decimal:
         raise CollectionError(f"수치 변환에 실패했습니다: {text[:120]}") from exc
 
 
-def nested_value(payload: Any, path: str) -> Any:
-    current = payload
-    for part in filter(None, path.split(".")):
-        list_match = re.fullmatch(r"([^\[]*)\[(\d+)]", part)
-        if list_match:
-            key, index_text = list_match.groups()
-            if key:
-                current = current[key]
-            current = current[int(index_text)]
-        elif isinstance(current, list) and part.isdigit():
-            current = current[int(part)]
-        else:
-            current = current[part]
-    return current
-
-
 def fetch_fred(config: dict[str, Any]) -> Decimal:
     series_id = str(config.get("series_id", "")).strip().upper()
     if not series_id:
