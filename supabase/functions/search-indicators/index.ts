@@ -127,8 +127,17 @@ async function searchEcosItems(statCode: string, tableTitle: string) {
   if (!response.ok) throw new Error(`ECOS 항목을 불러오는 중 오류가 발생했습니다. (${response.status})`);
   const payload = await response.json();
 
+  // 일부 ECOS 통계표는 보조 분류 코드도 함께 돌려줍니다.
+  // 현재 수집기는 첫 번째 항목 코드를 사용하므로, 항목 코드 1이 있는 후보는 모두 표시하되 중복은 제거합니다.
+  const seenCodes = new Set<string>();
+
   return (payload.StatisticItemList?.row || [])
-    .filter((item: Record<string, unknown>) => item.ITEM_CODE1 && !item.ITEM_CODE2 && !item.ITEM_CODE3 && !item.ITEM_CODE4)
+    .filter((item: Record<string, unknown>) => {
+      const itemCode = String(item.ITEM_CODE1 || "").trim();
+      if (!itemCode || seenCodes.has(itemCode)) return false;
+      seenCodes.add(itemCode);
+      return true;
+    })
     .slice(0, 100)
     .map((item: Record<string, unknown>) => ({
       source: "ECOS",
