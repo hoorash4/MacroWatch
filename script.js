@@ -22,19 +22,15 @@ let activeTrack = 1;
 let suppressNextClick = false;
 let suppressClickTimer = null;
 let pointerDragState = createPointerDragState();
-let pendingToggleId = null;
-let discoveredValueCandidates = [];
-let discoveryRetryUsed = false;
-let selectedDiscoveredValue = null;
-let webInputMode = 'auto';
+let pendingToggleId = null;let webInputMode = 'manual';
 let lastManualSourceType = 'FRED';
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
 // 입력폼 초기 상태, 안내 모달 닫기 버튼, Drag & Drop 도움말을 여기서 연결합니다.
 document.addEventListener('DOMContentLoaded', () => {
-  // 신규 등록폼의 기본값은 자동 찾기이며, 데이터 소스 선택은 직접 입력에서만 보입니다.
-  setWebInputMode('auto');
+  // 신규 등록폼은 공식 API 직접 입력으로 시작합니다.
+  toggleTypeFields();
 
   // 알림 조건이 '변동 감지'인지 확인해서 설정값 입력칸 활성/비활성 상태를 맞춥니다.
   toggleTargetValueInput('input-condition', 'input-target-val');
@@ -44,8 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
   }
-  // URL이 바뀌면 이전 페이지에서 찾은 값과 선택자를 함께 비웁니다.
-  document.getElementById('input-url')?.addEventListener('input', resetWebDiscovery);
 
   // 마우스와 터치가 같은 Pointer Events 드래그 흐름을 사용합니다.
   const targetList = document.getElementById('target-list');
@@ -128,249 +122,19 @@ function setDbStatus(state) {
 }
 
 
-// 사용자가 선택한 데이터 소스 유형에 맞는 입력칸만 보여줍니다.
-// 일반 웹 / FRED / 한국은행 ECOS / JSON API 입력 영역 중 하나만 표시됩니다.
+// 사용자가 선택한 공식 API에 맞는 입력칸만 보여줍니다.
 function toggleTypeFields() {
-  const selectedType = document.getElementById('input-type').value;
-  const type = webInputMode === 'auto' ? 'SELECTOR' : selectedType;
-
-  document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
-  document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
-  document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
-
-  if (type !== 'SELECTOR') resetWebDiscovery();
-}
-
-// 직접 입력에서 선택한 데이터 소스를 기억해 자동 찾기 탭을 다녀와도 복원합니다.
-function handleSourceTypeChange() {
-  if (webInputMode === 'manual') {
-    lastManualSourceType = document.getElementById('input-type').value;
-  }
-  toggleTypeFields();
-}
-
-// 폼 최상단 탭을 전환합니다.
-// 자동 찾기는 일반 웹 스크래핑으로 고정하고 데이터 소스 드롭다운을 숨깁니다.
-function setWebInputMode(mode) {
-  const isAuto = mode !== 'manual';
-  const autoButton = document.getElementById('selector-mode-auto');
-  const manualButton = document.getElementById('selector-mode-manual');
-  const autoPanel = document.getElementById('selector-auto-panel');
-  const manualPanel = document.getElementById('selector-manual-panel');
-  const sourceField = document.getElementById('input-type-field');
-  const titleField = document.getElementById('input-title-field');
   const typeInput = document.getElementById('input-type');
+  if (!typeInput) return;
+  const selectedType = typeInput.value;
+  document.getElementById('field-fred')?.classList.toggle('hidden', selectedType !== 'FRED');
+  document.getElementById('field-bok')?.classList.toggle('hidden', selectedType !== 'BOK');
+}
 
-  if (!autoButton || !manualButton || !autoPanel || !manualPanel || !typeInput) return;
-
-  if (webInputMode === 'manual') {
-    lastManualSourceType = typeInput.value;
-  }
-  webInputMode = isAuto ? 'auto' : 'manual';
-  typeInput.value = isAuto ? 'SELECTOR' : lastManualSourceType;
-
-  sourceField?.classList.toggle('hidden', isAuto);
-  titleField?.classList.toggle('sm:col-span-2', isAuto);
-  autoPanel.classList.toggle('hidden', !isAuto);
-  manualPanel.classList.toggle('hidden', isAuto);
-
-  autoButton.setAttribute('aria-selected', String(isAuto));
-  manualButton.setAttribute('aria-selected', String(!isAuto));
-  autoButton.className = isAuto
-    ? 'rounded-xl border border-blue-500 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-md shadow-black/20 transition'
-    : 'rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white';
-  manualButton.className = !isAuto
-    ? 'rounded-xl border border-blue-500 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-md shadow-black/20 transition'
-    : 'rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white';
-
+// 직접 입력에서 선택한 공식 API 유형을 기억합니다.
+function handleSourceTypeChange() {
+  lastManualSourceType = document.getElementById('input-type')?.value || 'FRED';
   toggleTypeFields();
-}
-
-// ===== 일반 웹페이지 값 자동 찾기 =====
-// URL이 바뀌거나 등록이 끝났을 때 이전 탐색 결과가 재사용되지 않도록 초기화합니다.
-function resetWebDiscovery() {
-  discoveredValueCandidates = [];
-  selectedDiscoveredValue = null;
-
-  const selectorInput = document.getElementById('input-selector');
-  const status = document.getElementById('discover-values-status');
-  const list = document.getElementById('discover-values-list');
-  const retryButton = document.getElementById('discover-values-retry');
-  const modalStatus = document.getElementById('discover-values-modal-status');
-
-  if (selectorInput) selectorInput.value = '';
-  if (status) {
-    status.textContent = '';
-    status.className = 'hidden text-xs leading-relaxed text-slate-400';
-  }
-  if (list) {
-    list.replaceChildren();
-    list.classList.add('hidden');
-  }
-  if (retryButton) retryButton.classList.add('hidden');
-  if (modalStatus) modalStatus.textContent = '';
-  discoveryRetryUsed = false;
-  closeDiscoveryModal();
-}
-
-// 탐색 진행·성공·실패 상태를 입력폼 안에서 간단히 안내합니다.
-function setDiscoveryStatus(message, state = 'normal') {
-  const status = document.getElementById('discover-values-status');
-  if (!status) return;
-
-  const colors = {
-    normal: 'text-slate-400',
-    loading: 'text-blue-300',
-    success: 'text-emerald-300',
-    error: 'text-amber-300'
-  };
-
-  status.textContent = message;
-  status.className = `rounded-lg bg-slate-800/70 px-3 py-2 text-xs leading-relaxed ${colors[state] || colors.normal}`;
-}
-
-// 백엔드가 추린 숫자 후보를 버튼으로 표시합니다.
-// 사용자 선택이 끝난 후보의 CSS 선택자만 기존 등록 입력란에 채웁니다.
-function renderDiscoveredValues(candidates) {
-  const list = document.getElementById('discover-values-list');
-  if (!list) return;
-
-  list.replaceChildren();
-  list.classList.remove('hidden');
-  discoveredValueCandidates = Array.isArray(candidates) ? candidates : [];
-
-  if (discoveredValueCandidates.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'rounded-xl border border-slate-700 bg-slate-800 px-4 py-6 text-center text-sm text-slate-300';
-    empty.textContent = '표시할 후보값이 없습니다.';
-    list.appendChild(empty);
-  }
-
-  discoveredValueCandidates.forEach((candidate, index) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'flex w-full items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3 py-3 text-left text-white shadow-sm transition hover:border-blue-400 hover:bg-slate-700';
-
-    const left = document.createElement('span');
-    left.className = 'min-w-0 flex-1 truncate text-right text-xs text-slate-200';
-    left.textContent = candidate.left || candidate.section || '—';
-    left.title = left.textContent;
-
-    const value = document.createElement('span');
-    value.className = 'shrink-0 rounded-lg border border-amber-200 bg-amber-300 px-3 py-1.5 text-sm font-extrabold text-slate-950 shadow-sm';
-    value.textContent = candidate.display;
-
-    const right = document.createElement('span');
-    right.className = 'min-w-0 flex-1 truncate text-left text-xs text-slate-200';
-    right.textContent = candidate.right || '—';
-    right.title = right.textContent;
-
-    button.append(left, value, right);
-    button.addEventListener('click', () => selectDiscoveredValue(index));
-    list.appendChild(button);
-  });
-}
-
-// 자동 탐색 오류를 기술적인 원문 대신 사용자가 이해하기 쉬운 한글로 바꿉니다.
-function getDiscoveryErrorMessage(error) {
-  const raw = String(error?.message || '').trim();
-
-  // Edge Function이 이미 한글로 설명한 오류는 그대로 사용합니다.
-  if (/[가-힣]/.test(raw)) return raw;
-
-  if (/Edge Function returned a non-2xx status code/i.test(raw)) {
-    return '웹페이지를 불러오지 못했습니다. 사이트가 외부 자동 수집을 차단했거나 응답 시간이 초과되었을 수 있습니다.';
-  }
-  if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
-    return '웹페이지에 연결하지 못했습니다. 주소가 맞는지와 사이트 접속 가능 여부를 확인해 주세요.';
-  }
-  if (/403|forbidden|blocked/i.test(raw)) {
-    return '이 웹페이지가 자동 수집을 허용하지 않아 값을 확인할 수 없습니다.';
-  }
-  if (/404|not found/i.test(raw)) {
-    return '입력한 웹페이지 주소를 찾을 수 없습니다. 주소를 다시 확인해 주세요.';
-  }
-  if (/429|rate limit|too many requests/i.test(raw)) {
-    return '요청이 너무 많아 잠시 제한되었습니다. 잠시 후 다시 시도해 주세요.';
-  }
-  if (/timeout|timed out/i.test(raw)) {
-    return '웹페이지 응답이 너무 오래 걸렸습니다. 잠시 후 다시 시도해 주세요.';
-  }
-
-  return '자동으로 후보값을 찾지 못했습니다. 주소를 확인하거나 직접 입력을 이용해 주세요.';
-}
-
-// 후보 모달을 열고 닫는 동작은 탐색 결과 표시와 분리합니다.
-function openDiscoveryModal() {
-  document.getElementById('discover-values-modal')?.classList.remove('hidden');
-}
-
-function closeDiscoveryModal() {
-  document.getElementById('discover-values-modal')?.classList.add('hidden');
-}
-
-function setDiscoveryModalStatus(message, state = 'normal') {
-  const status = document.getElementById('discover-values-modal-status');
-  if (!status) return;
-
-  const colors = {
-    normal: 'text-blue-300',
-    loading: 'text-blue-300',
-    error: 'text-amber-300'
-  };
-  status.textContent = message;
-  status.className = `mt-2 text-xs font-semibold ${colors[state] || colors.normal}`;
-}
-
-function showDiscoveryModalLoading() {
-  const list = document.getElementById('discover-values-list');
-  if (!list) return;
-
-  list.classList.remove('hidden');
-
-  const loading = document.createElement('p');
-  loading.className = 'rounded-xl border border-slate-700 bg-slate-800 px-4 py-8 text-center text-sm text-slate-300';
-  loading.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2 text-blue-300"></i>후보값을 불러오고 있습니다.';
-  list.replaceChildren(loading);
-}
-
-// 선택한 후보를 강조하고 실제 등록에 사용할 CSS 선택자를 저장합니다.
-function selectDiscoveredValue(index) {
-  const candidate = discoveredValueCandidates[index];
-  const selectorInput = document.getElementById('input-selector');
-  if (!candidate || !selectorInput) return;
-
-  selectedDiscoveredValue = candidate;
-  selectorInput.value = candidate.selector;
-  closeDiscoveryModal();
-  setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 시 이 값을 다시 확인합니다.`, 'success');
-}
-
-// 로그인된 사용자의 권한으로 Edge Function을 호출해 숫자 후보를 가져옵니다.
-// 자동 입력 탭은 API 검색 기능을 연결할 자리로 유지합니다.
-// 웹페이지를 읽거나 CSS 선택자로 값을 수집하지 않습니다.
-async function discoverWebValues() {
-  setDiscoveryStatus(
-    '공식 API 자동검색은 준비 중입니다. 직접 입력 탭에서 데이터 소스를 선택해 주세요.',
-    'normal'
-  );
-}
-
-// 알림 조건에 따라 설정값 입력칸을 켜거나 끕니다.
-// '지표값 변동 감지'는 설정값이 필요 없으므로 입력칸을 비활성화합니다.
-function toggleTargetValueInput(conditionId, valueId) {
-  const conditionEl = document.getElementById(conditionId);
-  const valueEl = document.getElementById(valueId);
-  if (!conditionEl || !valueEl) return;
-
-  const isValueChange = conditionEl.value === 'changed';
-  valueEl.disabled = isValueChange;
-  if (isValueChange) {
-    valueEl.value = '';
-    valueEl.placeholder = '설정값 불필요.';
-  } else {
-    valueEl.placeholder = valueEl.dataset.defaultPlaceholder || '';
-  }
 }
 
 // ===== 추적 지표 목록 불러오기 =====
@@ -1110,9 +874,7 @@ async function handleAddTarget(e) {
   }
 
   const title = document.getElementById('input-title').value.trim();
-  const type = webInputMode === 'auto'
-    ? 'SELECTOR'
-    : document.getElementById('input-type').value;
+  const type = document.getElementById('input-type').value;
   const conditionType = document.getElementById('input-condition').value;
   const targetValStr = document.getElementById('input-target-val').value.trim();
   const targetVal = conditionType === 'changed' || targetValStr === ''
@@ -1124,10 +886,7 @@ async function handleAddTarget(e) {
   let sourceType = 'web';
   let sourceConfig = {};
 
-  if (type === 'SELECTOR') {
-    window.alert('웹페이지 스크래핑은 제거되었습니다. 공식 API를 선택해 등록해 주세요.');
-    return;
-  } else if (type === 'FRED') {
+  if (type === 'FRED') {
     const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
     url = `https://fred.stlouisfed.org/series/${encodeURIComponent(seriesId)}`;
     cssSelector = 'API:observations[0].value';
@@ -1153,8 +912,7 @@ async function handleAddTarget(e) {
     id: 'local_' + Date.now(),
     user_id: userId,
     title,
-    url,
-    css_selector: cssSelector,
+
     source_type: sourceType,
     source_config: sourceConfig,
     condition_type: conditionType,
@@ -1210,8 +968,6 @@ function openEditModal(id) {
 
   currentEditId = id;
   document.getElementById('edit-title').value = item.title || '';
-  document.getElementById('edit-url').value = item.url || '';
-  document.getElementById('edit-selector').value = item.css_selector || '';
   document.getElementById('edit-condition').value = item.condition_type || 'changed';
   document.getElementById('edit-target-val').value = item.target_value ?? '';
   toggleTargetValueInput('edit-condition', 'edit-target-val');
@@ -1232,8 +988,6 @@ async function saveEditTarget() {
   if (!currentEditId) return;
 
   const title = document.getElementById('edit-title').value.trim();
-  const url = document.getElementById('edit-url').value.trim();
-  const cssSelector = document.getElementById('edit-selector').value.trim();
   const conditionType = document.getElementById('edit-condition').value;
   const targetValStr = document.getElementById('edit-target-val').value.trim();
   const targetVal = conditionType === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
