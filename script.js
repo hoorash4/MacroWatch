@@ -366,6 +366,9 @@ async function checkOneTarget(targetId) {
     if (!response.ok) throw new Error(result.error || '확인 작업을 시작하지 못했습니다.');
     await new Promise((resolve) => setTimeout(resolve, 3000));
     await fetchTargets();
+    const value = result.target?.last_value;
+    const valueText = value === null || value === undefined || value === '' ? '' : `현재값: ${value}`;
+    showCenteredNotice('현재값 업데이트 완료', valueText);
   } catch (error) {
     showCenteredNotice('현재값 확인 실패', error.message || '현재값을 확인하지 못했습니다.');
   } finally {
