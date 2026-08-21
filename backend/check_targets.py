@@ -330,37 +330,41 @@ def main() -> int:
     failures = 0
 
     for target in targets:
-            target_id = target["id"]
-            try:
-                previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
-                current = collect_value(target)
-                result = CheckResult(target, previous, current, condition_met(target, previous, current))
+        target_id = target["id"]
+        try:
+            previous = (
+                parse_decimal(target["last_value"])
+                if target.get("last_value") not in (None, "")
+                else None
+            )
+            current = collect_value(target)
+            result = CheckResult(target, previous, current, condition_met(target, previous, current))
 
-                db.request(
-                    "PATCH",
-                    "targets",
-                    params={"id": f"eq.{target_id}"},
-                    body={
-                        "last_value": json_number(current),
-                        "last_checked_at": now_iso,
-                        "last_error": None,
-                    },
-                    prefer="return=minimal",
-                )
-                if result.should_alert:
-                    alerts.append(result)
-                print(f"OK {target_id}: {target.get('title')} = {format_number(current)}")
-            except Exception as exc:
-                failures += 1
-                message = str(exc)[:1000]
-                print(f"ERROR {target_id}: {target.get('title')}: {message}", file=sys.stderr)
-                db.request(
-                    "PATCH",
-                    "targets",
-                    params={"id": f"eq.{target_id}"},
-                    body={"last_checked_at": now_iso, "last_error": message},
-                    prefer="return=minimal",
-                )
+            db.request(
+                "PATCH",
+                "targets",
+                params={"id": f"eq.{target_id}"},
+                body={
+                    "last_value": json_number(current),
+                    "last_checked_at": now_iso,
+                    "last_error": None,
+                },
+                prefer="return=minimal",
+            )
+            if result.should_alert:
+                alerts.append(result)
+            print(f"OK {target_id}: {target.get('title')} = {format_number(current)}")
+        except Exception as exc:
+            failures += 1
+            message = str(exc)[:1000]
+            print(f"ERROR {target_id}: {target.get('title')}: {message}", file=sys.stderr)
+            db.request(
+                "PATCH",
+                "targets",
+                params={"id": f"eq.{target_id}"},
+                body={"last_checked_at": now_iso, "last_error": message},
+                prefer="return=minimal",
+            )
 
     if alerts:
         access_token = refresh_kakao_access_token()
