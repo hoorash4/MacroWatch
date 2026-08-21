@@ -12,8 +12,6 @@ from urllib.parse import quote
 
 import requests
 from bs4 import BeautifulSoup
-from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-from playwright.sync_api import sync_playwright
 
 
 HTTP_TIMEOUT = 30
@@ -217,114 +215,8 @@ def fetch_json_api(target: dict[str, Any], config: dict[str, Any]) -> Decimal:
     return parse_decimal(nested_value(response.json(), path))
 
 
-def fetch_static_html(url: str, selector: str, config: dict[str, Any]) -> Decimal:
-    response = requests.get(
-        url,
-        headers=request_headers(config.get("headers") if isinstance(config.get("headers"), dict) else None),
-        timeout=HTTP_TIMEOUT,
-    )
-    response.raise_for_status()
-    element = BeautifulSoup(response.text, "html.parser").select_one(selector)
-    if element is None:
-        raise CollectionError("일반 HTML 응답에서 CSS 선택자를 찾지 못했습니다.")
-    attribute = str(config.get("attribute", "")).strip()
-    return parse_decimal(element.get(attribute) if attribute else element.get_text(" ", strip=True))
-
-
-class BrowserCollector:
-    def __init__(self) -> None:
-        self.playwright = None
-        self.browser = None
-        self.context = None
-
-    def __enter__(self) -> "BrowserCollector":
-        return self
-
-    def __exit__(self, *_: object) -> None:
-        if self.context:
-            self.context.close()
-        if self.browser:
-            self.browser.close()
-        if self.playwright:
-            self.playwright.stop()
-
-    def _ensure_context(self) -> None:
-        if self.context:
-            return
-        self.playwright = sync_playwright().start()
-        # GitHub's Ubuntu runner already includes Chrome, so no browser download is needed.
-        self.browser = self.playwright.chromium.launch(
-            channel="chrome",
-            headless=True,
-            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
-        )
-        self.context = self.browser.new_context(
-            user_agent=USER_AGENT,
-            locale="ko-KR",
-            timezone_id="Asia/Seoul",
-            viewport={"width": 1440, "height": 1000},
-        )
-
-    def fetch(self, url: str, selector: str, config: dict[str, Any]) -> Decimal:
-        self._ensure_context()
-        timeout_ms = min(max(int(config.get("timeout_ms", 12000)), 3000), 15000)
-        page = self.context.new_page()
-        try:
-            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-            locator = page.locator(selector).first
-            locator.wait_for(state="attached", timeout=timeout_ms)
-            attribute = str(config.get("attribute", "")).strip()
-
-            # 네이버·야후처럼 요소는 먼저 만들어지고 숫자는 뒤늦게 채워지는 페이지를 처리합니다.
-            deadline = datetime.now(timezone.utc).timestamp() + (timeout_ms / 1000)
-            last_value_error: CollectionError | None = None
-            while datetime.now(timezone.utc).timestamp() < deadline:
-                try:
-                    raw_value = (
-                        locator.get_attribute(attribute)
-                        if attribute
-                        else locator.inner_text(timeout=1000)
-                    )
-                    return parse_decimal(raw_value)
-                except PlaywrightTimeoutError:
-                    page.wait_for_timeout(250)
-                except CollectionError as value_error:
-                    last_value_error = value_error
-                    page.wait_for_timeout(250)
-
-            if last_value_error:
-                raise CollectionError(
-                    "선택한 요소는 찾았지만 표시된 숫자를 읽지 못했습니다. "
-                    "CSS 선택자가 실제 값 요소를 가리키는지 확인해 주세요."
-                ) from last_value_error
-            raise CollectionError("선택한 요소에서 현재값을 읽지 못했습니다.")
-        except PlaywrightTimeoutError as exc:
-            title = page.title()[:100]
-            raise CollectionError(f"브라우저 렌더링 후에도 값을 찾지 못했습니다: {title}") from exc
-        finally:
-            page.close()
-
-
-def fetch_web(
-    target: dict[str, Any], config: dict[str, Any], browser: BrowserCollector
-) -> Decimal:
-    url = str(target.get("url", "")).strip()
-    selector = str(config.get("selector") or target.get("css_selector") or "").strip()
-    if not url or not selector:
-        raise CollectionError("웹페이지 URL 또는 CSS 선택자가 없습니다.")
-    try:
-        return fetch_static_html(url, selector, config)
-    except Exception as static_error:
-        try:
-            return browser.fetch(url, selector, config)
-        except Exception as rendered_error:
-            raise CollectionError(
-                f"일반 요청 실패: {static_error}; 브라우저 요청 실패: {rendered_error}"
-            ) from rendered_error
-
-
 def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
-    source_type = str(target.get("source_type") or "web").lower()
+    source_type = str(target.get("source_type") or "").lower()
     config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
     if source_type == "fred":
         return fetch_fred(config)
@@ -332,9 +224,7 @@ def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
         return fetch_ecos(config)
     if source_type == "json_api":
         return fetch_json_api(target, config)
-    if source_type == "web":
-        return fetch_web(target, config, browser)
-    raise CollectionError(f"아직 지원하지 않는 source_type입니다: {source_type}")
+    raise CollectionError(f"지원하지 않는 데이터 소스입니다: {source_type}")
 
 
 def condition_met(target: dict[str, Any], previous: Decimal | None, current: Decimal) -> bool:
