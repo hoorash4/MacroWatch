@@ -6,53 +6,6 @@ const headers = {
   "Content-Type": "application/json; charset=utf-8",
 };
 
-type GlossaryEntry = {
-  terms: string[];
-  queries: string[];
-};
-
-/**
- * 한국어 경제지표 검색어를 FRED 검색어 후보로 넓히는 공통 사전입니다.
- * 전체 문장보다 구체적인 표현을 먼저 두어, 긴 표현이 우선 적용되게 합니다.
- */
-const FRED_GLOSSARY: GlossaryEntry[] = [
-  { terms: ["미국 10년물 국채금리", "미국 10년물 금리"], queries: ["10-Year Treasury Constant Maturity Rate", "10-Year Treasury Rate", "10-Year Treasury Yield"] },
-  { terms: ["미국 2년물 국채금리", "미국 2년물 금리"], queries: ["2-Year Treasury Constant Maturity Rate", "2-Year Treasury Rate", "2-Year Treasury Yield"] },
-  { terms: ["신규 실업수당 청구건수", "신규실업수당청구건수", "신규 실업 청구"], queries: ["Initial Claims", "Initial Unemployment Insurance Claims"] },
-  { terms: ["계속 실업수당 청구건수", "계속실업수당청구건수", "연속 실업수당 청구"], queries: ["Continued Claims", "Continued Unemployment Insurance Claims"] },
-  { terms: ["실업수당 청구건수", "실업수당청구건수"], queries: ["Unemployment Insurance Claims", "Initial Claims"] },
-  { terms: ["하이일드 스프레드", "하이일드스프레드"], queries: ["High Yield Spread", "ICE BofA US High Yield Index Option-Adjusted Spread"] },
-  { terms: ["장단기 금리차", "장단기금리차"], queries: ["Treasury Yield Spread", "10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity"] },
-  { terms: ["소비자물가", "소비자 물가", "cpi"], queries: ["Consumer Price Index", "CPI"] },
-  { terms: ["생산자물가", "생산자 물가", "ppi"], queries: ["Producer Price Index", "PPI"] },
-  { terms: ["개인소비지출", "개인 소비 지출", "pce"], queries: ["Personal Consumption Expenditures", "PCE Price Index"] },
-  { terms: ["비농업고용", "비농업 고용", "비농업부문 고용"], queries: ["All Employees Total Nonfarm", "Nonfarm Payrolls"] },
-  { terms: ["실업률"], queries: ["Unemployment Rate"] },
-  { terms: ["기업연체율", "기업 연체율"], queries: ["Business Delinquency Rate", "Delinquency Rate on Business Loans"] },
-  { terms: ["연체율"], queries: ["Delinquency Rate"] },
-  { terms: ["신용카드 연체율", "신용카드연체율"], queries: ["Credit Card Delinquency Rate"] },
-  { terms: ["모기지 연체율", "모기지연체율"], queries: ["Mortgage Delinquency Rate"] },
-  { terms: ["상업용 부동산 연체율", "상업용부동산 연체율"], queries: ["Commercial Real Estate Delinquency Rate"] },
-  { terms: ["주택착공", "주택 착공"], queries: ["Housing Starts"] },
-  { terms: ["소매판매", "소매 판매"], queries: ["Retail Sales"] },
-  { terms: ["산업생산", "산업 생산"], queries: ["Industrial Production"] },
-  { terms: ["통화량"], queries: ["Money Stock", "Money Supply"] },
-  { terms: ["달러인덱스", "달러 인덱스"], queries: ["Trade Weighted U.S. Dollar Index"] },
-  { terms: ["기준금리"], queries: ["Federal Funds Effective Rate", "Federal Funds Target Range"] },
-  { terms: ["모기지 금리", "모기지금리"], queries: ["Mortgage Rate"] },
-  { terms: ["국채금리", "국채 금리"], queries: ["Treasury Rate", "Treasury Yield"] },
-  { terms: ["채권 수익률", "채권수익률"], queries: ["Bond Yield"] },
-  { terms: ["배당수익률", "배당 수익률"], queries: ["Dividend Yield"] },
-  { terms: ["실질수익률", "실질 수익률"], queries: ["Real Yield"] },
-  { terms: ["국내총생산", "gdp"], queries: ["Gross Domestic Product", "GDP"] },
-  { terms: ["고용"], queries: ["Employment"] },
-  { terms: ["인플레이션", "물가"], queries: ["Inflation"] },
-  { terms: ["수익률"], queries: ["Yield"] },
-  { terms: ["금리"], queries: ["Interest Rate"] },
-].sort((left, right) =>
-  Math.max(...right.terms.map((term) => term.length)) - Math.max(...left.terms.map((term) => term.length))
-);
-
 function respond(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), { status, headers });
 }
@@ -61,39 +14,17 @@ function normalize(text: unknown) {
   return String(text || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function fredQueries(query: string) {
-  const normalized = normalize(query);
-  const results: string[] = [];
-
-  for (const entry of FRED_GLOSSARY) {
-    if (entry.terms.some((term) => normalized.includes(normalize(term)))) {
-      results.push(...entry.queries);
-    }
-  }
-
-  if (/[a-z]/i.test(query)) results.unshift(query.trim());
-  return [...new Set(results)].slice(0, 4);
-}
-
-async function requireUser(request: Request) {
-  const jwt = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
-  if (!jwt) throw new Error("로그인이 필요합니다.");
-
-  const url = Deno.env.get("SUPABASE_URL") || "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-  const auth = createClient(url, anonKey);
-  const { data, error } = await auth.auth.getUser(jwt);
-  if (error || !data.user) throw new Error("로그인이 필요합니다.");
-}
-
-async function searchFred(query: string) {
+async function searchFred(searchTerms: unknown) {
   const key = Deno.env.get("FRED_API_KEY");
   if (!key) throw new Error("FRED 검색 설정이 없습니다.");
 
+  const terms = Array.isArray(searchTerms)
+    ? [...new Set(searchTerms.map((term) => String(term || "").trim()).filter(Boolean))].slice(0, 4)
+    : [];
   const candidates = [];
   const knownIds = new Set<string>();
 
-  for (const searchText of fredQueries(query)) {
+  for (const searchText of terms) {
     const url = new URL("https://api.stlouisfed.org/fred/series/search");
     url.search = new URLSearchParams({
       api_key: key,
@@ -202,7 +133,7 @@ Deno.serve(async (request) => {
 
     if (action === "search") {
       if (query.length < 2) return respond({ error: "검색어를 두 글자 이상 입력해 주세요." }, 400);
-      const [fred, ecos] = await Promise.allSettled([searchFred(query), searchEcosTables(query)]);
+      const [fred, ecos] = await Promise.allSettled([searchFred(body.fredQueries), searchEcosTables(query)]);
       const results = [
         ...(fred.status === "fulfilled" ? fred.value : []),
         ...(ecos.status === "fulfilled" ? ecos.value : []),
@@ -214,7 +145,7 @@ Deno.serve(async (request) => {
       if (!results.length && errors.length) throw new Error(errors.join(" / "));
       return respond({
         results,
-        fredSearchTerms: fredQueries(query),
+        fredSearchTerms: Array.isArray(body.fredQueries) ? body.fredQueries.slice(0, 4) : [],
         warning: errors.length ? errors.join(" / ") : "",
       });
     }
