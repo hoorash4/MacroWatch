@@ -16,14 +16,19 @@ function dateRange(cycle: string) {
   const yyyy = now.getUTCFullYear();
   const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(now.getUTCDate()).padStart(2, "0");
+
+  if (cycle === "D") {
+    const before = new Date(now.getTime() - 45 * 86400000);
+    return {
+      start: `${before.getUTCFullYear()}${String(before.getUTCMonth() + 1).padStart(2, "0")}${String(before.getUTCDate()).padStart(2, "0")}`,
+      end: `${yyyy}${mm}${dd}`,
+    };
+  }
   if (cycle === "M") return { start: `${yyyy - 2}01`, end: `${yyyy}${mm}` };
-  if (cycle === "Q") return { start: `${yyyy - 2}Q1`, end: `${yyyy}Q4` };
-  if (cycle === "A") return { start: String(yyyy - 3), end: String(yyyy) };
-  const before = new Date(now.getTime() - 370 * 86400000);
-  return {
-    start: `${before.getUTCFullYear()}${String(before.getUTCMonth() + 1).padStart(2, "0")}${String(before.getUTCDate()).padStart(2, "0")}`,
-    end: `${yyyy}${mm}${dd}`,
-  };
+  if (cycle === "Q") return { start: `${yyyy - 5}Q1`, end: `${yyyy}Q4` };
+  if (cycle === "S") return { start: `${yyyy - 8}S1`, end: `${yyyy}S2` };
+  if (cycle === "A") return { start: String(yyyy - 15), end: String(yyyy) };
+  throw new Error(`지원하지 않는 ECOS 주기입니다: ${cycle}`);
 }
 
 async function collect(target: any) {
