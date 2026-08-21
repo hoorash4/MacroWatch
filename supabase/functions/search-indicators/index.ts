@@ -14,6 +14,17 @@ function normalize(text: unknown) {
   return String(text || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
+async function requireUser(request: Request) {
+  const jwt = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+  if (!jwt) throw new Error("로그인이 필요합니다.");
+
+  const url = Deno.env.get("SUPABASE_URL") || "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  const auth = createClient(url, anonKey);
+  const { data, error } = await auth.auth.getUser(jwt);
+  if (error || !data.user) throw new Error("로그인이 필요합니다.");
+}
+
 async function searchFred(searchTerms: unknown) {
   const key = Deno.env.get("FRED_API_KEY");
   if (!key) throw new Error("FRED 검색 설정이 없습니다.");
