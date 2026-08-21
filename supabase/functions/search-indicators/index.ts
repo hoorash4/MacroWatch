@@ -91,12 +91,18 @@ async function searchEcosTables(query: string, excludedCodes: Set<string>) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`ECOS 검색 중 오류가 발생했습니다. (${response.status})`);
   const payload = await response.json();
-  const words = normalize(query).split(" ").filter((word) => word.length > 1);
+  const exactWords = normalize(query).split(" ").filter((word) => word.length > 1);
+  // 통계표명에는 '연체율' 대신 '연체', '실업률' 대신 '실업'처럼 쓰인 경우가 많습니다.
+  const relaxedWords = exactWords
+    .map((word) => word.replace(/[율률]$/, ""))
+    .filter((word) => word.length > 1);
 
   return (payload.StatisticTableList?.row || [])
     .filter((table: Record<string, unknown>) => {
       const title = normalize(table.STAT_NAME);
-      return !excludedCodes.has(String(table.STAT_CODE || "")) && words.length > 0 && words.every((word) => title.includes(word));
+      const matchesExact = exactWords.length > 0 && exactWords.every((word) => title.includes(word));
+      const matchesRelaxed = relaxedWords.length > 0 && relaxedWords.every((word) => title.includes(word));
+      return !excludedCodes.has(String(table.STAT_CODE || "")) && (matchesExact || matchesRelaxed);
     })
     .slice(0, 12)
     .map((table: Record<string, unknown>) => ({
