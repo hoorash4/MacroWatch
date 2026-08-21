@@ -516,7 +516,8 @@ function renderTrackTabs() {
   requestAnimationFrame(updateTrackTabSizing);
 }
 
-// 탭 영역의 실제 폭과 탭 개수에 맞춰 80px부터 38px까지 균등하게 줄입니다.
+// 탭은 기본 폭(96px)을 유지하다가, 오른쪽 라운딩 전 사용 가능한 폭에 닿으면
+// 모든 탭이 같은 비율로 줄어듭니다. 'Tab 01'이 답답해지기 전에는 'T01'으로 전환합니다.
 function updateTrackTabSizing() {
   const tabsEl = document.querySelector('#tab-content-tracker > .sheet-tabs');
   if (!tabsEl) return;
@@ -529,13 +530,11 @@ function updateTrackTabSizing() {
     + parseFloat(styles.paddingRight);
   const availableWidth = tabsEl.clientWidth - horizontalPadding;
   const overlapWidth = 10 * Math.max(0, tabCount - 1);
-  const fittedWidth = Math.floor(
-    (availableWidth + overlapWidth) / tabCount
-  );
-  const tabWidth = Math.max(38, Math.min(80, fittedWidth));
+  const fittedWidth = Math.floor((availableWidth + overlapWidth) / tabCount);
+  const tabWidth = Math.max(38, Math.min(96, fittedWidth));
 
   tabsEl.style.setProperty('--sheet-tab-width', tabWidth + 'px');
-  tabsEl.classList.toggle('is-compact-label', tabWidth < 50);
+  tabsEl.classList.toggle('is-compact-label', tabWidth < 58);
 }
 
 // 화면 가운데에 공용 안내 모달을 표시합니다.
