@@ -279,13 +279,15 @@ class BrowserCollector:
             deadline = datetime.now(timezone.utc).timestamp() + (timeout_ms / 1000)
             last_value_error: CollectionError | None = None
             while datetime.now(timezone.utc).timestamp() < deadline:
-                raw_value = (
-                    locator.get_attribute(attribute)
-                    if attribute
-                    else locator.inner_text(timeout=1000)
-                )
                 try:
+                    raw_value = (
+                        locator.get_attribute(attribute)
+                        if attribute
+                        else locator.inner_text(timeout=1000)
+                    )
                     return parse_decimal(raw_value)
+                except PlaywrightTimeoutError:
+                    page.wait_for_timeout(250)
                 except CollectionError as value_error:
                     last_value_error = value_error
                     page.wait_for_timeout(250)
