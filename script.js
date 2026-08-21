@@ -159,6 +159,165 @@ function handleSourceTypeChange() {
   toggleTypeFields();
 }
 
+// ===== 공식 API 지표 후보 검색 =====
+// 한국어 검색어는 Edge Function 안의 경제지표 용어 사전으로 FRED 검색어 후보를 만들고,
+// ECOS는 한국어 통계표 후보를 바로 반환합니다. 선택 결과만 기존 입력폼에 반영합니다.
+let indicatorSearchResults = [];
+
+function closeIndicatorSearchModal() {
+  document.getElementById('indicator-search-modal')?.classList.add('hidden');
+}
+
+function renderIndicatorSearchResults(results, warning = '') {
+  const container = document.getElementById('indicator-search-results');
+  const modal = document.getElementById('indicator-search-modal');
+  if (!container || !modal) return;
+
+  indicatorSearchResults = results;
+  container.replaceChildren();
+
+  if (warning) {
+    const warningBox = document.createElement('p');
+    warningBox.className = 'mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-200';
+    warningBox.textContent = warning;
+    container.append(warningBox);
+  }
+
+  if (!results.length) {
+    const empty = document.createElement('p');
+    empty.className = 'rounded-xl border border-slate-700 bg-slate-950/50 p-5 text-center text-sm text-slate-400';
+    empty.textContent = '일치하는 후보를 찾지 못했습니다. FRED는 영어 검색어로 다시 시도해 주세요.';
+    container.append(empty);
+  } else {
+    results.forEach((result, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'mb-2 w-full rounded-xl border border-slate-700 bg-slate-950/40 p-3 text-left transition hover:border-amber-400 hover:bg-slate-800';
+      button.addEventListener('click', () => selectIndicatorSearchResult(index));
+
+      const source = document.createElement('span');
+      source.className = result.source === 'FRED'
+        ? 'mr-2 rounded-full bg-blue-500/15 px-2 py-1 text-[10px] font-bold text-blue-300'
+        : 'mr-2 rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-bold text-emerald-300';
+      source.textContent = result.source;
+
+      const title = document.createElement('strong');
+      title.className = 'text-sm text-white';
+      title.textContent = result.title;
+
+      const meta = document.createElement('p');
+      meta.className = 'mt-2 text-xs text-slate-400';
+      meta.textContent = result.kind === 'table'
+        ? `통계표 코드: ${result.code} · 항목을 선택하려면 누르세요.`
+        : `코드: ${result.code}${result.itemCode ? ` · 항목: ${result.itemCode}` : ''}${result.frequency ? ` · ${result.frequency}` : ''}${result.unit ? ` · ${result.unit}` : ''}`;
+
+      button.append(source, title, meta);
+      container.append(button);
+    });
+  }
+
+  modal.classList.remove('hidden');
+}
+
+async function searchIndicators() {
+  const input = document.getElementById('indicator-search-query');
+  const button = document.getElementById('indicator-search-button');
+  const query = input?.value.trim() || '';
+  if (query.length < 2) {
+    showCenteredNotice('검색어를 입력해 주세요.', '두 글자 이상 입력하면 FRED와 ECOS의 공식 지표 후보를 찾습니다.');
+    return;
+  }
+
+  if (!supabaseClient) {
+    showCenteredNotice('검색을 사용할 수 없습니다.', 'Supabase 연결 정보를 확인해 주세요.');
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = '찾는 중';
+  }
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error('로그인이 필요합니다.');
+
+    const response = await fetch(SUPABASE_URL + '/functions/v1/search-indicators', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'search', query }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || '지표 후보를 불러오지 못했습니다.');
+
+    renderIndicatorSearchResults(payload.results || [], payload.warning || '');
+  } catch (error) {
+    const message = error?.message || '지표 후보를 불러오지 못했습니다.';
+    if (message.includes('로그인이 필요합니다')) {
+      showCenteredNotice('로그인이 필요합니다.', '확인을 누르면 로그인 화면으로 돌아갑니다.');
+    } else {
+      showCenteredNotice('지표 후보 검색 실패', message);
+    }
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = '찾기';
+    }
+  }
+}
+
+async function selectIndicatorSearchResult(index) {
+  const result = indicatorSearchResults[index];
+  if (!result) return;
+
+  if (result.source === 'ECOS' && result.kind === 'table') {
+    const container = document.getElementById('indicator-search-results');
+    if (container) container.innerHTML = '<p class="p-5 text-center text-sm text-slate-400">ECOS 통계 항목을 불러오는 중입니다.</p>';
+
+    try {
+      const { data } = await supabaseClient.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error('로그인이 필요합니다.');
+
+      const response = await fetch(SUPABASE_URL + '/functions/v1/search-indicators', {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'ecos-items', statCode: result.code, tableTitle: result.title }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'ECOS 통계 항목을 불러오지 못했습니다.');
+      renderIndicatorSearchResults(payload.results || []);
+    } catch (error) {
+      closeIndicatorSearchModal();
+      showCenteredNotice('ECOS 항목 검색 실패', error?.message || '통계 항목을 불러오지 못했습니다.');
+    }
+    return;
+  }
+
+  document.getElementById('input-title').value = result.title || '';
+  document.getElementById('input-type').value = result.source === 'FRED' ? 'FRED' : 'BOK';
+  toggleTypeFields();
+
+  if (result.source === 'FRED') {
+    document.getElementById('input-fred-id').value = result.code || '';
+  } else {
+    document.getElementById('input-bok-code').value = result.code || '';
+    document.getElementById('input-bok-item-code').value = result.itemCode || '';
+    if (result.frequency) document.getElementById('input-bok-cycle').value = result.frequency;
+  }
+
+  closeIndicatorSearchModal();
+}
+
 // ===== 추적 지표 목록 불러오기 =====
 async function fetchTargets() {
   if (!supabaseClient) {
