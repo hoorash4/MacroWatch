@@ -583,7 +583,7 @@ function closeServicePreparingModal() {
 
 // 새 지표 등록이 성공한 뒤 공통으로 처리할 작업입니다.
 // 마지막 Track으로 이동 → 화면 갱신 → 입력폼 초기화 → 등록 완료 안내 순서로 실행합니다.
-function finishTargetRegistration(currentValueDisplay = '') {
+function finishTargetRegistration(currentValueDisplay = '', checkErrorMessage = '') {
   activeTrack = getTrackCount();
   renderTargets();
 
@@ -593,8 +593,8 @@ function finishTargetRegistration(currentValueDisplay = '') {
   toggleTargetValueInput('input-condition', 'input-target-val');
 
   showCenteredNotice(
-    '등록 되었습니다.',
-    currentValueDisplay ? `확인된 현재값: ${currentValueDisplay}` : ''
+    checkErrorMessage ? '등록 되었습니다. 현재값 확인 실패' : '등록 되었습니다.',
+    checkErrorMessage || (currentValueDisplay ? `확인된 현재값: ${currentValueDisplay}` : '')
   );
 }
 
@@ -1243,8 +1243,37 @@ async function handleAddTarget(e) {
       .select();
 
       if (!error && data) {
-        targets.push(data[0]);
-        finishTargetRegistration('');
+        const insertedTarget = data[0];
+        targets.push(insertedTarget);
+
+        try {
+          const session = await supabaseClient.auth.getSession();
+          const token = session.data.session?.access_token;
+          if (!token) throw new Error('로그인이 필요합니다.');
+
+          const response = await fetch(SUPABASE_URL + '/functions/v1/check-one-target', {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: 'Bearer ' + token,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ target_id: insertedTarget.id }),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || '현재값을 확인하지 못했습니다.');
+
+          const checkedTarget = result.target || insertedTarget;
+          targets[targets.length - 1] = checkedTarget;
+          finishTargetRegistration(
+            checkedTarget.last_value === null || checkedTarget.last_value === undefined || checkedTarget.last_value === ''
+              ? ''
+              : String(checkedTarget.last_value)
+          );
+        } catch (checkError) {
+          console.error('New target value check error:', checkError);
+          finishTargetRegistration('', checkError?.message || '현재값을 확인하지 못했습니다.');
+        }
         return;
       }
       if (error) {
