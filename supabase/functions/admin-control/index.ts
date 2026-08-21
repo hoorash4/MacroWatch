@@ -145,26 +145,6 @@ export default {
       if (!user) {
         return json({ error: "로그인 정보가 유효하지 않습니다." }, 401, origin);
       }
-      const body = await request.json();
-      const action = String(body?.action || "");
-
-      if (action === "check_one") {
-        const targetId = String(body?.target_id || "");
-        if (!targetId) return json({ error: "지표 ID가 필요합니다." }, 400, origin);
-        const { data: target } = await admin
-          .from("targets")
-          .select("id")
-          .eq("id", targetId)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (!target) return json({ error: "해당 지표를 찾을 수 없습니다." }, 404, origin);
-        await githubRequest(`/actions/workflows/${CHECK_WORKFLOW}/dispatches`, githubToken, {
-          method: "POST",
-          body: JSON.stringify({ ref: BRANCH, inputs: { target_id: targetId } }),
-        });
-        return json({ requested_at: new Date().toISOString() }, 202, origin);
-      }
-
       const { data: account } = await admin
         .from("user_accounts")
         .select("is_admin")
@@ -173,6 +153,9 @@ export default {
       if (account?.is_admin !== true) {
         return json({ error: "관리자 권한이 필요합니다." }, 403, origin);
       }
+
+      const body = await request.json();
+      const action = String(body?.action || "");
 
       if (action === "workflow_status") {
         const kind = String(body?.kind || "");
