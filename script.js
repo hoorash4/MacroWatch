@@ -21,6 +21,7 @@ let currentUserId = null;
 let activeTrack = 1;
 let suppressNextClick = false;
 let suppressClickTimer = null;
+let noticeCloseAction = null;
 let pointerDragState = createPointerDragState();
 let pendingToggleId = null;let webInputMode = 'manual';
 let lastManualSourceType = 'FRED';
@@ -290,7 +291,7 @@ function updateTrackTabSizing() {
 
 // 화면 가운데에 공용 안내 모달을 표시합니다.
 // 등록 완료 알림과 '+ ADD Track' 준비중 안내가 같은 모달을 함께 사용합니다.
-function showCenteredNotice(titleText, messageText = '') {
+function showCenteredNotice(titleText, messageText = '', onClose = null) {
   const modal = document.getElementById('service-preparing-modal');
   const title = document.getElementById('service-preparing-title');
   const message = modal?.querySelector('p');
@@ -300,6 +301,7 @@ function showCenteredNotice(titleText, messageText = '') {
     return;
   }
 
+  noticeCloseAction = typeof onClose === 'function' ? onClose : null;
   title.textContent = titleText;
   message.textContent = messageText;
   message.classList.toggle('hidden', !messageText);
@@ -317,6 +319,9 @@ function showAddTrackNotice() {
 // 가운데 공용 안내 모달을 닫습니다.
 function closeServicePreparingModal() {
   document.getElementById('service-preparing-modal')?.classList.add('hidden');
+  const onClose = noticeCloseAction;
+  noticeCloseAction = null;
+  onClose?.();
 }
 
 // 새 지표 등록이 성공한 뒤 공통으로 처리할 작업입니다.
@@ -370,7 +375,16 @@ async function checkOneTarget(targetId) {
     const valueText = value === null || value === undefined || value === '' ? '' : `현재값: ${value}`;
     showCenteredNotice('현재값 업데이트 완료', valueText);
   } catch (error) {
-    showCenteredNotice('현재값 확인 실패', error.message || '현재값을 확인하지 못했습니다.');
+    const message = error.message || '현재값을 확인하지 못했습니다.';
+    if (message.includes('로그인이 필요합니다')) {
+      showCenteredNotice(
+        '로그인이 필요합니다.',
+        '확인을 누르면 로그인 화면으로 돌아갑니다.',
+        () => { void supabaseClient?.auth.signOut({ scope: 'local' }); },
+      );
+    } else {
+      showCenteredNotice('현재값 확인 실패', message);
+    }
   } finally {
     if (button) { button.disabled = false; button.textContent = '현재값 확인'; }
   }
