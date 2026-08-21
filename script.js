@@ -137,7 +137,6 @@ function toggleTypeFields() {
   document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
   document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
-  document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
 
   if (type !== 'SELECTOR') resetWebDiscovery();
 }
@@ -1142,12 +1141,6 @@ async function handleAddTarget(e) {
     cssSelector = 'API:StatisticSearch.row[0].DATA_VALUE';
     sourceType = 'ecos';
     sourceConfig = { stat_code: statCode, item_code: itemCode, data_cycle: dataCycle };
-  } else if (type === 'API') {
-    url = document.getElementById('input-api-url').value.trim();
-    const jsonPath = document.getElementById('input-json-path').value.trim();
-    cssSelector = jsonPath ? `API:${jsonPath}` : '';
-    sourceType = 'json_api';
-    sourceConfig = { json_path: jsonPath };
   }
 
   const userId = await getCurrentUserId();
