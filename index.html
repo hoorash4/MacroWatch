@@ -1027,16 +1027,6 @@ border-color: rgba(209,165,93,.75);
       <!-- 오른쪽: 경제지표 신규 등록 입력폼 -->
       
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-        <!-- 등록 방식 탭: 목록 하단 탭을 위아래로 뒤집은 형태입니다. -->
-        <div class="-mx-5 -mt-5 mb-5 grid grid-cols-2 gap-2 bg-transparent p-2" role="tablist" aria-label="지표 등록 방식">
-          <button id="selector-mode-auto" type="button" role="tab" aria-selected="true" onclick="setWebInputMode('auto')" class="rounded-xl border border-blue-500 bg-slate-800 px-3 py-3 text-sm font-bold text-blue-300 shadow-md shadow-black/20 transition">
-            <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>자동 찾기
-          </button>
-          <button id="selector-mode-manual" type="button" role="tab" aria-selected="false" onclick="setWebInputMode('manual')" class="rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white">
-            <i class="fa-solid fa-pen-to-square mr-1.5"></i>직접 입력
-          </button>
-        </div>
-
         <h2 class="text-lg font-bold text-white mb-4 flex items-center">
           <i class="fa-solid fa-plus-circle mr-2 text-blue-500"></i> 지표 추적 신규 등록
         </h2>
@@ -1170,29 +1160,6 @@ border-color: rgba(209,165,93,.75);
   </div>
 
   <!-- ===== 공용 안내창: 서비스 준비 중 / 등록 완료 ===== -->
-  <!-- ===== 웹페이지 숫자 후보 선택 모달 ===== -->
-  <div id="discover-values-modal" class="hidden fixed inset-0 z-[85] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="discover-values-modal-title">
-    <div class="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-white shadow-2xl">
-      <div class="flex items-start justify-between gap-4 border-b border-slate-700 px-5 py-4">
-        <div>
-          <h3 id="discover-values-modal-title" class="text-base font-extrabold text-white">추적할 값 선택</h3>
-          <p class="mt-1 text-xs leading-relaxed text-slate-300">입력하신 웹페이지에서 찾은 후보값과 그 좌우에 있는 문자입니다.</p>
-          <p id="discover-values-modal-status" class="mt-2 text-xs font-semibold text-blue-300" aria-live="polite"></p>
-        </div>
-        <button type="button" onclick="closeDiscoveryModal()" aria-label="닫기" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-800 hover:text-white">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div id="discover-values-list" class="max-h-[55vh] space-y-2 overflow-y-auto p-4"></div>
-      <div class="flex gap-2 border-t border-slate-700 bg-slate-950/50 px-4 py-3">
-        <button id="discover-values-retry" type="button" onclick="discoverWebValues(true)" class="hidden flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200 transition hover:border-blue-400 hover:text-blue-300">
-          <i class="fa-solid fa-rotate-right mr-1.5"></i>다른 값 다시 찾기 (1회)
-        </button>
-        <button type="button" onclick="closeDiscoveryModal()" class="flex-1 rounded-lg bg-slate-700 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-slate-600">닫기</button>
-      </div>
-    </div>
-  </div>
-
   <div
     id="service-preparing-modal"
     class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
