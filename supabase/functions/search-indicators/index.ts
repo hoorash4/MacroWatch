@@ -152,22 +152,18 @@ Deno.serve(async (request) => {
 
     if (action === "search") {
       if (query.length < 2) return respond({ error: "검색어를 두 글자 이상 입력해 주세요." }, 400);
+      const source = String(body.source || "").toUpperCase();
       const excludedCodes = excludedCodeSet(body.excludedCodes);
-      const [fred, ecos] = await Promise.allSettled([searchFred(body.fredQueries, excludedCodes), searchEcosTables(query, excludedCodes)]);
-      const results = [
-        ...(fred.status === "fulfilled" ? fred.value : []),
-        ...(ecos.status === "fulfilled" ? ecos.value : []),
-      ];
-      const errors = [fred, ecos]
-        .filter((result): result is PromiseRejectedResult => result.status === "rejected")
-        .map((result) => result.reason instanceof Error ? result.reason.message : "검색 오류");
 
-      if (!results.length && errors.length) throw new Error(errors.join(" / "));
-      return respond({
-        results,
-        fredSearchTerms: Array.isArray(body.fredQueries) ? body.fredQueries.slice(0, 4) : [],
-        warning: errors.length ? errors.join(" / ") : "",
-      });
+      if (source === "FRED") {
+        return respond({ results: await searchFred(body.fredQueries, excludedCodes) });
+      }
+
+      if (source === "BOK") {
+        return respond({ results: await searchEcosTables(query, excludedCodes) });
+      }
+
+      return respond({ error: "검색할 데이터 소스를 선택해 주세요." }, 400);
     }
 
     if (action === "ecos-items") {
