@@ -396,12 +396,35 @@ def main() -> int:
         "targets",
         params={"select": "*", "is_active": "eq.true", "order": "display_order.asc.nullslast"},
     )
+    api_sources = db.request(
+        "GET",
+        "api_sources",
+        params={"select": "*", "is_active": "eq.true"},
+    ) or []
+    api_source_map = {str(item.get("id")): item for item in api_sources}
     now_iso = datetime.now(timezone.utc).isoformat()
     alerts: list[CheckResult] = []
     failures = 0
 
     for target in targets:
-            target_id = target["id"]
+        target_id = target["id"]
+        if str(target.get("source_type") or "").lower() in {"custom_api", "api"}:
+            config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
+            source = api_source_map.get(str(config.get("api_source_id")))
+            if not source:
+                raise CollectionError("관리자 등록 API를 찾을 수 없거나 비활성 상태입니다.")
+            target["source_config"] = {
+                **source,
+                **config,
+                "url": source.get("base_url"),
+                "url_template": source.get("base_url"),
+                "headers": source.get("request_headers") or {},
+                "params": source.get("request_params") or {},
+                "json_path": source.get("response_path"),
+                "auth_env": source.get("secret_name") or "",
+                "auth_name": source.get("auth_name") or "",
+                "auth_location": source.get("auth_location") or "none",
+            }
             try:
                 previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
                 current = collect_value(target)
