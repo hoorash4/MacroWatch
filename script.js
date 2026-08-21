@@ -390,9 +390,25 @@ async function selectIndicatorSearchResult(index) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'ECOS 통계 항목을 불러오지 못했습니다.');
-      renderIndicatorSearchResults(payload.results || [], '', false, false);
-      const description = document.getElementById('indicator-search-description');
-      if (description) description.textContent = '통계표 코드를 입력했습니다. 등록할 세부 항목을 하나 선택해 항목 코드까지 채워 주세요.';
+
+      const items = Array.isArray(payload.results) ? payload.results : [];
+      if (items.length) {
+        renderIndicatorSearchResults(items, '', false, false);
+        const description = document.getElementById('indicator-search-description');
+        if (description) description.textContent = '통계표 코드를 입력했습니다. 등록할 세부 항목을 하나 선택해 항목 코드까지 채워 주세요.';
+      } else {
+        renderIndicatorSearchResults([{
+          source: 'ECOS',
+          kind: 'series',
+          title: result.title,
+          code: result.code,
+          itemCode: '',
+          frequency: result.frequency || '',
+          unit: '',
+        }], '', false, false);
+        const description = document.getElementById('indicator-search-description');
+        if (description) description.textContent = '이 통계표에는 별도 세부 항목이 없습니다. 이 항목을 선택하면 통계표 코드만으로 등록합니다.';
+      }
     } catch (error) {
       closeIndicatorSearchModal();
       showCenteredNotice('ECOS 항목 검색 실패', error?.message || '통계 항목을 불러오지 못했습니다.');
