@@ -81,23 +81,12 @@
     <section class="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-xl">
       <div class="mb-4">
         <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-plug mr-2 text-cyan-400"></i>공식 API 등록</h2>
-        <p class="mt-1 text-sm leading-relaxed text-slate-400">공식 API 주소를 입력하면 필요한 설정을 확인합니다. 저장된 API는 약관 검토 후 활성화해 주세요.</p>
+        <p class="mt-1 text-sm leading-relaxed text-slate-400">공식 사이트 또는 API 주소만 입력하세요. 백엔드 확인 후 필요한 정보만 추가로 요청합니다.</p>
       </div>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label class="text-xs text-slate-400">제공기관 주소<input id="api-provider-url" type="url" autocomplete="off" placeholder="예: https://www.coingecko.com" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-        <label class="text-xs text-slate-400">개발자 문서 주소(선택)<input id="api-doc-url" type="url" autocomplete="off" placeholder="예: https://docs.coingecko.com" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-        <label class="text-xs text-slate-400">API 기본 주소<input id="api-base-url" type="url" autocomplete="off" placeholder="예: https://api.coingecko.com/api/v3/..." class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-        <label class="text-xs text-slate-400">응답값 경로<input id="api-response-path" type="text" autocomplete="off" placeholder="예: market_data.current_price.krw" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-        <label class="text-xs text-slate-400">API 이름<input id="api-name" type="text" autocomplete="off" placeholder="예: CoinGecko" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-        <label class="text-xs text-slate-400">지표 코드/심볼 자리표시자<input id="api-code-parameter" type="text" autocomplete="off" placeholder="예: id 또는 symbol" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-      </div>
-      <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label class="flex-1 text-xs text-slate-400">인증 방식<select id="api-auth-location" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"><option value="none">키 없음</option><option value="query">쿼리 파라미터</option><option value="header">헤더</option></select></label>
-        <label class="flex-1 text-xs text-slate-400">인증 키 이름<input id="api-auth-name" type="text" autocomplete="off" placeholder="예: x-cg-demo-api-key" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-        <label class="flex-1 text-xs text-slate-400">GitHub Secret 이름<input id="api-secret-name" type="text" autocomplete="off" placeholder="예: COINGECKO_API_KEY" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"></label>
-      </div>
-      <button id="register-api-button" type="button" class="mt-4 flex w-full items-center justify-center rounded-lg border border-cyan-700/60 bg-cyan-950/40 py-3 text-sm font-bold text-cyan-300 transition hover:bg-cyan-900/60 disabled:cursor-wait disabled:opacity-60"><i class="fa-solid fa-flask mr-2"></i><span>API 설정 검토·저장</span></button>
-      <p class="mt-2 text-xs leading-relaxed text-slate-500">주소만으로 부족한 정보는 입력란에 보완해 주세요. 저장 후 약관 검토가 끝나기 전에는 자동 수집되지 않습니다.</p>
+      <label class="text-xs text-slate-400">공식 사이트·API 주소
+        <input id="api-entry-url" type="url" autocomplete="off" placeholder="예: https://www.coingecko.com" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500">
+      </label>
+      <button id="register-api-button" type="button" class="mt-4 flex w-full items-center justify-center rounded-lg border border-cyan-700/60 bg-cyan-950/40 py-3 text-sm font-bold text-cyan-300 transition hover:bg-cyan-900/60 disabled:cursor-wait disabled:opacity-60"><i class="fa-solid fa-magnifying-glass mr-2"></i><span>주소 확인</span></button>
     </section>
 
     <section class="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -136,7 +125,7 @@
     </section>
   </div>
 
-  <script src="admin.js?v=5"></script>
+  <script src="admin.js?v=6"></script>
 </body>
 </html>
 
