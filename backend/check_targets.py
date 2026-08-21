@@ -11,7 +11,6 @@ from typing import Any
 from urllib.parse import quote
 
 import requests
-from bs4 import BeautifulSoup
 
 
 HTTP_TIMEOUT = 30
