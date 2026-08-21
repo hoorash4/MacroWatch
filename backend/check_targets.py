@@ -336,11 +336,11 @@ def record_alerts(
 
 def main() -> int:
     db = SupabaseRest()
-    targets = db.request(
-        "GET",
-        "targets",
-        params={"select": "*", "is_active": "eq.true", "order": "display_order.asc.nullslast"},
-    )
+    target_id_filter = os.getenv("TARGET_ID", "").strip()
+    target_params = {"select": "*", "is_active": "eq.true", "order": "display_order.asc.nullslast"}
+    if target_id_filter:
+        target_params["id"] = f"eq.{target_id_filter}"
+    targets = db.request("GET", "targets", params=target_params)
     now_iso = datetime.now(timezone.utc).isoformat()
     alerts: list[CheckResult] = []
     failures = 0
