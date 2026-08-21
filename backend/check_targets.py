@@ -396,11 +396,15 @@ def main() -> int:
         "targets",
         params={"select": "*", "is_active": "eq.true", "order": "display_order.asc.nullslast"},
     )
-    api_sources = db.request(
-        "GET",
-        "api_sources",
-        params={"select": "*", "is_active": "eq.true"},
-    ) or []
+    try:
+        api_sources = db.request(
+            "GET",
+            "api_sources",
+            params={"select": "*", "is_active": "eq.true"},
+        ) or []
+    except Exception:
+        # 마이그레이션 전에도 기존 FRED·ECOS 수집은 계속 작동해야 합니다.
+        api_sources = []
     api_source_map = {str(item.get("id")): item for item in api_sources}
     now_iso = datetime.now(timezone.utc).isoformat()
     alerts: list[CheckResult] = []
