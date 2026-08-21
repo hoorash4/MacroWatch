@@ -14,6 +14,14 @@ function normalize(text: unknown) {
   return String(text || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
+function excludedCodeSet(values: unknown) {
+  return new Set(
+    Array.isArray(values)
+      ? values.map((value) => String(value || "").trim()).filter(Boolean)
+      : []
+  );
+}
+
 async function requireUser(request: Request) {
   const jwt = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!jwt) throw new Error("로그인이 필요합니다.");
@@ -25,7 +33,7 @@ async function requireUser(request: Request) {
   if (error || !data.user) throw new Error("로그인이 필요합니다.");
 }
 
-async function searchFred(searchTerms: unknown) {
+async function searchFred(searchTerms: unknown, excludedCodes: Set<string>) {
   const key = Deno.env.get("FRED_API_KEY");
   if (!key) throw new Error("FRED 검색 설정이 없습니다.");
 
@@ -33,7 +41,7 @@ async function searchFred(searchTerms: unknown) {
     ? [...new Set(searchTerms.map((term) => String(term || "").trim()).filter(Boolean))].slice(0, 4)
     : [];
   const candidates = [];
-  const knownIds = new Set<string>();
+  const knownIds = new Set<string>(excludedCodes);
 
   for (const searchText of terms) {
     const url = new URL("https://api.stlouisfed.org/fred/series/search");
@@ -43,7 +51,7 @@ async function searchFred(searchTerms: unknown) {
       search_text: searchText,
       order_by: "search_rank",
       sort_order: "desc",
-      limit: "8",
+      limit: "100",
     }).toString();
 
     const response = await fetch(url);
@@ -67,7 +75,7 @@ async function searchFred(searchTerms: unknown) {
   return candidates.slice(0, 16);
 }
 
-async function searchEcosTables(query: string) {
+async function searchEcosTables(query: string, excludedCodes: Set<string>) {
   const key = Deno.env.get("ECOS_API_KEY");
   if (!key) throw new Error("ECOS 검색 설정이 없습니다.");
 
@@ -88,7 +96,7 @@ async function searchEcosTables(query: string) {
   return (payload.StatisticTableList?.row || [])
     .filter((table: Record<string, unknown>) => {
       const title = normalize(table.STAT_NAME);
-      return words.length > 0 && words.every((word) => title.includes(word));
+      return !excludedCodes.has(String(table.STAT_CODE || "")) && words.length > 0 && words.every((word) => title.includes(word));
     })
     .slice(0, 12)
     .map((table: Record<string, unknown>) => ({
@@ -144,7 +152,8 @@ Deno.serve(async (request) => {
 
     if (action === "search") {
       if (query.length < 2) return respond({ error: "검색어를 두 글자 이상 입력해 주세요." }, 400);
-      const [fred, ecos] = await Promise.allSettled([searchFred(body.fredQueries), searchEcosTables(query)]);
+      const excludedCodes = excludedCodeSet(body.excludedCodes);
+      const [fred, ecos] = await Promise.allSettled([searchFred(body.fredQueries, excludedCodes), searchEcosTables(query, excludedCodes)]);
       const results = [
         ...(fred.status === "fulfilled" ? fred.value : []),
         ...(ecos.status === "fulfilled" ? ecos.value : []),
