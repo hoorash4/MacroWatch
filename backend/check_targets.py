@@ -199,7 +199,62 @@ def fetch_ecos(config: dict[str, Any]) -> Decimal:
     raise CollectionError(f"ECOS 최신값이 없습니다: {error}")
 
 
-def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
+def fetch_custom_api(config: dict[str, Any]) -> Decimal:
+    """등록된 공식 API를 제한된 설정으로 호출하고 JSON 경로에서 값을 읽습니다."""
+    url = str(config.get("url_template") or config.get("url") or "").strip()
+    if not url:
+        raise CollectionError("API 주소가 없습니다.")
+    if not url.startswith(("https://", "http://")):
+        raise CollectionError("API 주소는 http:// 또는 https://로 시작해야 합니다.")
+
+    code = str(config.get("code") or config.get("symbol") or "").strip()
+    url = url.replace("{code}", quote(code, safe=""))
+    headers = request_headers({"Accept": "application/json"})
+    configured_headers = config.get("headers")
+    if isinstance(configured_headers, dict):
+        for key, value in configured_headers.items():
+            if isinstance(value, str):
+                headers[str(key)] = value.replace("{code}", code)
+
+    params = {}
+    configured_params = config.get("params")
+    if isinstance(configured_params, dict):
+        for key, value in configured_params.items():
+            params[str(key)] = str(value).replace("{code}", code)
+
+    auth_env = str(config.get("auth_env") or "").strip()
+    auth_name = str(config.get("auth_name") or "apikey").strip()
+    auth_location = str(config.get("auth_location") or "query").lower()
+    if auth_env:
+        secret = require_env(auth_env)
+        if auth_location == "header":
+            headers[auth_name] = secret
+        else:
+            params[auth_name] = secret
+
+    response = requests.request(
+        str(config.get("method") or "GET").upper(),
+        url,
+        headers=headers,
+        params=params,
+        timeout=HTTP_TIMEOUT,
+    )
+    response.raise_for_status()
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise CollectionError("API 응답이 JSON 형식이 아닙니다.") from exc
+
+    path = str(config.get("json_path") or "").strip()
+    if not path:
+        raise CollectionError("API 응답값 경로가 설정되지 않았습니다.")
+    try:
+        return parse_decimal(nested_value(payload, path))
+    except (KeyError, IndexError, TypeError) as exc:
+        raise CollectionError(f"API 응답에서 '{path}' 값을 찾지 못했습니다.") from exc
+
+
+def collect_value(target: dict[str, Any]) -> Decimal:
     source_type = str(target.get("source_type") or "").lower()
     config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
     if source_type == "fred":
@@ -350,7 +405,7 @@ def main() -> int:
             target_id = target["id"]
             try:
                 previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
-                current = collect_value(target, browser)
+                current = collect_value(target)
                 result = CheckResult(target, previous, current, condition_met(target, previous, current))
 
                 db.request(
