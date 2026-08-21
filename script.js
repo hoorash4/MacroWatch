@@ -129,7 +129,7 @@ function setDbStatus(state) {
 
 
 // 사용자가 선택한 데이터 소스 유형에 맞는 입력칸만 보여줍니다.
-// 일반 웹 / FRED / 한국은행 ECOS / JSON API 입력 영역 중 하나만 표시됩니다.
+// FRED, ECOS, 관리자 등록 API 입력 영역 중 하나만 표시합니다.
 function toggleTypeFields() {
   const selectedType = document.getElementById('input-type').value;
   const type = webInputMode === 'auto' ? 'SELECTOR' : selectedType;
@@ -137,6 +137,7 @@ function toggleTypeFields() {
   document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
   document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
+  document.getElementById('field-custom-api').classList.toggle('hidden', type !== 'CUSTOM_API');
 
   if (type !== 'SELECTOR') resetWebDiscovery();
 }
@@ -1141,6 +1142,17 @@ async function handleAddTarget(e) {
     cssSelector = 'API:StatisticSearch.row[0].DATA_VALUE';
     sourceType = 'ecos';
     sourceConfig = { stat_code: statCode, item_code: itemCode, data_cycle: dataCycle };
+  } else if (type === 'CUSTOM_API') {
+    const sourceId = document.getElementById('input-api-source-id').value.trim();
+    const code = document.getElementById('input-api-code').value.trim();
+    if (!sourceId) {
+      window.alert('관리자 등록 API ID를 입력해 주세요.');
+      return;
+    }
+    url = 'https://configured-api.local/';
+    cssSelector = 'API:custom';
+    sourceType = 'custom_api';
+    sourceConfig = { api_source_id: sourceId, code };
   }
 
   const userId = await getCurrentUserId();
