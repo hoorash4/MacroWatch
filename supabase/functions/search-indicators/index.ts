@@ -28,6 +28,7 @@ const FRED_GLOSSARY: GlossaryEntry[] = [
   { terms: ["개인소비지출", "개인 소비 지출", "pce"], queries: ["Personal Consumption Expenditures", "PCE Price Index"] },
   { terms: ["비농업고용", "비농업 고용", "비농업부문 고용"], queries: ["All Employees Total Nonfarm", "Nonfarm Payrolls"] },
   { terms: ["실업률"], queries: ["Unemployment Rate"] },
+  { terms: ["기업연체율", "기업 연체율"], queries: ["Business Delinquency Rate", "Delinquency Rate on Business Loans"] },
   { terms: ["연체율"], queries: ["Delinquency Rate"] },
   { terms: ["신용카드 연체율", "신용카드연체율"], queries: ["Credit Card Delinquency Rate"] },
   { terms: ["모기지 연체율", "모기지연체율"], queries: ["Mortgage Delinquency Rate"] },
