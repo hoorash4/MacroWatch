@@ -155,8 +155,8 @@ def fetch_ecos(config: dict[str, Any]) -> Decimal:
     stat_code = str(config.get("stat_code", "")).strip().upper()
     item_code = str(config.get("item_code", "")).strip()
     cycle = str(config.get("data_cycle", "D")).strip().upper()
-    if not stat_code or not item_code:
-        raise CollectionError("ECOS 통계표 코드 또는 항목 코드가 없습니다.")
+    if not stat_code:
+        raise CollectionError("ECOS 통계표 코드가 없습니다.")
 
     start_time, end_time = ecos_date_range(cycle)
     parts = [
@@ -170,8 +170,9 @@ def fetch_ecos(config: dict[str, Any]) -> Decimal:
         quote(cycle, safe=""),
         quote(start_time, safe=""),
         quote(end_time, safe=""),
-        quote(item_code, safe=""),
     ]
+    if item_code:
+        parts.append(quote(item_code, safe=""))
     response = requests.get("/".join(parts), headers=request_headers(), timeout=HTTP_TIMEOUT)
     response.raise_for_status()
     payload = response.json()
