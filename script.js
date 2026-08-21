@@ -23,7 +23,6 @@ let suppressNextClick = false;
 let suppressClickTimer = null;
 let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
-let pendingVerificationResolve = null;
 let discoveredValueCandidates = [];
 let discoveryRetryUsed = false;
 let selectedDiscoveredValue = null;
@@ -41,9 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleTargetValueInput('input-condition', 'input-target-val');
 
   // '서비스 준비 중 / 등록 되었습니다' 공용 안내창의 확인 버튼입니다.
-  document.getElementById('verification-continue')?.addEventListener('click', () => resolveVerificationPrompt(true));
-  document.getElementById('verification-cancel')?.addEventListener('click', () => resolveVerificationPrompt(false));
-
   const preparingClose = document.getElementById('service-preparing-close');
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
@@ -189,27 +185,6 @@ function setWebInputMode(mode) {
     : 'rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white';
 
   toggleTypeFields();
-}
-
-// 현재값 확인 실패 시 브라우저 기본 팝업 대신 사용하는 커스텀 모달입니다.
-function requestVerificationContinue(reason) {
-  const modal = document.getElementById('verification-modal');
-  const message = document.getElementById('verification-message');
-  if (!modal || !message) return Promise.resolve(false);
-
-  message.textContent = reason;
-  modal.classList.remove('hidden');
-
-  return new Promise((resolve) => {
-    pendingVerificationResolve = resolve;
-  });
-}
-
-function resolveVerificationPrompt(shouldContinue) {
-  document.getElementById('verification-modal')?.classList.add('hidden');
-  const resolve = pendingVerificationResolve;
-  pendingVerificationResolve = null;
-  resolve?.(shouldContinue);
 }
 
 // ===== 일반 웹페이지 값 자동 찾기 =====
@@ -372,125 +347,14 @@ function selectDiscoveredValue(index) {
   setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 시 이 값을 다시 확인합니다.`, 'success');
 }
 
-// Edge Function의 HTTP 오류 본문을 사용자에게 보여줄 문장으로 바꿉니다.
-async function getEdgeFunctionErrorMessage(error, fallback) {
-  let message = error?.message || fallback;
-  if (error?.context && typeof error.context.json === 'function') {
-    const details = await error.context.json().catch(() => null);
-    if (details?.error) message = details.error;
-  }
-  return message;
-}
-
-// CSS 선택자로 해당 지표만 다시 읽어 등록 직전 현재값을 검증합니다.
-async function verifyWebTarget(url, selector) {
-  const { data, error } = await supabaseClient.functions.invoke('discover-values', {
-    body: { action: 'verify', url, selector }
-  });
-
-  if (error) {
-    throw new Error(await getEdgeFunctionErrorMessage(error, '현재값을 확인하지 못했습니다.'));
-  }
-  if (!Number.isFinite(Number(data?.current_value))) {
-    throw new Error('웹페이지에서 현재값을 숫자로 확인하지 못했습니다.');
-  }
-
-  return {
-    value: Number(data.current_value),
-    display: String(data.display ?? data.current_value)
-  };
-}
-
-// 등록 버튼은 현재값 확인 중에만 잠시 잠가 중복 요청을 막습니다.
-function setAddSubmitBusy(isBusy) {
-  const button = document.getElementById('add-submit-button');
-  if (!button) return;
-
-  button.disabled = isBusy;
-  button.innerHTML = isBusy
-    ? '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>현재값 확인 중'
-    : '신규 등록하기';
-}
-
 // 로그인된 사용자의 권한으로 Edge Function을 호출해 숫자 후보를 가져옵니다.
-async function discoverWebValues(isRetry = false) {
-  const title = document.getElementById('input-title')?.value.trim() || '';
-  const url = document.getElementById('input-url')?.value.trim() || '';
-  const button = document.getElementById('discover-values-button');
-
-  if (!url) {
-    setDiscoveryStatus('먼저 대상 웹페이지 URL을 입력해 주세요.', 'error');
-    return;
-  }
-
-  try {
-    new URL(url);
-  } catch {
-    setDiscoveryStatus('http:// 또는 https://로 시작하는 올바른 주소를 입력해 주세요.', 'error');
-    return;
-  }
-
-  const excludedCandidates = isRetry
-    ? discoveredValueCandidates.map((candidate) => `${candidate.selector}|${candidate.display}`)
-    : [];
-
-  if (!isRetry) {
-    resetWebDiscovery();
-  } else {
-    if (discoveryRetryUsed) return;
-    discoveryRetryUsed = true;
-    document.getElementById('discover-values-retry')?.classList.add('hidden');
-  }
-
-  openDiscoveryModal();
-  showDiscoveryModalLoading();
-  setDiscoveryModalStatus(
-    isRetry ? '첫 번째 후보를 제외하고 다시 찾고 있습니다.' : '웹페이지에서 후보값을 찾고 있습니다.',
-    'loading'
+// 자동 입력 탭은 API 검색 기능을 연결할 자리로 유지합니다.
+// 웹페이지를 읽거나 CSS 선택자로 값을 수집하지 않습니다.
+async function discoverWebValues() {
+  setDiscoveryStatus(
+    '공식 API 자동검색은 준비 중입니다. 직접 입력 탭에서 데이터 소스를 선택해 주세요.',
+    'normal'
   );
-
-  if (button) {
-    button.disabled = true;
-    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>찾는 중';
-  }
-
-  try {
-    const { data, error } = await supabaseClient.functions.invoke('discover-values', {
-      body: { url, title, exclude: excludedCandidates }
-    });
-
-    if (error) {
-      throw new Error(await getEdgeFunctionErrorMessage(error, '값을 자동으로 찾지 못했습니다.'));
-    }
-
-    const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
-    renderDiscoveredValues(candidates);
-    setDiscoveryModalStatus(
-      candidates.length
-        ? (data.message || '가능성이 높은 값을 골라 주세요.')
-        : (data.message || '숫자 후보를 찾지 못했습니다.'),
-      candidates.length ? 'normal' : 'error'
-    );
-
-    const retryButton = document.getElementById('discover-values-retry');
-    if (retryButton) {
-      retryButton.classList.toggle('hidden', isRetry || discoveryRetryUsed || candidates.length === 0);
-    }
-
-
-  } catch (error) {
-    console.error('Value discovery error:', error);
-    renderDiscoveredValues([]);
-    setDiscoveryModalStatus(
-      getDiscoveryErrorMessage(error),
-      'error'
-    );
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-1.5"></i>이 페이지에서 값 찾기';
-    }
-  }
 }
 
 // 알림 조건에 따라 설정값 입력칸을 켜거나 끕니다.
@@ -1260,34 +1124,10 @@ async function handleAddTarget(e) {
   let cssSelector = '';
   let sourceType = 'web';
   let sourceConfig = {};
-  let verifiedWebValue = null;
 
   if (type === 'SELECTOR') {
-    url = document.getElementById('input-url').value.trim();
-    cssSelector = document.getElementById('input-selector').value.trim();
-    sourceConfig = { selector: cssSelector };
-
-    if (!url || !cssSelector) {
-      window.alert(
-        webInputMode === 'auto'
-          ? '값 자동 찾기에서 추적할 후보값을 먼저 선택해 주세요.'
-          : '웹페이지 URL과 CSS 선택자를 모두 입력해 주세요.'
-      );
-      return;
-    }
-
-    setAddSubmitBusy(true);
-    try {
-      verifiedWebValue = await verifyWebTarget(url, cssSelector);
-      setDiscoveryStatus(`확인된 현재값: ${verifiedWebValue.display}`, 'success');
-    } catch (error) {
-      console.error('Web target verification error:', error);
-      const reason = error?.message || '웹페이지에서 값을 읽지 못했습니다.';
-      const shouldContinue = await requestVerificationContinue(reason);
-      if (!shouldContinue) return;
-    } finally {
-      setAddSubmitBusy(false);
-    }
+    window.alert('웹페이지 스크래핑은 제거되었습니다. 공식 API를 선택해 등록해 주세요.');
+    return;
   } else if (type === 'FRED') {
     const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
     url = `https://fred.stlouisfed.org/series/${encodeURIComponent(seriesId)}`;
@@ -1326,7 +1166,7 @@ async function handleAddTarget(e) {
     source_config: sourceConfig,
     condition_type: conditionType,
     target_value: targetVal,
-    last_value: verifiedWebValue?.value ?? null,
+    last_value: null,
     is_active: true,
     display_order: targets.length
   };
@@ -1344,7 +1184,7 @@ async function handleAddTarget(e) {
         source_config: sourceConfig,
         condition_type: conditionType,
         target_value: targetVal,
-        last_value: verifiedWebValue?.value ?? null,
+        last_value: null,
         is_active: true,
         display_order: targets.length
       }])
@@ -1352,7 +1192,7 @@ async function handleAddTarget(e) {
 
       if (!error && data) {
         targets.push(data[0]);
-        finishTargetRegistration(verifiedWebValue?.display || '');
+        finishTargetRegistration('');
         return;
       }
       if (error) {
@@ -1366,7 +1206,7 @@ async function handleAddTarget(e) {
   }
 
   targets.push(newItem);
-  finishTargetRegistration(verifiedWebValue?.display || '');
+  finishTargetRegistration('');
 }
 
 // ===== 지표 수정 =====
