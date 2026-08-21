@@ -23,6 +23,7 @@ let suppressNextClick = false;
 let suppressClickTimer = null;
 let pointerDragState = createPointerDragState();
 let pendingToggleId = null;
+let pendingVerificationResolve = null;
 let discoveredValueCandidates = [];
 let discoveryRetryUsed = false;
 let selectedDiscoveredValue = null;
@@ -40,6 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleTargetValueInput('input-condition', 'input-target-val');
 
   // '서비스 준비 중 / 등록 되었습니다' 공용 안내창의 확인 버튼입니다.
+  document.getElementById('verification-continue')?.addEventListener('click', () => resolveVerificationPrompt(true));
+  document.getElementById('verification-cancel')?.addEventListener('click', () => resolveVerificationPrompt(false));
+
   const preparingClose = document.getElementById('service-preparing-close');
   if (preparingClose) {
     preparingClose.addEventListener('click', closeServicePreparingModal);
@@ -185,6 +189,27 @@ function setWebInputMode(mode) {
     : 'rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white';
 
   toggleTypeFields();
+}
+
+// 현재값 확인 실패 시 브라우저 기본 팝업 대신 사용하는 커스텀 모달입니다.
+function requestVerificationContinue(reason) {
+  const modal = document.getElementById('verification-modal');
+  const message = document.getElementById('verification-message');
+  if (!modal || !message) return Promise.resolve(false);
+
+  message.textContent = reason;
+  modal.classList.remove('hidden');
+
+  return new Promise((resolve) => {
+    pendingVerificationResolve = resolve;
+  });
+}
+
+function resolveVerificationPrompt(shouldContinue) {
+  document.getElementById('verification-modal')?.classList.add('hidden');
+  const resolve = pendingVerificationResolve;
+  pendingVerificationResolve = null;
+  resolve?.(shouldContinue);
 }
 
 // ===== 일반 웹페이지 값 자동 찾기 =====
@@ -1233,9 +1258,7 @@ async function handleAddTarget(e) {
     } catch (error) {
       console.error('Web target verification error:', error);
       const reason = error?.message || '웹페이지에서 값을 읽지 못했습니다.';
-      const shouldContinue = window.confirm(
-        `현재값을 바로 확인하지 못했습니다.\n${reason}\n\n그래도 등록하시겠습니까?`
-      );
+      const shouldContinue = await requestVerificationContinue(reason);
       if (!shouldContinue) return;
     } finally {
       setAddSubmitBusy(false);
