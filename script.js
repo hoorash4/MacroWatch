@@ -701,6 +701,20 @@ function finishTargetRegistration(currentValueDisplay = '') {
 // ===== 추적 지표 한 줄 만들기 =====
 // 지표 한 개를 화면에 표시할 HTML 문자열로 만듭니다.
 // 제목, 현재값, 알림 상태, 상세정보, 수정/삭제 버튼이 모두 여기에서 만들어집니다.
+// 수집 결과를 목록에 표시할 상태와 시간으로 변환합니다.
+function getCollectionState(item) {
+  return item?.last_error
+    ? { label: '수집 불가', className: 'text-red-300' }
+    : { label: item?.last_value ?? '—', className: 'text-amber-400' };
+}
+
+function formatLastCheckedAt(value) {
+  if (!value) return '기록 없음';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '기록 없음';
+  return date.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   return `
     <div data-target-container="${globalIndex}" class="py-3 border-b border-slate-800/80 first:border-t"
@@ -720,12 +734,12 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
             </div>
             <span class="compact-mobile-summary block text-xs text-slate-400 mt-0.5">
               ${item.target_value !== null && item.target_value !== undefined ? `설정: <span class="text-blue-400 font-mono">${item.target_value}</span> | ` : ''}
-              현재: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
+              현재: <span class="${getCollectionState(item).className} font-mono">${getCollectionState(item).label}</span>
             </span>
             <span class="target-condition-summary block text-xs text-slate-400 mt-0.5 truncate">
               <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
               ${item.target_value !== null && item.target_value !== undefined ? ` | 설정: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
-              | 현재: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
+              | 현재: <span class="${getCollectionState(item).className} font-mono">${getCollectionState(item).label}</span>
             </span>
           </div>
         </div>
@@ -737,6 +751,13 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
       ${String(item.id) === expandedTargetId ? `
   <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
   <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 text-xs">
+  ${item.last_error ? `
+  <div class="sm:col-span-2 rounded-lg border border-red-400/30 bg-red-950/20 p-3">
+    <dt class="text-red-300">수집 오류</dt>
+    <dd class="mt-1 break-words leading-relaxed text-red-200">${escapeHtml(item.last_error)}</dd>
+    <p class="mt-2 text-xs text-slate-400">다음 정기 수집 때 자동으로 다시 확인합니다.</p>
+  </div>
+  ` : ''}
   <div class="sm:col-span-2">
   <dt class="text-slate-500">대상 URL</dt>
   <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(getOriginalUrl(item) || '—')}</dd>
@@ -752,6 +773,10 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   <div>
   <dt class="text-slate-500">설정값</dt>
   <dd class="mt-1 font-mono text-blue-400">${item.target_value ?? '—'}</dd>
+  </div>
+  <div>
+  <dt class="text-slate-500">마지막 확인</dt>
+  <dd class="mt-1 text-slate-300">${formatLastCheckedAt(item.last_checked_at)}</dd>
   </div>
   </dl>
   <div class="mt-4 flex justify-end gap-2">
