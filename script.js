@@ -27,7 +27,7 @@ let discoveredValueCandidates = [];
 let discoveryRetryUsed = false;
 let selectedDiscoveredValue = null;
 let webInputMode = 'auto';
-let lastManualSourceType = 'SELECTOR';
+let lastManualSourceType = 'FRED';
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
