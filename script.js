@@ -237,6 +237,12 @@ function buildFredSearchTerms(query) {
   return [...new Set(candidates)].slice(0, 4);
 }
 
+function handleIndicatorSearchKeydown(event) {
+  if (event.key !== 'Enter' || event.isComposing) return;
+  event.preventDefault();
+  searchIndicators();
+}
+
 async function searchIndicators() {
   const input = document.getElementById('indicator-search-query');
   const button = document.getElementById('indicator-search-button');
