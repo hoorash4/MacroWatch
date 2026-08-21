@@ -313,9 +313,8 @@ function finishTargetRegistration(currentValueDisplay = '') {
   renderTargets();
 
   document.getElementById('add-form').reset();
-  resetWebDiscovery();
-  lastManualSourceType = 'SELECTOR';
-  setWebInputMode('auto');
+  lastManualSourceType = 'FRED';
+  document.getElementById('input-type').value = 'FRED';
   toggleTypeFields();
   toggleTargetValueInput('input-condition', 'input-target-val');
 
