@@ -358,6 +358,14 @@ async function selectIndicatorSearchResult(index) {
   if (!result) return;
 
   if (result.source === 'ECOS' && result.kind === 'table') {
+    // ECOS의 첫 후보는 통계표입니다. 통계표 코드를 먼저 채워 두고 세부 항목을 선택합니다.
+    document.getElementById('input-title').value = result.title || '';
+    document.getElementById('input-type').value = 'BOK';
+    toggleTypeFields();
+    document.getElementById('input-bok-code').value = result.code || '';
+    document.getElementById('input-bok-item-code').value = '';
+    if (result.frequency) document.getElementById('input-bok-cycle').value = result.frequency;
+
     const container = document.getElementById('indicator-search-results');
     if (container) container.innerHTML = '<p class="p-5 text-center text-sm text-slate-400">ECOS 통계 항목을 불러오는 중입니다.</p>';
 
@@ -378,6 +386,8 @@ async function selectIndicatorSearchResult(index) {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'ECOS 통계 항목을 불러오지 못했습니다.');
       renderIndicatorSearchResults(payload.results || [], '', false, false);
+      const description = document.getElementById('indicator-search-description');
+      if (description) description.textContent = '통계표 코드를 입력했습니다. 등록할 세부 항목을 하나 선택해 항목 코드까지 채워 주세요.';
     } catch (error) {
       closeIndicatorSearchModal();
       showCenteredNotice('ECOS 항목 검색 실패', error?.message || '통계 항목을 불러오지 못했습니다.');
