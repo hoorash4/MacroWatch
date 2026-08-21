@@ -353,13 +353,18 @@ async function searchIndicators(loadMore = false) {
   }
 }
 
+function fillIndicatorTitleIfEmpty(title) {
+  const input = document.getElementById('input-title');
+  if (input && !input.value.trim()) input.value = title || '';
+}
+
 async function selectIndicatorSearchResult(index) {
   const result = indicatorSearchResults[index];
   if (!result) return;
 
   if (result.source === 'ECOS' && result.kind === 'table') {
     // ECOS의 첫 후보는 통계표입니다. 통계표 코드를 먼저 채워 두고 세부 항목을 선택합니다.
-    document.getElementById('input-title').value = result.title || '';
+    fillIndicatorTitleIfEmpty(result.title);
     document.getElementById('input-type').value = 'BOK';
     toggleTypeFields();
     document.getElementById('input-bok-code').value = result.code || '';
@@ -395,7 +400,7 @@ async function selectIndicatorSearchResult(index) {
     return;
   }
 
-  document.getElementById('input-title').value = result.title || '';
+  fillIndicatorTitleIfEmpty(result.title);
   document.getElementById('input-type').value = result.source === 'FRED' ? 'FRED' : 'BOK';
   toggleTypeFields();
 
