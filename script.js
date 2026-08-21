@@ -25,6 +25,19 @@ let pointerDragState = createPointerDragState();
 let pendingToggleId = null;let webInputMode = 'manual';
 let lastManualSourceType = 'FRED';
 
+// 알림 조건에 따라 설정값 입력칸을 활성화하거나 비활성화합니다.
+function toggleTargetValueInput(conditionId, valueId) {
+  const condition = document.getElementById(conditionId);
+  const valueInput = document.getElementById(valueId);
+  if (!condition || !valueInput) return;
+  const isChanged = condition.value === 'changed';
+  valueInput.disabled = isChanged;
+  valueInput.placeholder = isChanged
+    ? '예: 설정 없이 지표의 값이 변동하면 알려드립니다.'
+    : '예: 4.50';
+  valueInput.classList.toggle('opacity-50', isChanged);
+}
+
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
 // 입력폼 초기 상태, 안내 모달 닫기 버튼, Drag & Drop 도움말을 여기서 연결합니다.
