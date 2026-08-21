@@ -163,18 +163,31 @@ function handleSourceTypeChange() {
 // 한국어 검색어는 Edge Function 안의 경제지표 용어 사전으로 FRED 검색어 후보를 만들고,
 // ECOS는 한국어 통계표 후보를 바로 반환합니다. 선택 결과만 기존 입력폼에 반영합니다.
 let indicatorSearchResults = [];
+let indicatorSearchQuery = '';
+
+function getIndicatorSearchResultKey(result) {
+  return [result.source, result.kind, result.code, result.itemCode || ''].join(':');
+}
 
 function closeIndicatorSearchModal() {
   document.getElementById('indicator-search-modal')?.classList.add('hidden');
 }
 
-function renderIndicatorSearchResults(results, warning = '') {
+function renderIndicatorSearchResults(results, warning = '', append = false, allowMore = true) {
   const container = document.getElementById('indicator-search-results');
   const modal = document.getElementById('indicator-search-modal');
   if (!container || !modal) return;
 
-  indicatorSearchResults = results;
-  container.replaceChildren();
+  if (!append) {
+    indicatorSearchResults = [];
+    container.replaceChildren();
+  }
+
+  container.querySelector('#indicator-search-more')?.remove();
+  const known = new Set(indicatorSearchResults.map(getIndicatorSearchResultKey));
+  const additions = results.filter((result) => !known.has(getIndicatorSearchResultKey(result)));
+  const startIndex = indicatorSearchResults.length;
+  indicatorSearchResults.push(...additions);
 
   if (warning) {
     const warningBox = document.createElement('p');
@@ -183,17 +196,24 @@ function renderIndicatorSearchResults(results, warning = '') {
     container.append(warningBox);
   }
 
-  if (!results.length) {
-    const empty = document.createElement('p');
-    empty.className = 'rounded-xl border border-slate-700 bg-slate-950/50 p-5 text-center text-sm text-slate-400';
-    empty.textContent = '일치하는 후보를 찾지 못했습니다. FRED는 영어 검색어로 다시 시도해 주세요.';
-    container.append(empty);
+  if (!additions.length) {
+    if (!append) {
+      const empty = document.createElement('p');
+      empty.className = 'rounded-xl border border-slate-700 bg-slate-950/50 p-5 text-center text-sm text-slate-400';
+      empty.textContent = '일치하는 후보를 찾지 못했습니다. FRED는 영어 검색어로 다시 시도해 주세요.';
+      container.append(empty);
+    } else {
+      const end = document.createElement('p');
+      end.className = 'mt-3 text-center text-xs text-slate-500';
+      end.textContent = '추가 후보가 없습니다.';
+      container.append(end);
+    }
   } else {
-    results.forEach((result, index) => {
+    additions.forEach((result, offset) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'mb-2 w-full rounded-xl border border-slate-700 bg-slate-950/40 p-3 text-left transition hover:border-amber-400 hover:bg-slate-800';
-      button.addEventListener('click', () => selectIndicatorSearchResult(index));
+      button.addEventListener('click', () => selectIndicatorSearchResult(startIndex + offset));
 
       const source = document.createElement('span');
       source.className = result.source === 'FRED'
@@ -214,6 +234,16 @@ function renderIndicatorSearchResults(results, warning = '') {
       button.append(source, title, meta);
       container.append(button);
     });
+  }
+
+  if (allowMore && additions.length) {
+    const more = document.createElement('button');
+    more.id = 'indicator-search-more';
+    more.type = 'button';
+    more.className = 'mt-2 w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-200 transition hover:border-amber-400 hover:text-white';
+    more.textContent = '다른 후보 더 보기';
+    more.addEventListener('click', () => searchIndicators(true));
+    container.append(more);
   }
 
   modal.classList.remove('hidden');
@@ -243,10 +273,12 @@ function handleIndicatorSearchKeydown(event) {
   searchIndicators();
 }
 
-async function searchIndicators() {
+async function searchIndicators(loadMore = false) {
   const input = document.getElementById('indicator-search-query');
-  const button = document.getElementById('indicator-search-button');
-  const query = input?.value.trim() || '';
+  const mainButton = document.getElementById('indicator-search-button');
+  const moreButton = document.getElementById('indicator-search-more');
+  const query = loadMore ? indicatorSearchQuery : (input?.value.trim() || '');
+
   if (query.length < 2) {
     showCenteredNotice('검색어를 입력해 주세요.', '두 글자 이상 입력하면 FRED와 ECOS의 공식 지표 후보를 찾습니다.');
     return;
@@ -257,6 +289,7 @@ async function searchIndicators() {
     return;
   }
 
+  const button = loadMore ? moreButton : mainButton;
   if (button) {
     button.disabled = true;
     button.textContent = '찾는 중';
@@ -267,6 +300,7 @@ async function searchIndicators() {
     const token = data.session?.access_token;
     if (!token) throw new Error('로그인이 필요합니다.');
 
+    if (!loadMore) indicatorSearchQuery = query;
     const response = await fetch(SUPABASE_URL + '/functions/v1/search-indicators', {
       method: 'POST',
       headers: {
@@ -274,12 +308,17 @@ async function searchIndicators() {
         Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ action: 'search', query, fredQueries: buildFredSearchTerms(query) }),
+      body: JSON.stringify({
+        action: 'search',
+        query,
+        fredQueries: buildFredSearchTerms(query),
+        excludedCodes: indicatorSearchResults.map((result) => result.code),
+      }),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || '지표 후보를 불러오지 못했습니다.');
 
-    renderIndicatorSearchResults(payload.results || [], payload.warning || '');
+    renderIndicatorSearchResults(payload.results || [], payload.warning || '', loadMore);
   } catch (error) {
     const message = error?.message || '지표 후보를 불러오지 못했습니다.';
     if (message.includes('로그인이 필요합니다')) {
@@ -290,7 +329,7 @@ async function searchIndicators() {
   } finally {
     if (button) {
       button.disabled = false;
-      button.textContent = '찾기';
+      button.textContent = loadMore ? '다른 후보 더 보기' : '찾기';
     }
   }
 }
@@ -319,7 +358,7 @@ async function selectIndicatorSearchResult(index) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'ECOS 통계 항목을 불러오지 못했습니다.');
-      renderIndicatorSearchResults(payload.results || []);
+      renderIndicatorSearchResults(payload.results || [], '', false, false);
     } catch (error) {
       closeIndicatorSearchModal();
       showCenteredNotice('ECOS 항목 검색 실패', error?.message || '통계 항목을 불러오지 못했습니다.');
