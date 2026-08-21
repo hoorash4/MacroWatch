@@ -199,21 +199,6 @@ def fetch_ecos(config: dict[str, Any]) -> Decimal:
     raise CollectionError(f"ECOS 최신값이 없습니다: {error}")
 
 
-def fetch_json_api(target: dict[str, Any], config: dict[str, Any]) -> Decimal:
-    response = requests.get(
-        target["url"],
-        headers=request_headers({"Accept": "application/json"}),
-        timeout=HTTP_TIMEOUT,
-    )
-    response.raise_for_status()
-    path = str(config.get("json_path", "")).strip()
-    if not path and str(target.get("css_selector", "")).startswith("API:"):
-        path = str(target["css_selector"])[4:]
-    if not path:
-        raise CollectionError("JSON 추출 경로가 없습니다.")
-    return parse_decimal(nested_value(response.json(), path))
-
-
 def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
     source_type = str(target.get("source_type") or "").lower()
     config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
@@ -221,8 +206,6 @@ def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
         return fetch_fred(config)
     if source_type == "ecos":
         return fetch_ecos(config)
-    if source_type == "json_api":
-        return fetch_json_api(target, config)
     raise CollectionError(f"지원하지 않는 데이터 소스입니다: {source_type}")
 
 
