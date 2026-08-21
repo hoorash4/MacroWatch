@@ -166,51 +166,6 @@ export default {
         return json({ run: await latestRun(workflow, githubToken) }, 200, origin);
       }
 
-      if (action === "register_api_source") {
-        const source = body?.source || {};
-        const providerUrl = String(source.provider_url || "").trim();
-        const baseUrl = String(source.base_url || "").trim();
-        const responsePath = String(source.response_path || "").trim();
-        if (!providerUrl || !baseUrl || !responsePath) {
-          return json({ error: "제공기관 주소, API 주소, 응답값 경로를 입력해 주세요." }, 400, origin);
-        }
-        let provider: URL;
-        let endpoint: URL;
-        try {
-          provider = new URL(providerUrl);
-          endpoint = new URL(baseUrl);
-        } catch {
-          return json({ error: "주소 형식이 올바르지 않습니다." }, 400, origin);
-        }
-        if (provider.protocol !== "https:" || endpoint.protocol !== "https:") {
-          return json({ error: "보안을 위해 HTTPS 주소만 등록할 수 있습니다." }, 400, origin);
-        }
-        if (endpoint.hostname === "localhost" || endpoint.hostname === "127.0.0.1" || endpoint.hostname.endsWith(".local")) {
-          return json({ error: "내부 네트워크 주소는 등록할 수 없습니다." }, 400, origin);
-        }
-        const payload = {
-          name: String(source.name || endpoint.hostname).trim().slice(0, 120),
-          provider_url: provider.toString(),
-          documentation_url: String(source.documentation_url || "").trim() || null,
-          base_url: endpoint.toString(),
-          auth_location: ["none", "query", "header"].includes(String(source.auth_location || "none")) ? String(source.auth_location || "none") : "none",
-          auth_name: String(source.auth_name || "").trim() || null,
-          secret_name: String(source.secret_name || "").trim() || null,
-          method: String(source.method || "GET").toUpperCase() === "POST" ? "POST" : "GET",
-          request_params: typeof source.request_params === "object" && source.request_params ? source.request_params : {},
-          request_headers: typeof source.request_headers === "object" && source.request_headers ? source.request_headers : {},
-          response_path: responsePath,
-          code_parameter: String(source.code_parameter || "").trim() || null,
-          legal_review: "pending",
-          legal_notes: String(source.legal_notes || "").trim() || null,
-          is_active: false,
-          updated_at: new Date().toISOString(),
-        };
-        const { data, error } = await admin.from("api_sources").upsert(payload, { onConflict: "name" }).select().single();
-        if (error) throw error;
-        return json({ source: data, message: "API 설정을 저장했습니다. 약관 검토 후 활성화해 주세요." }, 201, origin);
-      }
-
       if (action === "status") {
         const [
           { data: settings },

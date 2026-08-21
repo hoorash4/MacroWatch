@@ -238,42 +238,6 @@
     }
   }
 
-  async function registerApiSource() {
-    const button = document.getElementById('register-api-button');
-    const url = document.getElementById('api-entry-url').value.trim();
-    if (!url) {
-      showNotice('주소 필요', '공식 사이트 또는 API 주소를 입력해 주세요.', true);
-      return;
-    }
-    const documentationUrl = window.prompt('개발자 문서 주소를 입력해 주세요. 모르면 비워두세요.', '');
-    const baseUrl = window.prompt('호출할 API 주소를 입력해 주세요.', url);
-    const responsePath = window.prompt('응답값 경로를 입력해 주세요. 예: data[0].value', '');
-    if (!baseUrl || !responsePath) {
-      showNotice('추가 정보 필요', 'API 주소와 응답값 경로가 있어야 등록할 수 있습니다.', true);
-      return;
-    }
-    button.disabled = true;
-    try {
-      await invokeAdmin('register_api_source', {
-        source: {
-          name: new URL(url).hostname,
-          provider_url: url,
-          documentation_url: documentationUrl,
-          base_url: baseUrl,
-          response_path: responsePath,
-          auth_location: 'none'
-        }
-      });
-      showNotice('API 설정 저장 완료', 'API 설정을 저장했습니다. 약관 검토 후 활성화해 주세요.');
-      document.getElementById('api-entry-url').value = '';
-    } catch (error) {
-      showNotice('API 설정 저장 실패', error.message || 'API 설정을 저장하지 못했습니다.', true);
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-
   async function authorizeAdmin() {
     const accessScreen = document.getElementById('admin-access-screen');
     const accessMessage = document.getElementById('admin-access-message');
@@ -313,7 +277,6 @@
     document.getElementById('run-check-button').addEventListener('click', () => runWorkflow('check'));
     document.getElementById('run-backup-button').addEventListener('click', () => runWorkflow('backup'));
     document.getElementById('save-schedule-button').addEventListener('click', saveSchedule);
-    document.getElementById('register-api-button').addEventListener('click', registerApiSource);
     document.getElementById('operation-close').addEventListener('click', hideNotice);
     document.getElementById('operation-modal').addEventListener('click', (event) => {
       if (event.target === event.currentTarget) hideNotice();

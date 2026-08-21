@@ -27,7 +27,7 @@ let discoveredValueCandidates = [];
 let discoveryRetryUsed = false;
 let selectedDiscoveredValue = null;
 let webInputMode = 'auto';
-let lastManualSourceType = 'FRED';
+let lastManualSourceType = 'SELECTOR';
 
 // ===== 페이지 초기화 =====
 // 페이지의 HTML이 모두 만들어진 뒤 한 번만 실행되는 초기 설정입니다.
@@ -129,7 +129,7 @@ function setDbStatus(state) {
 
 
 // 사용자가 선택한 데이터 소스 유형에 맞는 입력칸만 보여줍니다.
-// FRED, ECOS, 관리자 등록 API 입력 영역 중 하나만 표시합니다.
+// 일반 웹 / FRED / 한국은행 ECOS / JSON API 입력 영역 중 하나만 표시됩니다.
 function toggleTypeFields() {
   const selectedType = document.getElementById('input-type').value;
   const type = webInputMode === 'auto' ? 'SELECTOR' : selectedType;
@@ -137,7 +137,7 @@ function toggleTypeFields() {
   document.getElementById('field-selector').classList.toggle('hidden', type !== 'SELECTOR');
   document.getElementById('field-fred').classList.toggle('hidden', type !== 'FRED');
   document.getElementById('field-bok').classList.toggle('hidden', type !== 'BOK');
-  document.getElementById('field-custom-api').classList.toggle('hidden', type !== 'CUSTOM_API');
+  document.getElementById('field-api').classList.toggle('hidden', type !== 'API');
 
   if (type !== 'SELECTOR') resetWebDiscovery();
 }
@@ -272,35 +272,6 @@ function renderDiscoveredValues(candidates) {
   });
 }
 
-// 자동 탐색 오류를 기술적인 원문 대신 사용자가 이해하기 쉬운 한글로 바꿉니다.
-function getDiscoveryErrorMessage(error) {
-  const raw = String(error?.message || '').trim();
-
-  // Edge Function이 이미 한글로 설명한 오류는 그대로 사용합니다.
-  if (/[가-힣]/.test(raw)) return raw;
-
-  if (/Edge Function returned a non-2xx status code/i.test(raw)) {
-    return '웹페이지를 불러오지 못했습니다. 사이트가 외부 자동 수집을 차단했거나 응답 시간이 초과되었을 수 있습니다.';
-  }
-  if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
-    return '웹페이지에 연결하지 못했습니다. 주소가 맞는지와 사이트 접속 가능 여부를 확인해 주세요.';
-  }
-  if (/403|forbidden|blocked/i.test(raw)) {
-    return '이 웹페이지가 자동 수집을 허용하지 않아 값을 확인할 수 없습니다.';
-  }
-  if (/404|not found/i.test(raw)) {
-    return '입력한 웹페이지 주소를 찾을 수 없습니다. 주소를 다시 확인해 주세요.';
-  }
-  if (/429|rate limit|too many requests/i.test(raw)) {
-    return '요청이 너무 많아 잠시 제한되었습니다. 잠시 후 다시 시도해 주세요.';
-  }
-  if (/timeout|timed out/i.test(raw)) {
-    return '웹페이지 응답이 너무 오래 걸렸습니다. 잠시 후 다시 시도해 주세요.';
-  }
-
-  return '자동으로 후보값을 찾지 못했습니다. 주소를 확인하거나 직접 입력을 이용해 주세요.';
-}
-
 // 후보 모달을 열고 닫는 동작은 탐색 결과 표시와 분리합니다.
 function openDiscoveryModal() {
   document.getElementById('discover-values-modal')?.classList.remove('hidden');
@@ -347,14 +318,125 @@ function selectDiscoveredValue(index) {
   setDiscoveryStatus(`선택한 현재값: ${candidate.display} · 등록 시 이 값을 다시 확인합니다.`, 'success');
 }
 
+// Edge Function의 HTTP 오류 본문을 사용자에게 보여줄 문장으로 바꿉니다.
+async function getEdgeFunctionErrorMessage(error, fallback) {
+  let message = error?.message || fallback;
+  if (error?.context && typeof error.context.json === 'function') {
+    const details = await error.context.json().catch(() => null);
+    if (details?.error) message = details.error;
+  }
+  return message;
+}
+
+// CSS 선택자로 해당 지표만 다시 읽어 등록 직전 현재값을 검증합니다.
+async function verifyWebTarget(url, selector) {
+  const { data, error } = await supabaseClient.functions.invoke('discover-values', {
+    body: { action: 'verify', url, selector }
+  });
+
+  if (error) {
+    throw new Error(await getEdgeFunctionErrorMessage(error, '현재값을 확인하지 못했습니다.'));
+  }
+  if (!Number.isFinite(Number(data?.current_value))) {
+    throw new Error('웹페이지에서 현재값을 숫자로 확인하지 못했습니다.');
+  }
+
+  return {
+    value: Number(data.current_value),
+    display: String(data.display ?? data.current_value)
+  };
+}
+
+// 등록 버튼은 현재값 확인 중에만 잠시 잠가 중복 요청을 막습니다.
+function setAddSubmitBusy(isBusy) {
+  const button = document.getElementById('add-submit-button');
+  if (!button) return;
+
+  button.disabled = isBusy;
+  button.innerHTML = isBusy
+    ? '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>현재값 확인 중'
+    : '신규 등록하기';
+}
+
 // 로그인된 사용자의 권한으로 Edge Function을 호출해 숫자 후보를 가져옵니다.
-// 자동 입력 탭은 API 검색 기능을 연결할 자리로 유지합니다.
-// 웹페이지를 읽거나 CSS 선택자로 값을 수집하지 않습니다.
-async function discoverWebValues() {
-  setDiscoveryStatus(
-    '공식 API 자동검색은 준비 중입니다. 직접 입력 탭에서 데이터 소스를 선택해 주세요.',
-    'normal'
+async function discoverWebValues(isRetry = false) {
+  const title = document.getElementById('input-title')?.value.trim() || '';
+  const url = document.getElementById('input-url')?.value.trim() || '';
+  const button = document.getElementById('discover-values-button');
+
+  if (!url) {
+    setDiscoveryStatus('먼저 대상 웹페이지 URL을 입력해 주세요.', 'error');
+    return;
+  }
+
+  try {
+    new URL(url);
+  } catch {
+    setDiscoveryStatus('http:// 또는 https://로 시작하는 올바른 주소를 입력해 주세요.', 'error');
+    return;
+  }
+
+  const excludedCandidates = isRetry
+    ? discoveredValueCandidates.map((candidate) => `${candidate.selector}|${candidate.display}`)
+    : [];
+
+  if (!isRetry) {
+    resetWebDiscovery();
+  } else {
+    if (discoveryRetryUsed) return;
+    discoveryRetryUsed = true;
+    document.getElementById('discover-values-retry')?.classList.add('hidden');
+  }
+
+  openDiscoveryModal();
+  showDiscoveryModalLoading();
+  setDiscoveryModalStatus(
+    isRetry ? '첫 번째 후보를 제외하고 다시 찾고 있습니다.' : '웹페이지에서 후보값을 찾고 있습니다.',
+    'loading'
   );
+
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>찾는 중';
+  }
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('discover-values', {
+      body: { url, title, exclude: excludedCandidates }
+    });
+
+    if (error) {
+      throw new Error(await getEdgeFunctionErrorMessage(error, '값을 자동으로 찾지 못했습니다.'));
+    }
+
+    const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
+    renderDiscoveredValues(candidates);
+    setDiscoveryModalStatus(
+      candidates.length
+        ? (data.message || '가능성이 높은 값을 골라 주세요.')
+        : (data.message || '숫자 후보를 찾지 못했습니다.'),
+      candidates.length ? 'normal' : 'error'
+    );
+
+    const retryButton = document.getElementById('discover-values-retry');
+    if (retryButton) {
+      retryButton.classList.toggle('hidden', isRetry || discoveryRetryUsed || candidates.length === 0);
+    }
+
+
+  } catch (error) {
+    console.error('Value discovery error:', error);
+    renderDiscoveredValues([]);
+    setDiscoveryModalStatus(
+      error?.message || '자동 탐색에 실패했습니다. 직접 입력을 이용해 주세요.',
+      'error'
+    );
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-1.5"></i>이 페이지에서 값 찾기';
+    }
+  }
 }
 
 // 알림 조건에 따라 설정값 입력칸을 켜거나 끕니다.
@@ -565,20 +647,6 @@ function finishTargetRegistration(currentValueDisplay = '') {
 // ===== 추적 지표 한 줄 만들기 =====
 // 지표 한 개를 화면에 표시할 HTML 문자열로 만듭니다.
 // 제목, 현재값, 알림 상태, 상세정보, 수정/삭제 버튼이 모두 여기에서 만들어집니다.
-// 수집 결과를 목록에 표시할 상태와 시간으로 변환합니다.
-function getCollectionState(item) {
-  return item?.last_error
-    ? { label: '수집 불가', className: 'text-red-300' }
-    : { label: item?.last_value ?? '—', className: 'text-amber-400' };
-}
-
-function formatLastCheckedAt(value) {
-  if (!value) return '기록 없음';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '기록 없음';
-  return date.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
-}
-
 function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   return `
     <div data-target-container="${globalIndex}" class="py-3 border-b border-slate-800/80 first:border-t"
@@ -598,12 +666,12 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
             </div>
             <span class="compact-mobile-summary block text-xs text-slate-400 mt-0.5">
               ${item.target_value !== null && item.target_value !== undefined ? `설정: <span class="text-blue-400 font-mono">${item.target_value}</span> | ` : ''}
-              현재: <span class="${getCollectionState(item).className} font-mono">${getCollectionState(item).label}</span>
+              현재: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
             </span>
             <span class="target-condition-summary block text-xs text-slate-400 mt-0.5 truncate">
               <span class="text-slate-300 font-mono">${getConditionText(item.condition_type)}</span>
               ${item.target_value !== null && item.target_value !== undefined ? ` | 설정: <span class="text-blue-400 font-mono">${item.target_value}</span>` : ''}
-              | 현재: <span class="${getCollectionState(item).className} font-mono">${getCollectionState(item).label}</span>
+              | 현재: <span class="text-amber-400 font-mono">${item.last_value ?? '—'}</span>
             </span>
           </div>
         </div>
@@ -615,13 +683,6 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
       ${String(item.id) === expandedTargetId ? `
   <div class="mx-2 mb-2 ml-9 rounded-xl border border-slate-700/70 bg-slate-950/60 p-4">
   <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3 text-xs">
-  ${item.last_error ? `
-  <div class="sm:col-span-2 rounded-lg border border-red-400/30 bg-red-950/20 p-3">
-    <dt class="text-red-300">수집 오류</dt>
-    <dd class="mt-1 break-words leading-relaxed text-red-200">${escapeHtml(item.last_error)}</dd>
-    <p class="mt-2 text-xs text-slate-400">다음 정기 수집 때 자동으로 다시 확인합니다.</p>
-  </div>
-  ` : ''}
   <div class="sm:col-span-2">
   <dt class="text-slate-500">대상 URL</dt>
   <dd class="mt-1 break-all font-mono text-slate-300">${escapeHtml(getOriginalUrl(item) || '—')}</dd>
@@ -637,10 +698,6 @@ function renderTargetItem(item, globalIndex, isFirstVisible, isLastVisible) {
   <div>
   <dt class="text-slate-500">설정값</dt>
   <dd class="mt-1 font-mono text-blue-400">${item.target_value ?? '—'}</dd>
-  </div>
-  <div>
-  <dt class="text-slate-500">마지막 확인</dt>
-  <dd class="mt-1 text-slate-300">${formatLastCheckedAt(item.last_checked_at)}</dd>
   </div>
   </dl>
   <div class="mt-4 flex justify-end gap-2">
@@ -1124,10 +1181,36 @@ async function handleAddTarget(e) {
   let cssSelector = '';
   let sourceType = 'web';
   let sourceConfig = {};
+  let verifiedWebValue = null;
 
   if (type === 'SELECTOR') {
-    window.alert('웹페이지 스크래핑은 제거되었습니다. 공식 API를 선택해 등록해 주세요.');
-    return;
+    url = document.getElementById('input-url').value.trim();
+    cssSelector = document.getElementById('input-selector').value.trim();
+    sourceConfig = { selector: cssSelector };
+
+    if (!url || !cssSelector) {
+      window.alert(
+        webInputMode === 'auto'
+          ? '값 자동 찾기에서 추적할 후보값을 먼저 선택해 주세요.'
+          : '웹페이지 URL과 CSS 선택자를 모두 입력해 주세요.'
+      );
+      return;
+    }
+
+    setAddSubmitBusy(true);
+    try {
+      verifiedWebValue = await verifyWebTarget(url, cssSelector);
+      setDiscoveryStatus(`확인된 현재값: ${verifiedWebValue.display}`, 'success');
+    } catch (error) {
+      console.error('Web target verification error:', error);
+      const reason = error?.message || '웹페이지에서 값을 읽지 못했습니다.';
+      const shouldContinue = window.confirm(
+        `현재값을 바로 확인하지 못했습니다.\n${reason}\n\n그래도 등록하시겠습니까?`
+      );
+      if (!shouldContinue) return;
+    } finally {
+      setAddSubmitBusy(false);
+    }
   } else if (type === 'FRED') {
     const seriesId = document.getElementById('input-fred-id').value.trim().toUpperCase();
     url = `https://fred.stlouisfed.org/series/${encodeURIComponent(seriesId)}`;
@@ -1142,17 +1225,12 @@ async function handleAddTarget(e) {
     cssSelector = 'API:StatisticSearch.row[0].DATA_VALUE';
     sourceType = 'ecos';
     sourceConfig = { stat_code: statCode, item_code: itemCode, data_cycle: dataCycle };
-  } else if (type === 'CUSTOM_API') {
-    const sourceId = document.getElementById('input-api-source-id').value.trim();
-    const code = document.getElementById('input-api-code').value.trim();
-    if (!sourceId) {
-      window.alert('관리자 등록 API ID를 입력해 주세요.');
-      return;
-    }
-    url = 'https://configured-api.local/';
-    cssSelector = 'API:custom';
-    sourceType = 'custom_api';
-    sourceConfig = { api_source_id: sourceId, code };
+  } else if (type === 'API') {
+    url = document.getElementById('input-api-url').value.trim();
+    const jsonPath = document.getElementById('input-json-path').value.trim();
+    cssSelector = jsonPath ? `API:${jsonPath}` : '';
+    sourceType = 'json_api';
+    sourceConfig = { json_path: jsonPath };
   }
 
   const userId = await getCurrentUserId();
@@ -1171,7 +1249,7 @@ async function handleAddTarget(e) {
     source_config: sourceConfig,
     condition_type: conditionType,
     target_value: targetVal,
-    last_value: null,
+    last_value: verifiedWebValue?.value ?? null,
     is_active: true,
     display_order: targets.length
   };
@@ -1189,7 +1267,7 @@ async function handleAddTarget(e) {
         source_config: sourceConfig,
         condition_type: conditionType,
         target_value: targetVal,
-        last_value: null,
+        last_value: verifiedWebValue?.value ?? null,
         is_active: true,
         display_order: targets.length
       }])
@@ -1197,7 +1275,7 @@ async function handleAddTarget(e) {
 
       if (!error && data) {
         targets.push(data[0]);
-        finishTargetRegistration('');
+        finishTargetRegistration(verifiedWebValue?.display || '');
         return;
       }
       if (error) {
@@ -1211,7 +1289,7 @@ async function handleAddTarget(e) {
   }
 
   targets.push(newItem);
-  finishTargetRegistration('');
+  finishTargetRegistration(verifiedWebValue?.display || '');
 }
 
 // ===== 지표 수정 =====

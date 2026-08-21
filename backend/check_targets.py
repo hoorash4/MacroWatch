@@ -11,6 +11,9 @@ from typing import Any
 from urllib.parse import quote
 
 import requests
+from bs4 import BeautifulSoup
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright
 
 
 HTTP_TIMEOUT = 30
@@ -199,69 +202,117 @@ def fetch_ecos(config: dict[str, Any]) -> Decimal:
     raise CollectionError(f"ECOS 최신값이 없습니다: {error}")
 
 
-def fetch_custom_api(config: dict[str, Any]) -> Decimal:
-    """등록된 공식 API를 제한된 설정으로 호출하고 JSON 경로에서 값을 읽습니다."""
-    url = str(config.get("url_template") or config.get("url") or "").strip()
-    if not url:
-        raise CollectionError("API 주소가 없습니다.")
-    if not url.startswith(("https://", "http://")):
-        raise CollectionError("API 주소는 http:// 또는 https://로 시작해야 합니다.")
-
-    code = str(config.get("code") or config.get("symbol") or "").strip()
-    url = url.replace("{code}", quote(code, safe=""))
-    headers = request_headers({"Accept": "application/json"})
-    configured_headers = config.get("headers")
-    if isinstance(configured_headers, dict):
-        for key, value in configured_headers.items():
-            if isinstance(value, str):
-                headers[str(key)] = value.replace("{code}", code)
-
-    params = {}
-    configured_params = config.get("params")
-    if isinstance(configured_params, dict):
-        for key, value in configured_params.items():
-            params[str(key)] = str(value).replace("{code}", code)
-
-    auth_env = str(config.get("auth_env") or "").strip()
-    auth_name = str(config.get("auth_name") or "apikey").strip()
-    auth_location = str(config.get("auth_location") or "query").lower()
-    if auth_env:
-        secret = require_env(auth_env)
-        if auth_location == "header":
-            headers[auth_name] = secret
-        else:
-            params[auth_name] = secret
-
-    response = requests.request(
-        str(config.get("method") or "GET").upper(),
-        url,
-        headers=headers,
-        params=params,
+def fetch_json_api(target: dict[str, Any], config: dict[str, Any]) -> Decimal:
+    response = requests.get(
+        target["url"],
+        headers=request_headers({"Accept": "application/json"}),
         timeout=HTTP_TIMEOUT,
     )
     response.raise_for_status()
-    try:
-        payload = response.json()
-    except ValueError as exc:
-        raise CollectionError("API 응답이 JSON 형식이 아닙니다.") from exc
-
-    path = str(config.get("json_path") or "").strip()
+    path = str(config.get("json_path", "")).strip()
+    if not path and str(target.get("css_selector", "")).startswith("API:"):
+        path = str(target["css_selector"])[4:]
     if not path:
-        raise CollectionError("API 응답값 경로가 설정되지 않았습니다.")
+        raise CollectionError("JSON 추출 경로가 없습니다.")
+    return parse_decimal(nested_value(response.json(), path))
+
+
+def fetch_static_html(url: str, selector: str, config: dict[str, Any]) -> Decimal:
+    response = requests.get(
+        url,
+        headers=request_headers(config.get("headers") if isinstance(config.get("headers"), dict) else None),
+        timeout=HTTP_TIMEOUT,
+    )
+    response.raise_for_status()
+    element = BeautifulSoup(response.text, "html.parser").select_one(selector)
+    if element is None:
+        raise CollectionError("일반 HTML 응답에서 CSS 선택자를 찾지 못했습니다.")
+    attribute = str(config.get("attribute", "")).strip()
+    return parse_decimal(element.get(attribute) if attribute else element.get_text(" ", strip=True))
+
+
+class BrowserCollector:
+    def __init__(self) -> None:
+        self.playwright = None
+        self.browser = None
+        self.context = None
+
+    def __enter__(self) -> "BrowserCollector":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        if self.context:
+            self.context.close()
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+
+    def _ensure_context(self) -> None:
+        if self.context:
+            return
+        self.playwright = sync_playwright().start()
+        # GitHub's Ubuntu runner already includes Chrome, so no browser download is needed.
+        self.browser = self.playwright.chromium.launch(
+            channel="chrome",
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
+        )
+        self.context = self.browser.new_context(
+            user_agent=USER_AGENT,
+            locale="ko-KR",
+            timezone_id="Asia/Seoul",
+            viewport={"width": 1440, "height": 1000},
+        )
+
+    def fetch(self, url: str, selector: str, config: dict[str, Any]) -> Decimal:
+        self._ensure_context()
+        timeout_ms = min(max(int(config.get("timeout_ms", 12000)), 3000), 15000)
+        page = self.context.new_page()
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            page.locator(selector).first.wait_for(state="attached", timeout=timeout_ms)
+            attribute = str(config.get("attribute", "")).strip()
+            locator = page.locator(selector).first
+            raw_value = locator.get_attribute(attribute) if attribute else locator.inner_text(timeout=timeout_ms)
+            return parse_decimal(raw_value)
+        except PlaywrightTimeoutError as exc:
+            title = page.title()[:100]
+            raise CollectionError(f"브라우저 렌더링 후에도 값을 찾지 못했습니다: {title}") from exc
+        finally:
+            page.close()
+
+
+def fetch_web(
+    target: dict[str, Any], config: dict[str, Any], browser: BrowserCollector
+) -> Decimal:
+    url = str(target.get("url", "")).strip()
+    selector = str(config.get("selector") or target.get("css_selector") or "").strip()
+    if not url or not selector:
+        raise CollectionError("웹페이지 URL 또는 CSS 선택자가 없습니다.")
     try:
-        return parse_decimal(nested_value(payload, path))
-    except (KeyError, IndexError, TypeError) as exc:
-        raise CollectionError(f"API 응답에서 '{path}' 값을 찾지 못했습니다.") from exc
+        return fetch_static_html(url, selector, config)
+    except Exception as static_error:
+        try:
+            return browser.fetch(url, selector, config)
+        except Exception as rendered_error:
+            raise CollectionError(
+                f"일반 요청 실패: {static_error}; 브라우저 요청 실패: {rendered_error}"
+            ) from rendered_error
 
 
-def collect_value(target: dict[str, Any]) -> Decimal:
-    source_type = str(target.get("source_type") or "").lower()
+def collect_value(target: dict[str, Any], browser: BrowserCollector) -> Decimal:
+    source_type = str(target.get("source_type") or "web").lower()
     config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
     if source_type == "fred":
         return fetch_fred(config)
     if source_type == "ecos":
         return fetch_ecos(config)
-    raise CollectionError(f"지원하지 않는 데이터 소스입니다: {source_type}")
+    if source_type == "json_api":
+        return fetch_json_api(target, config)
+    if source_type == "web":
+        return fetch_web(target, config, browser)
+    raise CollectionError(f"아직 지원하지 않는 source_type입니다: {source_type}")
 
 
 def condition_met(target: dict[str, Any], previous: Decimal | None, current: Decimal) -> bool:
@@ -396,69 +447,43 @@ def main() -> int:
         "targets",
         params={"select": "*", "is_active": "eq.true", "order": "display_order.asc.nullslast"},
     )
-    try:
-        api_sources = db.request(
-            "GET",
-            "api_sources",
-            params={"select": "*", "is_active": "eq.true"},
-        ) or []
-    except Exception:
-        # 마이그레이션 전에도 기존 FRED·ECOS 수집은 계속 작동해야 합니다.
-        api_sources = []
-    api_source_map = {str(item.get("id")): item for item in api_sources}
     now_iso = datetime.now(timezone.utc).isoformat()
     alerts: list[CheckResult] = []
     failures = 0
 
-    for target in targets:
-        target_id = target["id"]
-        if str(target.get("source_type") or "").lower() in {"custom_api", "api"}:
-            config = target.get("source_config") if isinstance(target.get("source_config"), dict) else {}
-            source = api_source_map.get(str(config.get("api_source_id")))
-            if not source:
-                raise CollectionError("관리자 등록 API를 찾을 수 없거나 비활성 상태입니다.")
-            target["source_config"] = {
-                **source,
-                **config,
-                "url": source.get("base_url"),
-                "url_template": source.get("base_url"),
-                "headers": source.get("request_headers") or {},
-                "params": source.get("request_params") or {},
-                "json_path": source.get("response_path"),
-                "auth_env": source.get("secret_name") or "",
-                "auth_name": source.get("auth_name") or "",
-                "auth_location": source.get("auth_location") or "none",
-            }
-        try:
-            previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
-            current = collect_value(target)
-            result = CheckResult(target, previous, current, condition_met(target, previous, current))
+    with BrowserCollector() as browser:
+        for target in targets:
+            target_id = target["id"]
+            try:
+                previous = parse_decimal(target["last_value"]) if target.get("last_value") not in (None, "") else None
+                current = collect_value(target, browser)
+                result = CheckResult(target, previous, current, condition_met(target, previous, current))
 
-            db.request(
-                "PATCH",
-                "targets",
-                params={"id": f"eq.{target_id}"},
-                body={
-                    "last_value": json_number(current),
-                    "last_checked_at": now_iso,
-                    "last_error": None,
-                },
-                prefer="return=minimal",
-            )
-            if result.should_alert:
-                alerts.append(result)
-            print(f"OK {target_id}: {target.get('title')} = {format_number(current)}")
-        except Exception as exc:
-            failures += 1
-            message = str(exc)[:1000]
-            print(f"ERROR {target_id}: {target.get('title')}: {message}", file=sys.stderr)
-            db.request(
-                "PATCH",
-                "targets",
-                params={"id": f"eq.{target_id}"},
-                body={"last_checked_at": now_iso, "last_error": message},
-                prefer="return=minimal",
-            )
+                db.request(
+                    "PATCH",
+                    "targets",
+                    params={"id": f"eq.{target_id}"},
+                    body={
+                        "last_value": json_number(current),
+                        "last_checked_at": now_iso,
+                        "last_error": None,
+                    },
+                    prefer="return=minimal",
+                )
+                if result.should_alert:
+                    alerts.append(result)
+                print(f"OK {target_id}: {target.get('title')} = {format_number(current)}")
+            except Exception as exc:
+                failures += 1
+                message = str(exc)[:1000]
+                print(f"ERROR {target_id}: {target.get('title')}: {message}", file=sys.stderr)
+                db.request(
+                    "PATCH",
+                    "targets",
+                    params={"id": f"eq.{target_id}"},
+                    body={"last_checked_at": now_iso, "last_error": message},
+                    prefer="return=minimal",
+                )
 
     if alerts:
         access_token = refresh_kakao_access_token()
