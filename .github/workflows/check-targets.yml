@@ -6,11 +6,6 @@ on:
     - cron: "0 23 * * *"
     - cron: "0 9 * * *"
   workflow_dispatch:
-    inputs:
-      target_id:
-        description: "Optional single target ID"
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -44,6 +39,5 @@ jobs:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
-          TARGET_ID: ${{ inputs.target_id }}
         run: python backend/check_targets.py
 
