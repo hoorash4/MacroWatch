@@ -291,17 +291,26 @@ function updateTrackTabSizing() {
 
 // 화면 가운데에 공용 안내 모달을 표시합니다.
 // 등록 완료 알림과 '+ ADD Track' 준비중 안내가 같은 모달을 함께 사용합니다.
+function endExpiredSession() {
+  currentUserId = null;
+  void supabaseClient?.auth.signOut({ scope: 'local' });
+}
+
 function showCenteredNotice(titleText, messageText = '', onClose = null) {
   const modal = document.getElementById('service-preparing-modal');
   const title = document.getElementById('service-preparing-title');
   const message = modal?.querySelector('p');
+  const requiresLogin = `${titleText}\n${messageText}`.includes('로그인이 필요합니다');
 
   if (!modal || !title || !message) {
     window.alert(messageText ? `${titleText}\n${messageText}` : titleText);
+    if (requiresLogin) endExpiredSession();
     return;
   }
 
-  noticeCloseAction = typeof onClose === 'function' ? onClose : null;
+  noticeCloseAction = typeof onClose === 'function'
+    ? onClose
+    : (requiresLogin ? endExpiredSession : null);
   title.textContent = titleText;
   message.textContent = messageText;
   message.classList.toggle('hidden', !messageText);
@@ -380,7 +389,6 @@ async function checkOneTarget(targetId) {
       showCenteredNotice(
         '로그인이 필요합니다.',
         '확인을 누르면 로그인 화면으로 돌아갑니다.',
-        () => { void supabaseClient?.auth.signOut({ scope: 'local' }); },
       );
     } else {
       showCenteredNotice('현재값 확인 실패', message);
@@ -952,7 +960,10 @@ async function handleAddTarget(e) {
 
   const userId = await getCurrentUserId();
   if (!userId) {
-    window.alert('로그인 정보가 없습니다. 다시 로그인해 주세요.');
+    showCenteredNotice(
+      '로그인이 필요합니다.',
+      '확인을 누르면 로그인 화면으로 돌아갑니다.',
+    );
     return;
   }
 
