@@ -23,8 +23,7 @@ let suppressNextClick = false;
 let suppressClickTimer = null;
 let noticeCloseAction = null;
 let pointerDragState = createPointerDragState();
-let pendingToggleId = null;let webInputMode = 'manual';
-let lastManualSourceType = 'FRED';
+let pendingToggleId = null;
 
 // 알림 조건에 따라 설정값 입력칸을 활성화하거나 비활성화합니다.
 function toggleTargetValueInput(conditionId, valueId) {
@@ -120,6 +119,16 @@ async function getCurrentUserId() {
   return currentUserId;
 }
 
+async function requireCurrentUserId() {
+  const userId = await getCurrentUserId();
+  if (userId) return userId;
+  showCenteredNotice(
+    '로그인이 필요합니다.',
+    '확인을 누르면 로그인 화면으로 돌아갑니다.',
+  );
+  return null;
+}
+
 // ===== DB 연결 상태 표시 =====
 function setDbStatus(state) {
   const statusEl = document.getElementById('db-status');
@@ -145,9 +154,8 @@ function toggleTypeFields() {
   document.getElementById('field-bok')?.classList.toggle('hidden', selectedType !== 'BOK');
 }
 
-// 직접 입력에서 선택한 공식 API 유형을 기억합니다.
+// 선택한 공식 API에 맞는 입력칸만 표시합니다.
 function handleSourceTypeChange() {
-  lastManualSourceType = document.getElementById('input-type')?.value || 'FRED';
   toggleTypeFields();
 }
 
@@ -340,7 +348,6 @@ function finishTargetRegistration(currentValueDisplay = '') {
   renderTargets();
 
   document.getElementById('add-form').reset();
-  lastManualSourceType = 'FRED';
   document.getElementById('input-type').value = 'FRED';
   toggleTypeFields();
   toggleTargetValueInput('input-condition', 'input-target-val');
@@ -548,7 +555,8 @@ async function confirmToggleTarget() {
 
   try {
     if (supabaseClient && !String(id).startsWith('local_')) {
-      const userId = await getCurrentUserId();
+      const userId = await requireCurrentUserId();
+      if (!userId) return;
       const { error } = await supabaseClient
         .from('targets')
         .update({ is_active: nextIsActive })
@@ -898,7 +906,7 @@ function updateDisplayOrder() {
 // 저장 실패 시 서버 목록을 다시 불러와 원래 순서로 복구합니다.
 async function saveOrderToDb() {
   if (!supabaseClient) return;
-  const userId = await getCurrentUserId();
+  const userId = await requireCurrentUserId();
   if (!userId) return;
 
   try {
@@ -939,7 +947,7 @@ async function handleAddTarget(e) {
 
   let url = '';
   let cssSelector = '';
-  let sourceType = 'web';
+  let sourceType = '';
   let sourceConfig = {};
 
   if (type === 'FRED') {
@@ -958,14 +966,8 @@ async function handleAddTarget(e) {
     sourceConfig = { stat_code: statCode, item_code: itemCode, data_cycle: dataCycle };
   }
 
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    showCenteredNotice(
-      '로그인이 필요합니다.',
-      '확인을 누르면 로그인 화면으로 돌아갑니다.',
-    );
-    return;
-  }
+  const userId = await requireCurrentUserId();
+  if (!userId) return;
 
   const newItem = {
     id: 'local_' + Date.now(),
@@ -1052,15 +1054,14 @@ async function saveEditTarget() {
   const targetVal = conditionType === 'changed' || targetValStr === '' ? null : parseFloat(targetValStr);
   const updatedData = {
     title,
-    url,
-    css_selector: cssSelector,
     condition_type: conditionType,
     target_value: targetVal
   };
 
   if (supabaseClient && !currentEditId.toString().startsWith('local_')) {
     try {
-      const userId = await getCurrentUserId();
+      const userId = await requireCurrentUserId();
+      if (!userId) return;
       const { error } = await supabaseClient
       .from('targets')
       .update(updatedData)
@@ -1102,7 +1103,8 @@ async function confirmDeleteTarget() {
   const id = currentDeleteId;
   if (supabaseClient && !id.toString().startsWith('local_')) {
     try {
-      const userId = await getCurrentUserId();
+      const userId = await requireCurrentUserId();
+      if (!userId) return;
       const { error } = await supabaseClient
       .from('targets')
       .delete()
