@@ -50,9 +50,11 @@ async function collect(target: any) {
     const stat = String(config.stat_code || "").trim().toUpperCase();
     const item = String(config.item_code || "").trim();
     const cycle = String(config.data_cycle || "D").trim().toUpperCase();
-    if (!key || !stat || !item) throw new Error("ECOS API 설정이 없습니다.");
+    if (!key || !stat) throw new Error("ECOS API 설정이 없습니다.");
     const range = dateRange(cycle);
-    const url = ["https://ecos.bok.or.kr/api/StatisticSearch", encodeURIComponent(key), "json", "kr", "1", "100", encodeURIComponent(stat), cycle, range.start, range.end, encodeURIComponent(item)].join("/");
+    const parts = ["https://ecos.bok.or.kr/api/StatisticSearch", encodeURIComponent(key), "json", "kr", "1", "100", encodeURIComponent(stat), cycle, range.start, range.end];
+    if (item) parts.push(encodeURIComponent(item));
+    const url = parts.join("/");
     const response = await fetch(url);
     if (!response.ok) throw new Error(`ECOS API 오류 (${response.status})`);
     const rows = (await response.json()).StatisticSearch?.row || [];
