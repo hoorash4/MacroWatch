@@ -163,31 +163,49 @@ function handleSourceTypeChange() {
 // 한국어 검색어는 Edge Function 안의 경제지표 용어 사전으로 FRED 검색어 후보를 만들고,
 // ECOS는 한국어 통계표 후보를 바로 반환합니다. 선택 결과만 기존 입력폼에 반영합니다.
 let indicatorSearchResults = [];
+let indicatorSearchPages = [];
+let indicatorSearchPageIndex = -1;
 let indicatorSearchQuery = '';
-
-function getIndicatorSearchResultKey(result) {
-  return [result.source, result.kind, result.code, result.itemCode || ''].join(':');
-}
+let indicatorSearchSource = '';
+let indicatorSearchHasMore = false;
 
 function closeIndicatorSearchModal() {
   document.getElementById('indicator-search-modal')?.classList.add('hidden');
 }
 
-function renderIndicatorSearchResults(results, warning = '', append = false, allowMore = true) {
+function getIndicatorSearchSource() {
+  return document.getElementById('input-type')?.value === 'BOK' ? 'BOK' : 'FRED';
+}
+
+function getIndicatorSearchSourceLabel(source) {
+  return source === 'BOK' ? '한국은행 ECOS API' : '연준 FRED API';
+}
+
+function getSearchPageExclusions() {
+  return indicatorSearchPages
+    .flat()
+    .map((result) => result.code)
+    .filter(Boolean);
+}
+
+function setIndicatorSearchLoading(button, loading) {
+  if (!button) return;
+  button.disabled = loading;
+  button.textContent = loading ? '찾는 중' : button.dataset.defaultLabel;
+}
+
+function renderIndicatorSearchResults(results, warning = '', showNavigation = true) {
   const container = document.getElementById('indicator-search-results');
   const modal = document.getElementById('indicator-search-modal');
+  const description = document.getElementById('indicator-search-description');
   if (!container || !modal) return;
 
-  if (!append) {
-    indicatorSearchResults = [];
-    container.replaceChildren();
+  container.replaceChildren();
+  if (description) {
+    description.textContent = showNavigation
+      ? `${getIndicatorSearchSourceLabel(indicatorSearchSource)}에서 찾은 후보입니다. 원하는 항목을 선택하면 공식 코드가 자동으로 채워집니다.`
+      : '원하는 통계 항목을 선택하면 공식 코드가 자동으로 채워집니다.';
   }
-
-  container.querySelector('#indicator-search-more')?.remove();
-  const known = new Set(indicatorSearchResults.map(getIndicatorSearchResultKey));
-  const additions = results.filter((result) => !known.has(getIndicatorSearchResultKey(result)));
-  const startIndex = indicatorSearchResults.length;
-  indicatorSearchResults.push(...additions);
 
   if (warning) {
     const warningBox = document.createElement('p');
@@ -196,24 +214,19 @@ function renderIndicatorSearchResults(results, warning = '', append = false, all
     container.append(warningBox);
   }
 
-  if (!additions.length) {
-    if (!append) {
-      const empty = document.createElement('p');
-      empty.className = 'rounded-xl border border-slate-700 bg-slate-950/50 p-5 text-center text-sm text-slate-400';
-      empty.textContent = '일치하는 후보를 찾지 못했습니다. FRED는 영어 검색어로 다시 시도해 주세요.';
-      container.append(empty);
-    } else {
-      const end = document.createElement('p');
-      end.className = 'mt-3 text-center text-xs text-slate-500';
-      end.textContent = '추가 후보가 없습니다.';
-      container.append(end);
-    }
+  if (!results.length) {
+    const empty = document.createElement('p');
+    empty.className = 'rounded-xl border border-slate-700 bg-slate-950/50 p-5 text-center text-sm text-slate-400';
+    empty.textContent = indicatorSearchSource === 'BOK'
+      ? '선택한 ECOS에서 일치하는 후보를 찾지 못했습니다.'
+      : '선택한 FRED에서 일치하는 후보를 찾지 못했습니다. 영어 검색어로도 시도해 보세요.';
+    container.append(empty);
   } else {
-    additions.forEach((result, offset) => {
+    results.forEach((result, index) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'mb-2 w-full rounded-xl border border-slate-700 bg-slate-950/40 p-3 text-left transition hover:border-amber-400 hover:bg-slate-800';
-      button.addEventListener('click', () => selectIndicatorSearchResult(startIndex + offset));
+      button.addEventListener('click', () => selectIndicatorSearchResult(index));
 
       const source = document.createElement('span');
       source.className = result.source === 'FRED'
@@ -236,17 +249,48 @@ function renderIndicatorSearchResults(results, warning = '', append = false, all
     });
   }
 
-  if (allowMore && additions.length) {
-    const more = document.createElement('button');
-    more.id = 'indicator-search-more';
-    more.type = 'button';
-    more.className = 'mt-2 w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-200 transition hover:border-amber-400 hover:text-white';
-    more.textContent = '다른 후보 더 보기';
-    more.addEventListener('click', () => searchIndicators(true));
-    container.append(more);
+  if (showNavigation) {
+    const navigation = document.createElement('div');
+    navigation.className = 'mt-3 flex items-center gap-2';
+
+    const previous = document.createElement('button');
+    previous.type = 'button';
+    previous.className = 'flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-sm font-bold text-slate-200 transition hover:border-amber-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40';
+    previous.textContent = '이전 후보';
+    previous.disabled = indicatorSearchPageIndex <= 0;
+    previous.addEventListener('click', showPreviousIndicatorSearchPage);
+
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.dataset.defaultLabel = '다음 후보';
+    next.className = 'flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-sm font-bold text-slate-200 transition hover:border-amber-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40';
+    next.textContent = '다음 후보';
+    next.disabled = !indicatorSearchHasMore;
+    next.addEventListener('click', showNextIndicatorSearchPage);
+
+    navigation.append(previous, next);
+    container.append(navigation);
   }
 
   modal.classList.remove('hidden');
+}
+
+function showPreviousIndicatorSearchPage() {
+  if (indicatorSearchPageIndex <= 0) return;
+  indicatorSearchPageIndex -= 1;
+  indicatorSearchResults = indicatorSearchPages[indicatorSearchPageIndex] || [];
+  renderIndicatorSearchResults(indicatorSearchResults);
+}
+
+async function showNextIndicatorSearchPage(event) {
+  if (indicatorSearchPageIndex < indicatorSearchPages.length - 1) {
+    indicatorSearchPageIndex += 1;
+    indicatorSearchResults = indicatorSearchPages[indicatorSearchPageIndex] || [];
+    renderIndicatorSearchResults(indicatorSearchResults);
+    return;
+  }
+  if (!indicatorSearchHasMore) return;
+  await searchIndicators(true, event.currentTarget);
 }
 
 function buildFredSearchTerms(query) {
@@ -273,14 +317,14 @@ function handleIndicatorSearchKeydown(event) {
   searchIndicators();
 }
 
-async function searchIndicators(loadMore = false) {
+async function searchIndicators(loadNextPage = false, navigationButton = null) {
   const input = document.getElementById('indicator-search-query');
   const mainButton = document.getElementById('indicator-search-button');
-  const moreButton = document.getElementById('indicator-search-more');
-  const query = loadMore ? indicatorSearchQuery : (input?.value.trim() || '');
+  const query = loadNextPage ? indicatorSearchQuery : (input?.value.trim() || '');
+  const source = loadNextPage ? indicatorSearchSource : getIndicatorSearchSource();
 
   if (query.length < 2) {
-    showCenteredNotice('검색어를 입력해 주세요.', '두 글자 이상 입력하면 FRED와 ECOS의 공식 지표 후보를 찾습니다.');
+    showCenteredNotice('검색어를 입력해 주세요.', '두 글자 이상 입력하면 선택한 공식 API에서 지표 후보를 찾습니다.');
     return;
   }
 
@@ -289,18 +333,24 @@ async function searchIndicators(loadMore = false) {
     return;
   }
 
-  const button = loadMore ? moreButton : mainButton;
-  if (button) {
-    button.disabled = true;
-    button.textContent = '찾는 중';
-  }
+  const button = loadNextPage ? navigationButton : mainButton;
+  if (button && !button.dataset.defaultLabel) button.dataset.defaultLabel = button.textContent;
+  setIndicatorSearchLoading(button, true);
 
   try {
     const { data } = await supabaseClient.auth.getSession();
     const token = data.session?.access_token;
     if (!token) throw new Error('로그인이 필요합니다.');
 
-    if (!loadMore) indicatorSearchQuery = query;
+    if (!loadNextPage) {
+      indicatorSearchQuery = query;
+      indicatorSearchSource = source;
+      indicatorSearchResults = [];
+      indicatorSearchPages = [];
+      indicatorSearchPageIndex = -1;
+      indicatorSearchHasMore = true;
+    }
+
     const response = await fetch(SUPABASE_URL + '/functions/v1/search-indicators', {
       method: 'POST',
       headers: {
@@ -310,15 +360,30 @@ async function searchIndicators(loadMore = false) {
       },
       body: JSON.stringify({
         action: 'search',
+        source,
         query,
-        fredQueries: buildFredSearchTerms(query),
-        excludedCodes: indicatorSearchResults.map((result) => result.code),
+        fredQueries: source === 'FRED' ? buildFredSearchTerms(query) : [],
+        excludedCodes: getSearchPageExclusions(),
       }),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || '지표 후보를 불러오지 못했습니다.');
 
-    renderIndicatorSearchResults(payload.results || [], payload.warning || '', loadMore);
+    const results = Array.isArray(payload.results) ? payload.results : [];
+    if (results.length) {
+      indicatorSearchPages.push(results);
+      indicatorSearchPageIndex = indicatorSearchPages.length - 1;
+      indicatorSearchResults = results;
+      indicatorSearchHasMore = true;
+    } else {
+      indicatorSearchHasMore = false;
+      if (indicatorSearchPageIndex < 0) {
+        indicatorSearchResults = [];
+      } else {
+        indicatorSearchResults = indicatorSearchPages[indicatorSearchPageIndex] || [];
+      }
+    }
+    renderIndicatorSearchResults(indicatorSearchResults, payload.warning || '');
   } catch (error) {
     const message = error?.message || '지표 후보를 불러오지 못했습니다.';
     if (message.includes('로그인이 필요합니다')) {
@@ -327,10 +392,7 @@ async function searchIndicators(loadMore = false) {
       showCenteredNotice('지표 후보 검색 실패', message);
     }
   } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = loadMore ? '다른 후보 더 보기' : '찾기';
-    }
+    setIndicatorSearchLoading(button, false);
   }
 }
 
@@ -358,7 +420,8 @@ async function selectIndicatorSearchResult(index) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'ECOS 통계 항목을 불러오지 못했습니다.');
-      renderIndicatorSearchResults(payload.results || [], '', false, false);
+      indicatorSearchResults = payload.results || [];
+      renderIndicatorSearchResults(indicatorSearchResults, '', false);
     } catch (error) {
       closeIndicatorSearchModal();
       showCenteredNotice('ECOS 항목 검색 실패', error?.message || '통계 항목을 불러오지 못했습니다.');
@@ -380,6 +443,7 @@ async function selectIndicatorSearchResult(index) {
 
   closeIndicatorSearchModal();
 }
+
 
 // ===== 추적 지표 목록 불러오기 =====
 async function fetchTargets() {
